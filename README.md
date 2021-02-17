@@ -3,13 +3,16 @@ SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 
 SPDX-License-Identifier: MPL-2.0
 -->
-
 # Weather Provider Library and API
 
 This API is intended to help you fetch weather data from different data sources in an efficient and uniform way.
 By just supplying a list of locations and a time window you can get data for a specific source immediately.
 
-The data sources currently supported by this API are as follows:
+This project can currently be found on the following location:
+https://github.com/alliander-opensource/Weather-Provider-API
+
+The project uses a number of data sources for the acquisition of weather data. Currently being supported by this API 
+are the following weather data sources:
 
 **DATA SOURCE #1: KNMI Historical data per day / hour**
 
@@ -155,12 +158,12 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 This project was initially created by:
 
-* **Tongyou Gu** - *API development*
+* **Tongyou Gu** - *Original API development*
 * **Jeroen van de Logt** - *Functions in utilities*
 * **Bas Niesink** - *Implementation weather REST API*
 * **Raoul Linnenbank** - *Active API Development, Geo positioning, CDS ERA5, caching, remodeling, Harmonie Arome and optimisation*
 
-Currently this project is governed in an open source fashion, this is documented in [PROJECT_GOVERNANCE](PROJECT_GOVERNANCE.md).
+Currently, this project is governed in an open source fashion, this is documented in [PROJECT_GOVERNANCE](PROJECT_GOVERNANCE.md).
 
 ## License
 
@@ -171,5 +174,7 @@ This project is licensed under the Mozilla Public License, version 2.0 - see the
 Thanks to team Inzicht & Analytics and Strategie & Innovatie to
 make this project possible.
 
-Big thanks to guys of IT New Business & R&D to provide
+A big thanks as well to Alliander for being the main sponsor for this open source project.  
+
+And of course a big thanks to the guys of IT New Business & R&D to provide
 such an easy-to-use Python environment in the cloud.
