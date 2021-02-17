@@ -9,9 +9,9 @@ We'd love to accept your patches and contributions to this project. There are
 just a few small guidelines you need to follow.
 
 
-## Filing bugs and change requests
+## Filing bugs, change requests and questions
 
-You can file bugs against and change requests for the project via github issues. Consult [GitHub Help](https://docs.github.com/en/free-pro-team@latest/github/managing-your-work-on-github/creating-an-issue) for more
+You can file bugs against, change requests for and questions about the project via github issues. Consult [GitHub Help](https://docs.github.com/en/free-pro-team@latest/github/managing-your-work-on-github/creating-an-issue) for more
 information on using github issues.
 
 ## Community Guidelines
