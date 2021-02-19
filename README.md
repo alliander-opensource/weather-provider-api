@@ -171,7 +171,7 @@ This project is licensed under the Mozilla Public License, version 2.0 - see LIC
 
 ## Licenses third-party code
 
-This project includes third-party code, which are licensed under their own respective Open-Source licenses. SPDX-License-Identifier headers are used to show which license is applicable. The concerning license files can be found in the LINCESES directory. 
+This project includes third-party code, which is licensed under their own respective Open-Source licenses. SPDX-License-Identifier headers are used to show which license is applicable. The concerning license files can be found in the LICENSES directory. 
 
 ## Acknowledgments
 
