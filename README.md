@@ -167,7 +167,11 @@ Currently, this project is governed in an open source fashion, this is documente
 
 ## License
 
-This project is licensed under the Mozilla Public License, version 2.0 - see the LICENSE directory for details
+This project is licensed under the Mozilla Public License, version 2.0 - see LICENSE for details
+
+## Licenses third-party code
+
+This project includes third-party code, which is licensed under their own respective Open-Source licenses. SPDX-License-Identifier headers are used to show which license is applicable. The concerning license files can be found in the LICENSES directory. 
 
 ## Acknowledgments
 
