@@ -22,6 +22,6 @@ setuptools
 starlette==0.13.6
 starlette_prometheus==0.7.0
 structlog==20.2.0
-urllib3==1.26.3
+urllib3==1.26.4
 uvicorn==0.13.3
 xarray==0.16.2
