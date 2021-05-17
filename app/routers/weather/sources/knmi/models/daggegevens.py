@@ -258,6 +258,7 @@ class DagGegevensModel(WeatherModelBase):
         params = self._create_request_params(
             start, end, inseason, stations, weather_factors
         )
+        print(params)
         r = requests.post(url=self.download_url, data=params)
 
         if r.status_code != 200:
@@ -330,6 +331,7 @@ class DagGegevensModel(WeatherModelBase):
             usecols=cols,
         )
 
+        print(df)
         # parse df
         df["time"] = pd.to_datetime(df["YYYYMMDD"], format="%Y%m%d")
         del df["YYYYMMDD"]

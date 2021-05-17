@@ -153,10 +153,9 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
                 datetime=datetime.utcnow(),
             )
             raise FileNotFoundError(
-                f"The repository did not contain any files for the period of {begin} to {end}. "
-                f"The active repository period for {self.repository_name} is "
-                f"[{self.first_day_of_repo} - {self.last_day_of_repo}], and its currently oldest "
-                f"gathered file is labeled as [{oldest_file}]. "
+                f"The [{self.repository_name}] repository does not contain data for the period of [{begin.date()}] to "
+                f"[{end.date()}]. To preserve storage this repository only stores up to the file holding the date of "
+                f"[{self.first_day_of_repo.date()}]"
             )
 
         # Load files into datasets, select the requested data and aggregate that into a single dataset
