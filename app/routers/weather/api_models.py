@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import json
+import math
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
@@ -130,7 +131,7 @@ class FloatEncoder(json.JSONEncoder):
 
     def iterencode(self, obj, **kwargs):
         if isinstance(obj, float):
-            if obj != obj:  # This checks for NaNs ;-)
+            if math.isnan(obj):  # This checks for NaNs ;-)
                 yield "null"
             elif obj == FloatEncoder.INFINITY:
                 yield "Infinity"

@@ -5,10 +5,9 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-""" Main API executable
-
-This module contains everything required to fully boot the Weather Provider API.
-Its '__main__' if-clause handles running it directly from a directory or IDE
+"""Main API executable
+This module contains everything required to boot the Weather Provider API.
+Its '__main__' if-clause handles running it directly from a directory or IDE setting.
 
 """
 
