@@ -53,7 +53,7 @@ def test_retrieve_weather(monkeypatch, mock_coordinates, start, end):
         uurgegevens_model.get_weather(coords=mock_geoposition_coordinates, begin=start, end=end,
                                       weather_factors=None)
 
-    assert str(e.value.args[0]) == "The KNMI website is down!"
+    assert str(e.value.args[0]) == "Failed to retrieve data from the KNMI website"
 
 
 def test__create_request_params():
