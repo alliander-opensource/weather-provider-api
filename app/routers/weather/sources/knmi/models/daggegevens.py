@@ -254,6 +254,7 @@ class DagGegevensModel(WeatherModelBase):
             A field containing the full response of the made download-request (text-based)
         """
         # fetch data
+        fix/arome_without_pygrib_and_daggegevens_uurgegevens_fix
         params = self._create_request_params(start, end, inseason, stations, weather_factors)
         r = requests.post(url=self.download_url, data=params)
 
@@ -307,6 +308,7 @@ class DagGegevensModel(WeatherModelBase):
             if weather_factor in dataframe_data.keys():
                 conversion_dict[weather_factor] = np.float64
 
+        fix/arome_without_pygrib_and_daggegevens_uurgegevens_fix
         dataframe_data = dataframe_data.astype(conversion_dict)
         dataframe_data = dataframe_data.set_index(["station_code", "date"])
 
