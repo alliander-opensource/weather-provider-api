@@ -8,5 +8,5 @@
 from app.routers.weather.sources.knmi.client.arome_repository import AromeRepository
 
 if __name__ == "__main__":
-    era5sl_repo = AromeRepository()
-    era5sl_repo.purge_repository()
+    arome_repo = AromeRepository()
+    arome_repo.purge_repository()

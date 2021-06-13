@@ -8,6 +8,7 @@
 """KNMI hour models data fetcher.
 """
 import copy
+import json
 from datetime import datetime
 from io import StringIO
 from typing import List, Optional
@@ -33,21 +34,23 @@ class UurgegevensModel(WeatherModelBase):
         KNMI Uurgegevens
     dataset into the Weather Provider API
     """
-
     def __init__(self):
         super().__init__()
         self.id = "uurgegevens"
         self.name = "KNMI uurgegevens"
         self.version = None
-        self.url = "https://projects.knmi.nl/klimatologie/uurgegevens/selectie.cgi"
+        self.url = "https://daggegevens.knmi.nl/klimatologie/uurgegevens"
         self.predictive = False
-        self.time_step_size_minutes = 60
+        self.time_step_size_minutes = 1440
         self.num_time_steps = 0
         self.description = (
             "Hourly weather measurements. Can be returned for a specified period. "
             "The number of measurements returned depends on this period selection."
         )
         self.async_model = False
+        self.download_url = (
+            "https://daggegevens.knmi.nl/klimatologie/uurgegevens"
+        )
 
         self.to_si = {
             "DD": {"convert": self.no_conversion},
@@ -147,7 +150,7 @@ class UurgegevensModel(WeatherModelBase):
         weather_factors: List[str] = None,
     ) -> xr.Dataset:
         """
-            The function that gathers and processes the requested Uurgegevens weather data from the KNMI site
+            The function that gathers and processes the requested Daggegevens weather data from the KNMI site
             and returns it as an Xarray Dataset.
             (Though this model downloads from a specific download url, the question remains whether this source is also
             listed on the new KNMI Data Platform)
@@ -155,38 +158,35 @@ class UurgegevensModel(WeatherModelBase):
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
+            inseason:           A boolean representing the "inseason" parameter
             weather_factors:    A list of weather factors to request data for (in string format)
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
-
-        NOTES:
-            Besides the singular weather factors, Uurgegevens also knows the following weather factor groups:
-            WIND == DD:FH:FF:FX       -Wind
-            TEMP == T:T10N:TD         -Temperature
-            SUNR == SQ:Q              -Sunshine duration and global radiation
-            PRCP == DR:RH             -Precipitation and potential evaporation
-            VICL == VV:N:U            -Visibility, cloud cover and relative humidity
-            WEER == M:R:S:O:Y:WW      -Weather phenomena, weather types
-            ALL  == All of the factors
         """
-        # TODO: Switch to KNMI Data Platform when supported (and found)
-
-        # Get a list of relevant STNs to a location, and choose the closest STN
-        coords_stn, stns, coords_stn_ind = find_closest_stn_list(
+        # Test and account for invalid datetime timeframes or input
+        begin, end = validate_begin_and_end(
+            begin, end, None, datetime.utcnow() - relativedelta(days=1)
+        )
+        # Get a list of the relevant STNs and choose the closest STN for each coordinate
+        station_id, stns, coords_stn_ind = find_closest_stn_list(
             stations_history, coords
         )
 
-        updated_weather_factors = self._request_weather_factors(weather_factors)
+        # Download the weather data for the relevant STNs
+        raw_data = self._download_weather(
+            stations=stns,
+            start=begin,
+            end=end,
+            weather_factors=weather_factors,
+        )
 
-        # download weather data
-        raw_data = self._download_weather(stns, begin, end, updated_weather_factors)
+        # Parse the raw data into a Dataset
+        raw_ds = self._parse_raw_weather_data(raw_data)
 
-        # parse raw data
-        raw_ds = self._parse_raw_data(raw_data)
+        # Prepare and format the weather data for output
+        ds = self._prepare_weather_data(coords, station_id, raw_ds)
 
-        # prepare the weather data for output
-        ds = self._prepare_weather_data(coords, coords_stn, raw_ds)
-
+        # The KNMI model isn't working properly yet, so we have to cut out any overflow time-wise..
         ds = ds.sel(time=slice(begin, end))
         return ds
 
@@ -196,7 +196,7 @@ class UurgegevensModel(WeatherModelBase):
     def _download_weather(
         self,
         stations: List[int],
-        begin: datetime,
+        start: datetime,
         end: datetime,
         weather_factors: List[str] = None,
     ):
@@ -204,112 +204,94 @@ class UurgegevensModel(WeatherModelBase):
             A function that downloads the weather from the KNMI download location and returns it as a text
         Args:
             stations:           A list containing the requested stations
-            begin:              A datetime containing the start of the period to request data for.
+            start:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             weather_factors:    A list of weather factors to request data for (in string format)
         Returns:
             A field containing the full response of the made download-request (text-based)
         """
-        url = "http://projects.knmi.nl/klimatologie/uurgegevens/getdata_uur.cgi"
-
-        # Validate begin and end datetimes
-        begin, end = validate_begin_and_end(
-            begin, end, None, datetime.utcnow() - relativedelta(days=1)
-        )
-
         # fetch data
-        params = self._create_request_params(begin, end, stations, weather_factors)
-        r = requests.post(url=url, data=params)
+        params = self._create_request_params(start, end, stations, weather_factors)
+        r = requests.post(url=self.download_url, data=params)
+
         if r.status_code != 200:
             raise requests.HTTPError(
-                "The KNMI website is down!", r.status_code, url, params
+                "Failed to retrieve data from the KNMI website",
+                r.status_code,
+                self.download_url,
+                params,
             )
         return r.text
 
-    @staticmethod
-    def _create_request_params(begin, end, stations, weather_factors):
+    def _create_request_params(self, start, end, stations, weather_factors):
         """
             A Function that transforms the request settings into parameters usable for the KMNI download request.
         Args:
-            begin:              A datetime containing the start of the period to request data for.
+            start:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             stations:           A list containing the requested stations
             weather_factors:    A list of weather factors to request data for (in string format)
         Returns:
             A params field (string) containing the matching settings for a KNMI Daggegevens download request.
         """
-
-        # Build the parameter dictionary for the download request.
         params = {
+            "fmt": "json",
             "stns": ":".join(str(station) for station in stations),
-            "start": f"{begin.strftime('%Y%m%d')}01",
+            "start": f"{start.strftime('%Y%m%d')}01",
             "end": f"{end.strftime('%Y%m%d')}24",
         }
-
         if weather_factors is None:
             weather_factors = ["ALL"]
 
-        params["vars"] = ":".join(weather_factors)
+        updated_weather_factors = self._request_weather_factors(weather_factors)
+
+        params["vars"] = ":".join(updated_weather_factors)
+
         return params
 
-    @staticmethod
-    def _parse_raw_data(raw_data: str) -> xr.Dataset:
-        """
-            A function that parses the raw data (string-based) from the KNMI Daggegevens dataset into an Xarray Dataset
-        Args:
-            raw_data:   The raw text from the file as it was downloaded from the download link.
-        Returns:
-            An Xarray Dataset that holds all of the weather data that was in the original raw_data, but formatted.
-        """
-        raw_data = raw_data.replace("# STN,YYYYMMDD", "STN,YYYYMMDD")  # Clean up
+    def _parse_raw_weather_data(self, raw_data: str) -> xr.Dataset:
+        json_data = json.loads(raw_data)
+        dataframe_data = pd.DataFrame.from_dict(json_data, orient='columns')
 
-        # First convert to a Pandas Dataframe
-        cols = (
-            pd.read_csv(
-                StringIO(raw_data),
-                comment="#",
-                nrows=1,
-                header=None,
-                skipinitialspace=True,
-            )
-            .T.drop_duplicates()
-            .index
-        )
+        conversion_dict = {
+            'date': 'datetime64[ns]',
+            'hour': str,
+            'station_code': int,
+        }
+        for weather_factor in self.to_si.keys():
+            if weather_factor in dataframe_data.keys():
+                conversion_dict[weather_factor] = np.float64
 
-        df = pd.read_csv(
-            StringIO(raw_data),
-            comment="#",
-            header=0,
-            skipinitialspace=True,
-            usecols=cols,
-        )
+        # KNMI measures the -th hour. (The 24th hour is from 23:00 to 00:00 the next day) We use 23:00 to indicate that.
+        dataframe_data['hour'] = dataframe_data['hour'] - 1
+        dataframe_data = dataframe_data.astype(conversion_dict)
 
-        # Then parse the Dataframe
-        df["int_date_time"] = df["YYYYMMDD"] * 100 + df["HH"] - 1
-        df["time"] = pd.to_datetime(df["int_date_time"], format="%Y%m%d%H")
-        del df["YYYYMMDD"]
-        del df["int_date_time"]
-        del df["HH"]
-        df.set_index(["time", "STN"], inplace=True)
-        df = df.astype(np.float64)
+        # Convert hours from time to timestamp
+        dataframe_data['timestamp'] = pd.to_timedelta(dataframe_data['hour'] + ':00:00')
 
-        # Finally, convert into a Xarray Dataset
-        ds = df.to_xarray()
-        return ds
+        # Merge the hours with the date field and drop the timestamp and hour fields
+        dataframe_data['date'] = dataframe_data['date'] + dataframe_data['timestamp']
+        dataframe_data.drop(['hour', 'timestamp'], axis=1, inplace=True)
+
+        dataframe_data = dataframe_data.set_index(["station_code", "date"])
+
+        return dataframe_data.to_xarray()
 
     @staticmethod
-    def _prepare_weather_data(coordinates, coords_stn, raw_ds):
+    def _prepare_weather_data(coordinates: List[GeoPosition], station_id, raw_ds):
         # A function that prepares the weather data for return by the API, by replacing the matching station with the
         # lat/lon location that was requested, and properly formatting the dimensions.
 
         # re-arrange stns
-        ds = raw_ds.sel(STN=coords_stn)
+        ds = raw_ds.sel(station_code=station_id)
+
         # dict of data
         data_dict = {
-            var_name: (["time", "coord"], var.values)
+            var_name: (["coord", "time"], var.values)
             for var_name, var in ds.data_vars.items()
         }
-        timeline = ds.coords["time"].values
+        timeline = ds.coords["date"].values
+
         ds = xr.Dataset(
             data_vars=data_dict,
             coords={"time": timeline, "coord": coords_to_pd_index(coordinates)},
@@ -334,5 +316,11 @@ class UurgegevensModel(WeatherModelBase):
             elif f_low in self.human_to_model_specific:
                 # KNMI daggegevens and uurgegevens with human names
                 new_factors.append(self.human_to_model_specific[f_low])
+            else:
+                try:
+                    if f_up in self.knmi_aliases:
+                        new_factors.append(f_up)
+                except AttributeError:
+                    continue
 
         return list(set(new_factors))  # Cleanup any duplicate values and return

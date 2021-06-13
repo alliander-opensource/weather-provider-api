@@ -10,8 +10,8 @@
 """
 
 import copy
+import json
 from datetime import datetime
-from io import StringIO
 from typing import List, Optional
 
 import numpy as np
@@ -41,7 +41,7 @@ class DagGegevensModel(WeatherModelBase):
         self.id = "daggegevens"
         self.name = "KNMI daggegevens"
         self.version = None
-        self.url = "https://projects.knmi.nl/klimatologie/daggegevens/selectie.cgi"
+        self.url = "https://daggegevens.knmi.nl/klimatologie/daggegevens"
         self.predictive = False
         self.time_step_size_minutes = 1440
         self.num_time_steps = 0
@@ -51,7 +51,7 @@ class DagGegevensModel(WeatherModelBase):
         )
         self.async_model = False
         self.download_url = (
-            "http://projects.knmi.nl/klimatologie/daggegevens/getdata_dag.cgi"
+            "https://daggegevens.knmi.nl/klimatologie/daggegevens"
         )
 
         self.to_si = {
@@ -203,13 +203,10 @@ class DagGegevensModel(WeatherModelBase):
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
-        # TODO: Switch to KNMI Data Platform when supported (and found)
-
         # Test and account for invalid datetime timeframes or input
         begin, end = validate_begin_and_end(
             begin, end, None, datetime.utcnow() - relativedelta(days=1)
         )
-
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
         station_id, stns, coords_stn_ind = find_closest_stn_list(
             stations_history, coords
@@ -229,6 +226,9 @@ class DagGegevensModel(WeatherModelBase):
 
         # Prepare and format the weather data for output
         ds = self._prepare_weather_data(coords, station_id, raw_ds)
+
+        # The KNMI model isn't working properly yet, so we have to cut out any overflow time-wise..
+        ds = ds.sel(time=slice(begin, end))
         return ds
 
     def is_async(self):  # pragma: no cover
@@ -253,12 +253,9 @@ class DagGegevensModel(WeatherModelBase):
         Returns:
             A field containing the full response of the made download-request (text-based)
         """
-
         # fetch data
-        params = self._create_request_params(
-            start, end, inseason, stations, weather_factors
-        )
-        print(params)
+        fix/arome_without_pygrib_and_daggegevens_uurgegevens_fix
+        params = self._create_request_params(start, end, inseason, stations, weather_factors)
         r = requests.post(url=self.download_url, data=params)
 
         if r.status_code != 200:
@@ -283,63 +280,39 @@ class DagGegevensModel(WeatherModelBase):
             A params field (string) containing the matching settings for a KNMI Daggegevens download request.
         """
         params = {
+            "fmt": "json",
             "stns": ":".join(str(station) for station in stations),
             "start": start.strftime("%Y%m%d"),
             "end": end.strftime("%Y%m%d"),
         }
-        if inseason is True:
+        if inseason:
             params["inseason"] = "Y"
+
         if weather_factors is None:
             weather_factors = ["ALL"]
 
         updated_weather_factors = self._request_weather_factors(weather_factors)
-
         params["vars"] = ":".join(updated_weather_factors)
 
         return params
 
-    @staticmethod
-    def _parse_raw_weather_data(raw_data: str) -> xr.Dataset:
-        """
-            A function that parses the raw data (string-based) from the KNMI Daggegevens dataset into an Xarray Dataset
-        Args:
-            raw_data:   The raw text from the file as it was downloaded from the download link.
-        Returns:
-            An Xarray Dataset that holds all of the weatherdata that was in the original raw_data, but formatted.
-        """
+    def _parse_raw_weather_data(self, raw_data: str) -> xr.Dataset:
+        json_data = json.loads(raw_data)
+        dataframe_data = pd.DataFrame.from_dict(json_data, orient='columns')
 
-        # convert to data frame
-        raw_data = raw_data.replace("# STN,YYYYMMDD", "STN,YYYYMMDD")
+        conversion_dict = {
+            'date': 'datetime64[ns]',
+            'station_code': int,
+        }
+        for weather_factor in self.to_si.keys():
+            if weather_factor in dataframe_data.keys():
+                conversion_dict[weather_factor] = np.float64
 
-        # Read with the removal of duplicates columns
-        cols = (
-            pd.read_csv(
-                StringIO(raw_data),
-                comment="#",
-                nrows=1,
-                header=None,
-                skipinitialspace=True,
-            )
-            .T.drop_duplicates()
-            .index
-        )
-        df = pd.read_csv(
-            StringIO(raw_data),
-            comment="#",
-            header=0,
-            skipinitialspace=True,
-            usecols=cols,
-        )
+        fix/arome_without_pygrib_and_daggegevens_uurgegevens_fix
+        dataframe_data = dataframe_data.astype(conversion_dict)
+        dataframe_data = dataframe_data.set_index(["station_code", "date"])
 
-        print(df)
-        # parse df
-        df["time"] = pd.to_datetime(df["YYYYMMDD"], format="%Y%m%d")
-        del df["YYYYMMDD"]
-        df.set_index(["time", "STN"], inplace=True)
-        df = df.astype(np.float64)
-        # convert to data set
-        ds = df.to_xarray()
-        return ds
+        return dataframe_data.to_xarray()
 
     @staticmethod
     def _prepare_weather_data(coordinates: List[GeoPosition], station_id, raw_ds):
@@ -347,14 +320,14 @@ class DagGegevensModel(WeatherModelBase):
         # lat/lon location that was requested, and properly formatting the dimensions.
 
         # re-arrange stns
-        ds = raw_ds.sel(STN=station_id)
+        ds = raw_ds.sel(station_code=station_id)
 
         # dict of data
         data_dict = {
-            var_name: (["time", "coord"], var.values)
+            var_name: (["coord", "time"], var.values)
             for var_name, var in ds.data_vars.items()
         }
-        timeline = ds.coords["time"].values
+        timeline = ds.coords["date"].values
 
         ds = xr.Dataset(
             data_vars=data_dict,
@@ -380,5 +353,12 @@ class DagGegevensModel(WeatherModelBase):
             elif f_low in self.human_to_model_specific:
                 # KNMI daggegevens and uurgegevens with human names
                 new_factors.append(self.human_to_model_specific[f_low])
+            else:
+                try:
+                    if f_up in self.knmi_aliases:
+                        new_factors.append(f_up)
+                except AttributeError:
+                    continue
+
 
         return list(set(new_factors))  # Cleanup any duplicate values and return
