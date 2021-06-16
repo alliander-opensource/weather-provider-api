@@ -232,7 +232,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-tests/coverage/
+weather_provider_api/tests/coverage/
 
 
 # Environments

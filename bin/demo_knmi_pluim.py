@@ -9,9 +9,9 @@ from datetime import datetime
 
 import xarray as xr
 
-from app.routers.weather.api_models import ResponseFormat, OutputUnit, WeatherContentRequestQuery
-from app.routers.weather.api_view_v2 import controller
-from app.routers.weather.utils import serializers
+from weather_provider_api.app.routers.weather.api_models import ResponseFormat, OutputUnit, WeatherContentRequestQuery
+from weather_provider_api.app.routers.weather.api_view_v2 import controller
+from weather_provider_api.app.routers import serializers
 
 """
     This is a DEMO for a specific weather model: KNMI Pluim
