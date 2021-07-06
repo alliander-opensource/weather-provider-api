@@ -154,6 +154,9 @@ Usually this will be either a specific Weather Model or the Weather Controller.
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
+## Contact
+To contact the project owners directly please e-mail us at [weather.provider@alliander.com](mailto://weather.provider@alliander.com)
+            
 ## Authors
 
 This project was initially created by:
