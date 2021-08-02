@@ -65,7 +65,13 @@ class AromeRepository(WeatherRepositoryBase):
         Returns:
             A RepositoryUpdateResult value indicating a completion, time-out or failure of the update process
         """
-        self.cleanup()  # Always start with a cleaned up repository
+        # Always start with a cleaned up repository
+        self.cleanup()
+
+        # Update the repo timeframe
+        self.first_day_of_repo = datetime.utcnow() - relativedelta(years=1)
+        self.first_day_of_repo = self.first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
         update_start = datetime.utcnow()
         items_processed = 0
         average_per_item = 300  # Assuming 5 minutes processing time for the first item to be safe

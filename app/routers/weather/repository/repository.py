@@ -10,7 +10,7 @@ import shutil
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from enum import Enum
-from os.path import basename, splitext
+from fastapi import HTTPException
 from pathlib import Path
 from typing import List
 
@@ -147,16 +147,15 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         file_list = self._get_file_list_for_period(begin, end)
 
         if len(file_list) == 0:
-            oldest_file = self.get_oldest_repository_file()
             self.logger.error(
                 f"No files were found for the period of {begin} to {end}",
                 datetime=datetime.utcnow(),
             )
-            raise FileNotFoundError(
-                f"The [{self.repository_name}] repository does not contain data for the period of [{begin.date()}] to "
-                f"[{end.date()}]. To preserve storage this repository only stores up to the file holding the date of "
-                f"[{self.first_day_of_repo.date()}]"
-            )
+            raise HTTPException(404, f"No data was found for the period of [{begin.date()}] to [{end.date()}] in "
+                                     f"repository [{self.repository_name}]. As this range lies within the repository's "
+                                     f"storage timeframe of [{self.first_day_of_repo}] to [{self.last_day_of_repo}], "
+                                     f"we suggest retrying in a couple of days. If still no data is found at that time,"
+                                     f"please contact us at [weather.provider@alliander.com].")
 
         # Load files into datasets, select the requested data and aggregate that into a single dataset
         ds = xr.Dataset()
@@ -340,12 +339,3 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
         print("This method is abstract and should be overridden.")
         return [GeoPosition(0, 0)]
-
-    def get_oldest_repository_file(self):
-        oldest_file = Path(
-            self._get_file_list_for_period(
-                self.first_day_of_repo, self.last_day_of_repo
-            )[0]
-        )
-        oldest_file = splitext(basename(oldest_file))[0]
-        return oldest_file[len(self.file_prefix) + 1:]

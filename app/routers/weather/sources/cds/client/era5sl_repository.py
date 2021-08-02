@@ -47,15 +47,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         self.file_identifier_length = 7
         self.age_of_permanence_in_months = 3
 
-        self.first_day_of_repo = datetime.utcnow() - relativedelta(years=3, days=5)
-        self.first_day_of_repo = self.first_day_of_repo.replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )
-
-        self.last_day_of_repo = datetime.utcnow() - relativedelta(days=5)
-        self.last_day_of_repo = self.last_day_of_repo.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        self.first_day_of_repo, self.last_day_of_repo = self._get_first_and_last_day_of_repo()
 
         self.logger.debug(
             f"Initialized {self.repository_name} repository", datetime=datetime.utcnow()
@@ -74,7 +66,12 @@ class ERA5SLRepository(WeatherRepositoryBase):
         Returns:
             A RepositoryUpdateResult value indicating a completion, time-out or failure of the update process
         """
-        self.cleanup()  # Always start with a nicely cleaned repository
+        # Always start with a nicely cleaned repository
+        self.cleanup()
+
+        # Update the repo timeframe
+        self.first_day_of_repo, self.last_day_of_repo = self._get_first_and_last_day_of_repo()
+
         update_start = datetime.utcnow()
         items_processed = 0
         average_time_per_item = (
@@ -422,6 +419,19 @@ class ERA5SLRepository(WeatherRepositoryBase):
                 list_of_filtered_files.append(file)
 
         return list_of_filtered_files
+
+    @staticmethod
+    def _get_first_and_last_day_of_repo():
+        first_day_of_repo = datetime.utcnow() - relativedelta(years=3, days=5)
+        first_day_of_repo = first_day_of_repo.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
+        last_day_of_repo = datetime.utcnow() - relativedelta(days=5)
+        last_day_of_repo = last_day_of_repo.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        return first_day_of_repo, last_day_of_repo
 
     def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
         # Rounds a list of GeoPositions to the resolution set through grid_resolution

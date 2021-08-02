@@ -8,7 +8,8 @@
 from fastapi import FastAPI
 
 from app.routers.weather.api_view_v1 import app as weather_router
+from app_config import get_setting
 
-app = FastAPI(title="Weather API", root_path="/api/v1")
+app = FastAPI(title="Weather API", root_path="/api/v1", version=get_setting("APP_V1_VERSION"))
 
 app.include_router(weather_router, prefix="/weather")

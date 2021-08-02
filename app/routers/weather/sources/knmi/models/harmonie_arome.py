@@ -40,6 +40,8 @@ class AromeModel(WeatherModelBase):
             f"Initializing weather model [{self.id}]", datetime=datetime.utcnow()
         )
 
+        self.repository = AromeRepository()
+
         self.name = "harmonie_arome_cy_p1"
         self.version = "0.3"
         self.url = "ftp://data.knmi.nl/download/harmonie_arome_cy40_p1/0.2/"
@@ -88,9 +90,7 @@ class AromeModel(WeatherModelBase):
             begin, end, datetime.utcnow() - relativedelta(years=1), datetime.utcnow()
         )
 
-        arome_repo = AromeRepository()
-        ds = arome_repo.gather_period(begin, end, coords)
-        print("BEGIN, END ==", begin, end)
+        ds = self.repository.gather_period(begin, end, coords)
         ds = ds.sel(
             prediction_moment=slice(begin, end)
         )  # Slice of any overflowing time-range

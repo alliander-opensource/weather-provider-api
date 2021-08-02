@@ -16,13 +16,15 @@ class BaseConfig(object):
     """
 
     APP_NAME = os.environ.get("APP_NAME", "application")
-    APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION", """Alliander Weather API""")
+    APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION", """Alliander Weather Provider API""")
     APP_MAINTAINER = os.environ.get("APP_MAINTAINER", "DNB/ST Innovatieteam")
     APP_MAINTAINER_EMAIL = os.environ.get(
         "APP_MAINTAINER_EMAIL", "weather.provider@alliander.com"
     )
     SHOW_MAINTAINER = os.environ.get("SHOW_MAINTAINER", False)
-    APP_VERSION = os.environ.get("APP_VERSION", "v2")
+    APP_VERSION = os.environ.get("APP_VERSION", "2.03")
+    APP_V1_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
+    APP_V2_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
     APP_VALID_DATE = os.environ.get("APP_VALID_DATE", "2099-12-31")
     NETWORK_INTERFACE = os.environ.get("NETWORK_INTERFACE", "127.0.0.1")
     NETWORK_PORT = os.environ.get("NETWORK_PORT", 8080)
