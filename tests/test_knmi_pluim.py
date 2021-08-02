@@ -10,6 +10,7 @@ from datetime import datetime
 import pytest
 import requests
 import xarray as xr
+from dateutil.relativedelta import relativedelta
 
 from app.routers.weather.sources.knmi.models.pluim import PluimModel
 from app.routers.weather.utils.geo_position import GeoPosition
@@ -17,12 +18,12 @@ from app.routers.weather.utils.geo_position import GeoPosition
 
 @pytest.fixture()
 def start():
-    return datetime(2018, 1, 1)
+    return datetime.utcnow()
 
 
 @pytest.fixture()
 def end():
-    return datetime(2018, 1, 31)
+    return datetime.utcnow() + relativedelta(days=15)
 
 
 def test_retrieve_weather(monkeypatch, mock_coordinates, start, end):
