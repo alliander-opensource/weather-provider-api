@@ -79,6 +79,10 @@ def validate_begin_and_end(
     Checks the given date parameters and replaces them with default values if they aren't valid.
     The resulting values are then returned.
     """
+    if data_end is None:
+        # Assuming predictions fill in this value, the most recent value for the past is before "now".
+        data_end = datetime.utcnow()
+
     if data_start is not None and data_start > start:
         # If the starting moment lies before what can be requested, put it at the moment from which it can be requested
         start = data_start
@@ -89,7 +93,7 @@ def validate_begin_and_end(
     if start >= data_end:
         raise HTTPException(422, f"Invalid [start] value [{start}]: value lies after last available moment for model "
                                  f"({data_end})")
-    if end <= data_start:
+    if data_start is not None and end <= data_start:
         raise HTTPException(422, f"Invalid [end] value [{end}]: value lies before first available moment for model "
                                  f"({data_start})")
 
