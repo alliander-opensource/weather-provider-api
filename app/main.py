@@ -26,11 +26,13 @@ from app.versions.v1 import app as v1
 from app.versions.v2 import app as v2
 
 # Enable logging
+from app_config import get_setting
+
 initialize_logging()
 logger = structlog.get_logger(__name__)
 
 # Create and configure new application instance
-app = FastAPI()
+app = FastAPI(version=get_setting("APP_VERSION"), title=get_setting("APP_NAME"))
 initialize_error_handling(app)
 initialize_metadata_header_middleware(app)
 initialize_validation_middleware(app)
