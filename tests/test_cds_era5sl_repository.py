@@ -310,8 +310,8 @@ def test_era5sl_repository_update(monkeypatch, _get_mock_repository_dir, mock_co
     if era5sl_repo.repository_folder.exists():
         shutil.rmtree(era5sl_repo.repository_folder)
     era5sl_repo.cleanup()
-    months_in_full_update = (era5sl_repo.last_day_of_repo.year - era5sl_repo.first_day_of_repo.year) * 12 + \
-                            (era5sl_repo.last_day_of_repo.month - era5sl_repo.first_day_of_repo.month) + 1
+    months_in_full_update = (era5sl_repo.get_last_day_of_repo().year - era5sl_repo.get_first_day_of_repo().year) * 12 + \
+                            (era5sl_repo.get_last_day_of_repo().month - era5sl_repo.get_first_day_of_repo().month) + 1
 
     # MOCKING: Intercepting the ERA5SL Download function and returning a dummy dataset for further handling
     def mock_download_era5sl_file(self, weather_factors, years, months, days, area_box, target_location):

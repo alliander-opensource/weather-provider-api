@@ -6,13 +6,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import glob
 import re
+import sys
 import tarfile
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
 
-import cfgrib
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
@@ -42,18 +42,30 @@ class AromeRepository(WeatherRepositoryBase):
         self.dataset_version = "0.2"
         self.file_identifier_length = 13
 
-        self.first_day_of_repo = datetime.utcnow() - relativedelta(years=1)
-        self.first_day_of_repo = self.first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-        self.last_day_of_repo = datetime.utcnow()  # Update will translate this to the proper 6 hour block
-        self.last_day_of_repo = self.last_day_of_repo.replace(minute=0, second=0, microsecond=0)
-
         self.time_encoding = "hours since 2018-01-01"  # Used to keep values usable for at least the upcoming decennium
 
         self.logger.debug(f"Initialized {self.repository_name} repository", datetime=datetime.utcnow())
+        try:
+            import cfgrib
+        except RuntimeError as e:
+            self.logger.error(f"A problem occurred with the ECCODES library: {e}")
+            self.logger.warning("This means that though interactions with the existing repository will still work, "
+                                "the repository cannot be updated!")
 
     def _get_repo_sub_folder(self):
         return "AROME"
+
+    @staticmethod
+    def get_first_day_of_repo():
+        first_day_of_repo = datetime.utcnow() - relativedelta(years=1)
+        first_day_of_repo = first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return first_day_of_repo
+
+    @staticmethod
+    def get_last_day_of_repo():
+        last_day_of_repo = datetime.utcnow()  # Update will translate this to the proper 6 hour block
+        last_day_of_repo = last_day_of_repo.replace(minute=0, second=0, microsecond=0)
+        return last_day_of_repo
 
     def update(self):
         """
@@ -65,12 +77,12 @@ class AromeRepository(WeatherRepositoryBase):
         Returns:
             A RepositoryUpdateResult value indicating a completion, time-out or failure of the update process
         """
+        if 'cfgrib' not in sys.modules:
+            self.logger.error("CANNOT PERFORM UPDATE: 'cfgrib' installation is not operational.")
+            quit()
+
         # Always start with a cleaned up repository
         self.cleanup()
-
-        # Update the repo timeframe
-        self.first_day_of_repo = datetime.utcnow() - relativedelta(years=1)
-        self.first_day_of_repo = self.first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         update_start = datetime.utcnow()
         items_processed = 0
@@ -82,9 +94,9 @@ class AromeRepository(WeatherRepositoryBase):
             datetime=datetime.utcnow()
         )
 
-        prediction_to_check = self._nearest_prediction_to_datetime(self.last_day_of_repo)
+        prediction_to_check = self._nearest_prediction_to_datetime(self.get_last_day_of_repo())
 
-        while prediction_to_check >= self.first_day_of_repo:
+        while prediction_to_check >= self.get_first_day_of_repo():
             if items_processed != 0:
                 average_per_item = (datetime.utcnow() - update_start).total_seconds() / items_processed
             if average_per_item > (update_forced_end - datetime.utcnow()).total_seconds():
@@ -186,6 +198,7 @@ class AromeRepository(WeatherRepositoryBase):
             raise e
 
     def _convert_unpacked_to_netcdf4(self, download_folder):
+        import cfgrib
         # A function that handles the many small GRIB files that were unpacked and formats those into NetCDF4
         grib_files = glob.glob(str(Path(download_folder).joinpath("HA40_N25_*_GB")))
 
@@ -253,7 +266,7 @@ class AromeRepository(WeatherRepositoryBase):
 
         field_values = np.reshape(cfg_message["values"], len(lats) * len(lons))
 
-        allowed_netcdf4_names = re.compile('([a-zA-Z0-9_]| {MUTF8})([^\x00-\x1F/\x7F -\xFF] | {MUTF8})')
+        # allowed_netcdf4_names = re.compile('([a-zA-Z0-9_]| {MUTF8})([^\x00-\x1F/\x7F -\xFF] | {MUTF8})')
 
         data_dict = {field_name: (["time", "coord"], [field_values])}
         prediction_time = time_prediction_made + relativedelta(hours=predicted_hour)
@@ -284,6 +297,7 @@ class AromeRepository(WeatherRepositoryBase):
 
     @staticmethod
     def _build_grid_block(file: str):
+        import cfgrib
         cf_streamed_file = cfgrib.FileStream(file)
 
         line_to_use = None
@@ -423,10 +437,10 @@ class AromeRepository(WeatherRepositoryBase):
                 microsecond=0,
             )
 
-            if file_date < self.first_day_of_repo or file_date > self.last_day_of_repo:
+            if file_date < self.get_first_day_of_repo() or file_date > self.get_last_day_of_repo():
                 self.logger.debug(
                     f"Deleting file [{file_name}] because it does not lie in the "
-                    f"repository scope ({self.first_day_of_repo, self.last_day_of_repo})"
+                    f"repository scope ({self.get_first_day_of_repo(), self.get_last_day_of_repo()})"
                 )
                 self._safely_delete_file(file_name)
 
@@ -456,7 +470,7 @@ class AromeRepository(WeatherRepositoryBase):
                 microsecond=0,
             )
 
-            if start < file_date < end:
+            if start <= file_date <= end:
                 # If the file is within the requested period, save it to the list of filtered files
                 list_of_filtered_files.append(file)
 
