@@ -56,7 +56,7 @@ def test_client(monkeypatch):
     # Call without destination file: Dummyfile should not exist.
     result = mock_client.retrieve('reanalysis-era5-single-levels', mock_request)
     assert os.path.isfile(result.location) is False
-    assert re.match(r"http://.*nc", result.location) is not None
+    assert re.match(r"https://.*nc", result.location) is not None
 
     # Calls to trigger specific Client._api() states
     era5sl_url = "%s/resources/%s" % (mock_client.url, 'reanalysis-era5-single-levels')

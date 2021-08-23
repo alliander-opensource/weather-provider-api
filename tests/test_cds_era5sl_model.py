@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: MPL-2.
 
-import random
+import secrets
 from datetime import datetime, timedelta
 
 import xarray as xr
@@ -35,13 +35,13 @@ def test__validate_weather_factors():
 
     # TEST 2: Only valid factors are passed. The same list should be returned.
     list_of_factors = list(era5sl_factors.keys())
-    random_list = [random.choice(list_of_factors), random.choice(list_of_factors), random.choice(list_of_factors)]
+    random_list = [secrets.choice(list_of_factors), secrets.choice(list_of_factors), secrets.choice(list_of_factors)]
     expected_returns = [era5sl_factors[random_list[0]], era5sl_factors[random_list[1]], era5sl_factors[random_list[2]]]
     assert era5sl_model._validate_weather_factors(random_list) == expected_returns
 
     # TEST 3: Valid and invalid factors are passed. A KeyError should occur.
     list_of_factors = list(era5sl_factors.keys())
-    random_list = [random.choice(list_of_factors), random.choice(list_of_factors), random.choice(list_of_factors),
+    random_list = [secrets.choice(list_of_factors), secrets.choice(list_of_factors), secrets.choice(list_of_factors),
                    "mock_factor"]
     assert era5sl_model._validate_weather_factors(random_list)
     assert "mock_factor" not in era5sl_model._validate_weather_factors(random_list)
