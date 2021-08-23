@@ -10,6 +10,7 @@
 import glob
 import os
 import random
+import secrets
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -341,11 +342,11 @@ def test_era5sl_repository_update(monkeypatch, _get_mock_repository_dir, mock_co
     assert len(files_in_repository) == months_in_full_update  # Proper number of files
 
     # SETUP: Remove two random files
-    random_number = random.randint(0, len(files_in_repository) - 1)
+    random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[random_number])
     second_random_number = random_number
     while second_random_number == random_number:
-        second_random_number = random.randint(0, len(files_in_repository) - 1)
+        second_random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[second_random_number])
 
     # UPDATE TEST 2:    General update test with files both there and missing
@@ -355,20 +356,20 @@ def test_era5sl_repository_update(monkeypatch, _get_mock_repository_dir, mock_co
     assert len(files_in_repository) == months_in_full_update  # Proper number of files
 
     # SETUP: Remove two random files
-    random_number = random.randint(0, len(files_in_repository) - 1)
+    random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[random_number])
     second_random_number = random_number
     while second_random_number == random_number:
-        second_random_number = random.randint(0, len(files_in_repository) - 1)
+        second_random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[second_random_number])
 
     # SETUP: Rename two random files
     files_in_repository = glob.glob(str(era5sl_repo.repository_folder.joinpath("*.*")))  # Refresh after delete
-    random_number = random.randint(0, len(files_in_repository) - 1)
+    random_number = secrets.randbelow(len(files_in_repository) - 1)
     file_to_rename = files_in_repository[random_number]
     second_random_number = random_number
     while second_random_number == random_number:
-        second_random_number = random.randint(0, len(files_in_repository) -1)
+        second_random_number = secrets.randbelow(len(files_in_repository) -1)
     second_file_to_rename = files_in_repository[second_random_number]
     Path(files_in_repository[random_number]).rename(str(file_to_rename[:-3]) + '_UNFORMATTED.nc')
     Path(files_in_repository[second_random_number]).rename(str(second_file_to_rename[:-3]) + '_FORMATTED.nc')
