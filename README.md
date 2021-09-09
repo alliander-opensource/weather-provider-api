@@ -15,7 +15,7 @@ https://github.com/alliander-opensource/Weather-Provider-API
 
 For more information also check out this webinar:
 
-[![Webinar Weather Provider API](.\img\webinar_thumbnail.png)](https://www.youtube.com/watch?v=pjE0DZmSphQ)
+[![Webinar Weather Provider API](https://img.youtube.com/vi/pjE0DZmSphQ/0.jpg)](https://www.youtube.com/watch?v=pjE0DZmSphQ)
 
 
 The project uses a number of data sources for the acquisition of weather data. Currently being supported by this API 
