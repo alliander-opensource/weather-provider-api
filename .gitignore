@@ -228,7 +228,6 @@ htmlcov/
 .coverage.*
 .cache
 nosetests.xml
-coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
@@ -347,4 +346,3 @@ Temporary Items
 /pytest-report.xml
 /.pycrunch-config.yaml
 /TESTING_GROUNDS.ipynb
-!/coverage.xml
