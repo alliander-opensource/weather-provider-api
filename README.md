@@ -3,6 +3,8 @@ SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 
 SPDX-License-Identifier: MPL-2.0
 -->
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+
 # Weather Provider Library and API
 
 This API is intended to help you fetch weather data from different data sources in an efficient and uniform way.
