@@ -87,7 +87,7 @@ class AromeModel(WeatherModelBase):
         """
         # Test and account for invalid datetime timeframes or input
         begin, end = validate_begin_and_end(
-            begin, end, datetime.utcnow() - relativedelta(years=1), datetime.utcnow()
+            begin, end, self.repository.get_first_day_of_repo(), self.repository.get_last_day_of_repo()
         )
 
         ds = self.repository.gather_period(begin, end, coords)

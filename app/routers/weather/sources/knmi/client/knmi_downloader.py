@@ -149,6 +149,9 @@ class KNMIDownloader:
         )
         if total < file_size:
             # File too small
-            raise EOFError
+            raise EOFError("The downloaded file was smaller than expected!")
+
+        if total > file_size:
+            raise EOFError("The downloaded file was larger than expected!")
 
         return True

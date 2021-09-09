@@ -47,14 +47,24 @@ class ERA5SLRepository(WeatherRepositoryBase):
         self.file_identifier_length = 7
         self.age_of_permanence_in_months = 3
 
-        self.first_day_of_repo, self.last_day_of_repo = self._get_first_and_last_day_of_repo()
-
         self.logger.debug(
             f"Initialized {self.repository_name} repository", datetime=datetime.utcnow()
         )
 
     def _get_repo_sub_folder(self):
         return "ERA5_SL"
+
+    @staticmethod
+    def get_first_day_of_repo():
+        first_day_of_repo = datetime.utcnow() - relativedelta(years=3, days=5)
+        first_day_of_repo = first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return first_day_of_repo
+
+    @staticmethod
+    def get_last_day_of_repo():
+        last_day_of_repo = datetime.utcnow() - relativedelta(days=5)
+        last_day_of_repo = last_day_of_repo.replace(hour=0, minute=0, second=0, microsecond=0)
+        return last_day_of_repo
 
     def update(self):
         """
@@ -69,9 +79,6 @@ class ERA5SLRepository(WeatherRepositoryBase):
         # Always start with a nicely cleaned repository
         self.cleanup()
 
-        # Update the repo timeframe
-        self.first_day_of_repo, self.last_day_of_repo = self._get_first_and_last_day_of_repo()
-
         update_start = datetime.utcnow()
         items_processed = 0
         average_time_per_item = (
@@ -84,10 +91,10 @@ class ERA5SLRepository(WeatherRepositoryBase):
             datetime=datetime.utcnow(),
         )
 
-        active_month_for_update = self.last_day_of_repo.replace(
+        active_month_for_update = self.get_last_day_of_repo().replace(
             day=1
         )  # Starting at the most recent month. The first day is used to ensure proper pickup of even the oldest month
-        while active_month_for_update >= self.first_day_of_repo:
+        while active_month_for_update >= self.get_first_day_of_repo():
             if items_processed != 0:
                 average_time_per_item = (
                     datetime.utcnow() - update_start
@@ -158,7 +165,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
                 year=int(file_prefix[-7:-3]), month=int(file_prefix[-2:]), day=1
             )
             current_date_of_permanence = (
-                self.last_day_of_repo
+                self.get_last_day_of_repo()
                 - relativedelta(months=self.age_of_permanence_in_months)
             ).replace(day=1)
 
@@ -271,7 +278,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         file_date = datetime(
             year=int(file_prefix[-7:-3]), month=int(file_prefix[-2:]), day=1
         )
-        current_incomplete_month = self.last_day_of_repo.replace(
+        current_incomplete_month = self.get_last_day_of_repo().replace(
             day=1, hour=0, minute=0, second=0, microsecond=0
         )
         oldest_temporary_month = current_incomplete_month - relativedelta(months=3)
@@ -368,20 +375,20 @@ class ERA5SLRepository(WeatherRepositoryBase):
             )
 
             if (
-                file_year < self.first_day_of_repo.year
-                or file_year > self.last_day_of_repo.year
+                file_year < self.get_first_day_of_repo().year
+                or file_year > self.get_last_day_of_repo().year
                 or (
-                    file_year == self.first_day_of_repo.year
-                    and file_month < self.first_day_of_repo.month
+                    file_year == self.get_first_day_of_repo().year
+                    and file_month < self.get_first_day_of_repo().month
                 )
                 or (
-                    file_year == self.last_day_of_repo.year
-                    and file_month > self.last_day_of_repo.month
+                    file_year == self.get_last_day_of_repo().year
+                    and file_month > self.get_last_day_of_repo().month
                 )
             ):
                 self.logger.debug(
                     f"Deleting file [{file_name}] because it does not lie in the "
-                    f"repository scope ({self.first_day_of_repo, self.last_day_of_repo})"
+                    f"repository scope ({self.get_first_day_of_repo(), self.get_last_day_of_repo()})"
                 )
                 self._safely_delete_file(file_name)
 
@@ -419,19 +426,6 @@ class ERA5SLRepository(WeatherRepositoryBase):
                 list_of_filtered_files.append(file)
 
         return list_of_filtered_files
-
-    @staticmethod
-    def _get_first_and_last_day_of_repo():
-        first_day_of_repo = datetime.utcnow() - relativedelta(years=3, days=5)
-        first_day_of_repo = first_day_of_repo.replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )
-
-        last_day_of_repo = datetime.utcnow() - relativedelta(days=5)
-        last_day_of_repo = last_day_of_repo.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        return first_day_of_repo, last_day_of_repo
 
     def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
         # Rounds a list of GeoPositions to the resolution set through grid_resolution

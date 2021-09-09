@@ -10,6 +10,7 @@
 import glob
 import os
 import random
+import secrets
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -310,8 +311,8 @@ def test_era5sl_repository_update(monkeypatch, _get_mock_repository_dir, mock_co
     if era5sl_repo.repository_folder.exists():
         shutil.rmtree(era5sl_repo.repository_folder)
     era5sl_repo.cleanup()
-    months_in_full_update = (era5sl_repo.last_day_of_repo.year - era5sl_repo.first_day_of_repo.year) * 12 + \
-                            (era5sl_repo.last_day_of_repo.month - era5sl_repo.first_day_of_repo.month) + 1
+    months_in_full_update = (era5sl_repo.get_last_day_of_repo().year - era5sl_repo.get_first_day_of_repo().year) * 12 + \
+                            (era5sl_repo.get_last_day_of_repo().month - era5sl_repo.get_first_day_of_repo().month) + 1
 
     # MOCKING: Intercepting the ERA5SL Download function and returning a dummy dataset for further handling
     def mock_download_era5sl_file(self, weather_factors, years, months, days, area_box, target_location):
@@ -341,11 +342,11 @@ def test_era5sl_repository_update(monkeypatch, _get_mock_repository_dir, mock_co
     assert len(files_in_repository) == months_in_full_update  # Proper number of files
 
     # SETUP: Remove two random files
-    random_number = random.randint(0, len(files_in_repository) - 1)
+    random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[random_number])
     second_random_number = random_number
     while second_random_number == random_number:
-        second_random_number = random.randint(0, len(files_in_repository) - 1)
+        second_random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[second_random_number])
 
     # UPDATE TEST 2:    General update test with files both there and missing
@@ -355,20 +356,20 @@ def test_era5sl_repository_update(monkeypatch, _get_mock_repository_dir, mock_co
     assert len(files_in_repository) == months_in_full_update  # Proper number of files
 
     # SETUP: Remove two random files
-    random_number = random.randint(0, len(files_in_repository) - 1)
+    random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[random_number])
     second_random_number = random_number
     while second_random_number == random_number:
-        second_random_number = random.randint(0, len(files_in_repository) - 1)
+        second_random_number = secrets.randbelow(len(files_in_repository) - 1)
     era5sl_repo._safely_delete_file(files_in_repository[second_random_number])
 
     # SETUP: Rename two random files
     files_in_repository = glob.glob(str(era5sl_repo.repository_folder.joinpath("*.*")))  # Refresh after delete
-    random_number = random.randint(0, len(files_in_repository) - 1)
+    random_number = secrets.randbelow(len(files_in_repository) - 1)
     file_to_rename = files_in_repository[random_number]
     second_random_number = random_number
     while second_random_number == random_number:
-        second_random_number = random.randint(0, len(files_in_repository) -1)
+        second_random_number = secrets.randbelow(len(files_in_repository) -1)
     second_file_to_rename = files_in_repository[second_random_number]
     Path(files_in_repository[random_number]).rename(str(file_to_rename[:-3]) + '_UNFORMATTED.nc')
     Path(files_in_repository[second_random_number]).rename(str(second_file_to_rename[:-3]) + '_FORMATTED.nc')
