@@ -21,6 +21,14 @@ jobs:
         fetch-depth: 0
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
+      with:
+         projectBaseDir: app
+         args: >
+           -Dsonar.organization=alliander-opensource
+           -Dsonar.projectKey=alliander-opensource_Weather-Provider-API
+           -Dsonar.python.coverage.reportPaths=coverage.xml
+           -Dsonar.tests=tests/
+           -Dsonar.verbose=True
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
