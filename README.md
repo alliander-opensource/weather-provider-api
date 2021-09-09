@@ -4,6 +4,11 @@ SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 SPDX-License-Identifier: MPL-2.0
 -->
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=security_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=bugs)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+<!--[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=coverage)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)-->
 
 # Weather Provider Library and API
 
