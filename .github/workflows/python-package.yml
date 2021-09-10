@@ -70,11 +70,9 @@ jobs:
     - name: Build
       run: |
         conda activate C:\conda_envs\py_env${{ matrix.python-version }}
-        conda install --file requirements.txt
-    - name: Install and test
-      run: |
-        conda activate C:\conda_envs\${{ matrix.python-version }}
-        pip install power-grid-model --find-links dist/
+        conda config --set pip_interop_enabled True
+        pip install -r requirements.txt
+        conda update --all
         pytest
 
   build-window-pytest-pip:
