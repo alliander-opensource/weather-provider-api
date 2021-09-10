@@ -63,11 +63,11 @@ jobs:
 
     - name: Install conda environments
       if: steps.cache.outputs.cache-hit != 'true'
-      run: .\.github\conda-windows.ps1
+      run: conda create --yes -p C:\conda_envs\py_env${{ matrix.python-version }} -c conda-forge python=${{ matrix.python-version }}
 
     - name: Build
       run: |
-        conda activate C:\conda_envs\${{ matrix.python-version }}
+        conda activate C:\conda_envs\py_env${{ matrix.python-version }}
         python setup.py bdist_wheel
     - name: Install and test
       run: |
