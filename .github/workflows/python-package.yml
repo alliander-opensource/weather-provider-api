@@ -59,13 +59,13 @@ jobs:
         
     - name: Activate conda
 
-      run: |
-        C:\Miniconda\condabin\conda init
-        conda upgrade -n base conda
+      run: C:\Miniconda\condabin\conda init
 
     - name: Install conda environments
       if: steps.cache.outputs.cache-hit != 'true'
-      run: conda create --yes -p C:\conda_envs\py_env${{ matrix.python-version }} -c conda-forge python=${{ matrix.python-version }}
+      run: |
+        conda upgrade -n base conda
+        conda create --yes -p C:\conda_envs\py_env${{ matrix.python-version }} -c conda-forge python=${{ matrix.python-version }}
 
     - name: Build
       run: |
