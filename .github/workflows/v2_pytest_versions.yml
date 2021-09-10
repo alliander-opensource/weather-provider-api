@@ -1,0 +1,104 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: V2.x - Distribution Pytest
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-linux-pytest:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest
+  
+  build-windows-pytest-conda:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache conda environments
+      uses: actions/cache@v2
+      id: cache
+      env:
+        cache-name: conda-envs-windows
+      with:
+        path: C:\conda_envs
+        key: conda-envs-windows-3
+        
+    - name: Activate conda
+
+      run: C:\Miniconda\condabin\conda init
+
+    - name: Install conda environments
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        conda upgrade -n base -c defaults --override-channels conda
+        conda create --yes -p C:\conda_envs\py_env${{ matrix.python-version }} -c conda-forge python=${{ matrix.python-version }}
+
+    - name: Build
+      run: |
+        conda activate C:\conda_envs\py_env${{ matrix.python-version }}
+        conda config --set pip_interop_enabled True
+        pip install -r requirements.txt
+        conda update --all
+        pytest
+
+  build-window-pytest-pip:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest
+        if ( Test-Path -Path requirements.txt -PathType Leaf ) { pip install -r requirements.txt }
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest
