@@ -59,7 +59,9 @@ jobs:
         
     - name: Activate conda
 
-      run: C:\Miniconda\condabin\conda init
+      run: |
+        C:\Miniconda\condabin\conda init
+        conda upgrade -n base conda
 
     - name: Install conda environments
       if: steps.cache.outputs.cache-hit != 'true'
