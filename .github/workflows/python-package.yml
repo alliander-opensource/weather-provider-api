@@ -68,7 +68,7 @@ jobs:
     - name: Build
       run: |
         conda activate C:\conda_envs\py_env${{ matrix.python-version }}
-        python setup.py bdist_wheel
+        conda install --file requirements.txt
     - name: Install and test
       run: |
         conda activate C:\conda_envs\${{ matrix.python-version }}
