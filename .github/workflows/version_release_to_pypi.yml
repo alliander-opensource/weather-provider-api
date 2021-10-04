@@ -1,4 +1,4 @@
-name: version_release_to_pypi
+name: WPA v2.x -- Build and release package for PyPi
 
 # Run on push with version tag
 on:
