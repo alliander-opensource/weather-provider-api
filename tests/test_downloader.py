@@ -10,8 +10,8 @@ import re
 
 import pytest
 
-from app.routers.weather.sources.cds.client import downloader
-from app.routers.weather.sources.cds.client.downloader import bytes_to_string, Client
+from weather_provider_api.routers.weather.sources.cds.client import downloader
+from weather_provider_api.routers.weather.sources.cds.client.downloader import bytes_to_string, Client
 
 
 # downloader.py is based on a file by ECMWF. This

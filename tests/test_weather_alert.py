@@ -9,7 +9,7 @@ import pytest
 import requests
 from requests.exceptions import ProxyError
 
-from app.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
+from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
 
 
 def test_weather_alert_():

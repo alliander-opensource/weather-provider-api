@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: MPL-2.
 
-from app.routers.weather.api_view_v2 import header_accept_type
+from weather_provider_api.routers.weather.api_view_v2 import header_accept_type
 
 
 def test_header_accept_type():

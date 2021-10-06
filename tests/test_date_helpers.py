@@ -10,7 +10,7 @@ from datetime import datetime
 import pytest
 from fastapi import HTTPException
 
-import app.routers.weather.utils.date_helpers as dh
+import weather_provider_api.routers.weather.utils.date_helpers as dh
 
 
 # The function time_unknown() isn't tested as it only verifies that no time may have been set in the datetime conversion

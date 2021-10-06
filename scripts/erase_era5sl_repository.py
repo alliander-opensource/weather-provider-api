@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from app.routers.weather.sources.cds.client.era5sl_repository import ERA5SLRepository
+from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository import ERA5SLRepository
 
 if __name__ == "__main__":
     era5sl_repo = ERA5SLRepository()

@@ -9,7 +9,6 @@
 # A test would therefore be bigger and more error prone than the code itself.
 import glob
 import os
-import random
 import secrets
 import shutil
 from datetime import datetime
@@ -21,9 +20,9 @@ import pytest
 import xarray as xr
 from dateutil.relativedelta import relativedelta
 
-from app.routers.weather.sources.cds.client.era5sl_repository import ERA5SLRepository
-from app.routers.weather.utils.geo_position import GeoPosition
-from app.routers.weather.utils.pandas_helpers import coords_to_pd_index
+from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository import ERA5SLRepository
+from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
 
 def _get_mock_prefix(dummy_date: datetime):

@@ -12,8 +12,8 @@ import pytest
 import requests
 import xarray as xr
 
-from app.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
-from app.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
+from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 @pytest.fixture()

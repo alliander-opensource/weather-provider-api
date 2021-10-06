@@ -10,9 +10,9 @@ from datetime import datetime
 import numpy as np
 import xarray as xr
 
-from app.routers.weather.api_models import OutputUnit, ResponseFormat, WeatherContentRequestQuery
-from app.routers.weather.api_view_v2 import controller
-from app.routers.weather.utils import serializers
+from weather_provider_api.routers.weather.api_models import OutputUnit, ResponseFormat, WeatherContentRequestQuery
+from weather_provider_api.routers.weather.api_view_v2 import controller
+from weather_provider_api.routers.weather.utils import serializers
 
 """
     This is a DEMO for a specific weather model: ERA5 Single Levels

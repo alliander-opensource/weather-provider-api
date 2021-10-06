@@ -13,12 +13,12 @@ from datetime import datetime, timedelta
 import xarray as xr
 from dateutil.relativedelta import relativedelta
 
-from app.routers.weather.sources.cds.factors import era5sl_factors
-from app.routers.weather.sources.cds.models.era5sl import ERA5SLModel
+from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
+from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5SLModel
 # Valid periods should be between three years ago (rounding down the month), and 5 days before today
-from app.routers.weather.sources.knmi.client.arome_repository import AromeRepository
-from app.routers.weather.sources.knmi.models.harmonie_arome import AromeModel
-from app.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import AromeRepository
+from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import AromeModel
+from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 # The get_weather() function is not part of the test, as it consists purely of function calls to other functions that
