@@ -53,9 +53,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install build
     - name: Build the Package
-      run: python -m build
+      run: |
+        # Show folder
+        ls
+        # Show parent folder
+        ls ../
+        python setup.py sdist bdist_wheel
     - name: Publish the Package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        twine upload -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_API_TOKEN }} --repository-url https://test.pypi.org/legacy/ dist/*
