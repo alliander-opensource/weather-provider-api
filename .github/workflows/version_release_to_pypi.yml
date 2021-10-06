@@ -57,6 +57,10 @@ jobs:
         pip install twine
     - name: Build the Package
       run: |
+        # Show folder
+        ls
+        # Show parent folder
+        ls ../
         python setup.py sdist bdist_wheel
     - name: Publish the Package
       run: |
