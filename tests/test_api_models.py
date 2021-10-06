@@ -7,7 +7,7 @@
 
 from datetime import datetime
 
-from app.routers.weather.api_models import ScientificJSONResponse
+from weather_provider_api.routers.weather.api_models import ScientificJSONResponse
 
 
 # The custom float encoder is the sole function inside api_models.py and is therefore the only thing that needs testing.

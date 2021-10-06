@@ -21,13 +21,13 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from app.routers.weather.api_models import OutputUnit
-from app.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
-from app.routers.weather.sources.knmi.models.daggegevens import DagGegevensModel
-from app.routers.weather.sources.knmi.models.pluim import PluimModel
-from app.routers.weather.sources.knmi.models.uurgegevens import UurgegevensModel
-from app.routers.weather.utils.geo_position import GeoPosition
-from app.routers.weather.utils.pandas_helpers import coords_to_pd_index
+from weather_provider_api.routers.weather.api_models import OutputUnit
+from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
+from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import DagGegevensModel
+from weather_provider_api.routers.weather.sources.knmi.models.pluim import PluimModel
+from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import UurgegevensModel
+from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
 
 @pytest.fixture
