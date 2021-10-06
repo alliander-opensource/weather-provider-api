@@ -15,7 +15,7 @@ https://github.com/alliander-opensource/Weather-Provider-API
 
 setup(
     name='weather_provider_api',
-    version='v2.12.9b',
+    version='v2.12.11b',
     packages=find_packages(include=['weather_provider_api', 'weather_provider_api.*']),
     data_files=[('var_maps', ['var_maps/arome_var_map.json']),
                 ('var_maps', ['var_maps/era5sl_var_map.json'])],
