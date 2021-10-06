@@ -3,7 +3,15 @@ from pathlib import Path
 from setuptools import setup, find_packages
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
+long_description = """
+# Weather Provider Library and API
+
+This API is intended to help you fetch weather data from different data sources in an efficient and uniform way.
+By just supplying a list of locations and a time window you can get data for a specific source immediately.
+
+This project can currently be found on the following location:
+https://github.com/alliander-opensource/Weather-Provider-API
+"""
 
 setup(
     name='weather_provider_api',
