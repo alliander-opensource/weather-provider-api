@@ -63,13 +63,13 @@ jobs:
       run: C:\Miniconda\condabin\conda init
 
     - name: Install conda environments
-      if: steps.cache.outputs.cache-hit != 'true'
+      #if: steps.cache.outputs.cache-hit != 'true'
       run: |
         conda upgrade -n base -c defaults --override-channels conda
-        conda create --yes -p C:\conda_envs\py_env${{ matrix.python-version }} -c conda-forge python=${{ matrix.python-version }}
+        conda create --yes -p C:\conda_envs\py_env_${{ matrix.python-version }} -c conda-forge python=${{ matrix.python-version }}
     - name: Build
       run: |
-        conda activate C:\conda_envs\py_env${{ matrix.python-version }}
+        conda activate C:\conda_envs\py_env_${{ matrix.python-version }}
         conda config --set pip_interop_enabled True
         pip install -r requirements.txt
         conda update --all
