@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from app.routers.weather.sources.knmi.client.arome_repository import AromeRepository
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import AromeRepository
 
 if __name__ == "__main__":
     arome_repo = AromeRepository()

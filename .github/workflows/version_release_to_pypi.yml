@@ -1,4 +1,4 @@
-name: WPA v2.x -- Build and release package for PyPi
+name: 2.x >> Test & Release to PyPI
 
 # Run on push with version tag
 on:
@@ -41,8 +41,6 @@ jobs:
   upload-to-pypi:
     needs: build-linux-pytest
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
     
     steps:
     - uses: actions/checkout@v2
@@ -57,11 +55,7 @@ jobs:
         pip install twine
     - name: Build the Package
       run: |
-        # Show folder
-        ls
-        # Show parent folder
-        ls ../
         python setup.py sdist bdist_wheel
     - name: Publish the Package
       run: |
-        twine upload -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_API_TOKEN }} --repository-url https://test.pypi.org/legacy/ dist/*
+        twine upload -u '${{ secrets.PYPI_USERNAME }}' -p '${{ secrets.PYPI_API_TOKEN }}' --repository-url https://test.pypi.org/legacy/ dist/*
