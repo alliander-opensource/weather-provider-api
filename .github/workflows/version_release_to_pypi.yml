@@ -41,6 +41,10 @@ jobs:
   upload-to-pypi:
     needs: build-linux-pytest
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
     
     steps:
     - uses: actions/checkout@v2
@@ -52,10 +56,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build
+        pip install twine
     - name: Build the Package
-      run: python -m build
+      run: python setup.py sdist bdist_wheel
     - name: Publish the Package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: weather_provider_api
         password: ${{ secrets.PYPI_API_TOKEN }}
