@@ -15,15 +15,15 @@ https://github.com/alliander-opensource/Weather-Provider-API
 
 setup(
     name='weather_provider_api',
-    version='v2.12.11b',
+    version='v2.12.20',
     packages=find_packages(include=['weather_provider_api', 'weather_provider_api.*']),
     data_files=[('var_maps', ['var_maps/arome_var_map.json']),
                 ('var_maps', ['var_maps/era5sl_var_map.json'])],
     scripts=[
-        'scripts/erase_arome_repository.py',
-        'scripts/erase_era5sl_repository.py',
-        'scripts/update_arome_repository.py',
-        'scripts/update_era5sl_repository.py',
+        'weather_provider_api/scripts/erase_arome_repository.py',
+        'weather_provider_api/scripts/erase_era5sl_repository.py',
+        'weather_provider_api/scripts/update_arome_repository.py',
+        'weather_provider_api/scripts/update_era5sl_repository.py',
         'weather_provider_api/main.py'
     ],
     install_requires=['accept_types==0.4.1',
