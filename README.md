@@ -3,6 +3,7 @@ SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 
 SPDX-License-Identifier: MPL-2.0
 -->
+[![License: MIT](https://img.shields.io/badge/License-MPL2.0-yellow.svg)](https://github.com/alliander-opensource/Weather-Provider-API/blob/master/LICENSE)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=security_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
