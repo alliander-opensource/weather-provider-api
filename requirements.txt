@@ -1,6 +1,0 @@
-fastapi~=0.68.1
-pydantic~=1.8.2
-starlette~=0.14.2  # FastAPI requires this version
-starlette-prometheus~=0.8.0
-structlog~=21.1
-uvicorn~=0.15.0
