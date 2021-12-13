@@ -32,7 +32,7 @@ setup(
                       'cfgrib~=0.9.9.0',
                       'fastapi~=0.65.2',
                       'geopy~=2.1.0',
-                      'lxml==4.6.3',
+                      'lxml==4.6.5',
                       'netcdf4~=1.5.6',
                       'numpy~=1.20.3',
                       'pandas~=1.2.4',
