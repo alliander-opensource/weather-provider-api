@@ -1,0 +1,29 @@
+#SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
+
+#SPDX-License-Identifier: MPL-2.0
+
+[tool.poetry]
+name = "weather_provider_api"
+version = "3.0.1"
+description = "This API is intended to help you fetch weather data from different data sources in an efficient and uniform way. By just supplying a list of locations and a time window you can get data for a specific source immediately."
+authors = ["Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
+license = "MPL2.0"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pint-xarray = "^0.2.1"
+fastapi = "^0.70.0"
+pathlib = "^1.0.1"
+pytest = "^6.2.5"
+regex = "^2021.11.10"
+structlog = "^21.5.0"
+uvicorn = "^0.16.0"
+starlette-prometheus = "^0.8.0"
+
+[tool.poetry.dev-dependencies]
+coverage = "^6.2"
+pytest-asyncio = "^0.16.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
