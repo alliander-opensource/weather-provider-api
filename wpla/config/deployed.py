@@ -4,13 +4,15 @@
 # SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
-import os
-from pathlib import Path
-
-"""Deployed Configuration
+"""
+======================
+Deployed Configuration
+======================
 
 This module holds the deployed configuration options to be used for the API.
 """
+import os
+from pathlib import Path
 
 DeployedConfig = {
     # Network settings:

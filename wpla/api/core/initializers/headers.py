@@ -4,21 +4,22 @@
 # SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
+"""
+==================
+Metadata Extension
+==================
+
+The goal of this module is to add metadata about the API and if so configured, its maintainer to any generated page.
+"""
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from wpla.configuration import Config
 
-"""Metadata Header extension
-
-This module adds information on the API version, its expiry date and if so configured, its maintainer and where to 
-contact him/her/other.
-"""
-
 
 def initialize_metadata_header_middleware(app):
+    """Function that adds the add_metadata_headers() function as middleware to an existing app"""
     async def add_metadata_headers(request: Request, call_next):
         response = await call_next(request)
         response.headers['X-App-Version'] = Config['app']['version']

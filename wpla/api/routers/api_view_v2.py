@@ -6,10 +6,13 @@
 # SPDX-License-Identifier: MPL-2.0
 from fastapi import APIRouter
 
-"""The WPLA V2.x API Interface
+"""
+======================================
+The WPLA API v2.x app interface module
+======================================
 
-This module holds the full interface for the v2.x version of the WPLA API. If there is functionality that should be 
-available to this version of the API, it should be hooked up to the router here.
+This module holds all of the interface hooks for the v2.x version of the WPLA API. Any and all intended functionality 
+for this API version should be connected to the router in this module.
 """
 
 app = APIRouter()

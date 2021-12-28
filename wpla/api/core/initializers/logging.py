@@ -4,6 +4,15 @@
 # SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
+"""
+#####################
+The API Logger System
+#####################
+
+This module configures and sets up the log handler for the WPLA API. The output is rendered in JSON, allowing for
+specific formatting and the passing of extra information such as the API's version and expiration date in its output.
+"""
+
 import logging
 import logging.config
 
@@ -11,14 +20,19 @@ import structlog
 
 from wpla.configuration import Config
 
-"""Logging system
-
-This module sets up the logging handler for the API. Output is rendered as JSON, holding extra information such as the 
-APIs version and expiration date.
-"""
-
 
 def add_application_metadata(logger, method_name, event_dict):
+    """Adds metadata to any log event holding the WPLA API's version and expiration date.
+
+    Args:
+        logger: NOT USED. (But required by the system calling upon this function)
+        method_name: NOT USED. (But required by the system calling upon this function)
+        event_dict: Event dictionary to be augmented with the API version and expiration date (if not already included)
+
+    Returns:
+        An event dictionary also holding the API version and API expiration date.
+
+    """
     if "app_version" not in event_dict:
         event_dict["app_version"] = Config['app']['version']
     if "app_valid_date" not in event_dict:
@@ -28,6 +42,11 @@ def add_application_metadata(logger, method_name, event_dict):
 
 
 def initialize_logging():
+    """*Logging Initializer:*
+
+    Sets up the entire logging structure. The main output format is JSON, as it allows for easy addition of metadata
+    and works well together with most logging monitors.
+    """
     shared_processors = [
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,

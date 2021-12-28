@@ -5,11 +5,16 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-"""Development Configuration
+"""
+=========================
+Development Configuration
+=========================
 
-This module holds the development configuration options to be used for the API. The goal is to keep this one as empty
-as possible as there should be no discernible differences between development and deployment outside the deployment
-settings themselves.
+This module holds the development configuration options to be used for the API.
+
+Warning:
+    The goal is to keep this configuration as empty as is possible. There should be no discernible differences between
+    development and deployment outside of deployment specific settings.
 """
 
 DevelopmentConfig = {
