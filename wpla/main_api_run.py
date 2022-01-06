@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """This is a module for starting the WPLA API application.
 
-Being both a guide to how to mount your own WPLA API components (if so desired), as well as a default option to run the
+Being both a guide to how to mount your own WPLA API components (if so desired), and a default option to run the
 API directly without any prior knowledge, this module starts a FastAPI application and loads it with the WPLAs default
 metadata enhancing, error handling and monitoring middleware and boots up the currently active versions of the API.
 """

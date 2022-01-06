@@ -34,7 +34,7 @@ async def handle_http_exception(request: Request, exc: StarletteHTTPException) -
     headers = getattr(exc, 'headers', None)
     body = {
         'detail': exc.detail,
-        'request': str(request.url)
+        # TODO: Add more information on the requested data, but verify possible
     }
 
     if Config['show_maintainer']:
