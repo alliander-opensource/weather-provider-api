@@ -4,19 +4,14 @@
 # SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.
-
 import glob
-import math
 from datetime import datetime
 from pathlib import Path
 from typing import List
 
 from dateutil.relativedelta import relativedelta
 
-from weather_provider_api.routers.weather.repository.repository import (
-    WeatherRepositoryBase,
-    RepositoryUpdateResult,
-)
+from weather_provider_api.routers.weather.repository.repository import WeatherRepositoryBase, RepositoryUpdateResult
 from weather_provider_api.routers.weather.sources.cds.client import downloader
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
@@ -51,7 +46,8 @@ class ERA5SLRepository(WeatherRepositoryBase):
             f"Initialized {self.repository_name} repository", datetime=datetime.utcnow()
         )
 
-    def _get_repo_sub_folder(self):
+    @staticmethod
+    def _get_repo_sub_folder():
         return "ERA5_SL"
 
     @staticmethod
@@ -76,6 +72,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         Returns:
             A RepositoryUpdateResult value indicating a completion, time-out or failure of the update process
         """
+
         # Always start with a nicely cleaned repository
         self.cleanup()
 
@@ -97,11 +94,11 @@ class ERA5SLRepository(WeatherRepositoryBase):
         while active_month_for_update >= self.get_first_day_of_repo():
             if items_processed != 0:
                 average_time_per_item = (
-                    datetime.utcnow() - update_start
-                ).total_seconds() / items_processed
+                                                datetime.utcnow() - update_start
+                                        ).total_seconds() / items_processed
             if (
-                average_time_per_item
-                > (update_forced_end - datetime.utcnow()).total_seconds()
+                    average_time_per_item
+                    > (update_forced_end - datetime.utcnow()).total_seconds()
             ):
                 self.logger.info(
                     f"No time remaining to process the next file. Aborting update process",
@@ -110,11 +107,11 @@ class ERA5SLRepository(WeatherRepositoryBase):
                 return RepositoryUpdateResult.timed_out
 
             file_prefix = (
-                str(self.repository_folder.joinpath(self.file_prefix))
-                + "_"
-                + str(active_month_for_update.year)
-                + "_"
-                + str(active_month_for_update.month).zfill(2)
+                    str(self.repository_folder.joinpath(self.file_prefix))
+                    + "_"
+                    + str(active_month_for_update.year)
+                    + "_"
+                    + str(active_month_for_update.month).zfill(2)
             )
 
             if self._file_requires_update(file_prefix):
@@ -165,8 +162,8 @@ class ERA5SLRepository(WeatherRepositoryBase):
                 year=int(file_prefix[-7:-3]), month=int(file_prefix[-2:]), day=1
             )
             current_date_of_permanence = (
-                self.get_last_day_of_repo()
-                - relativedelta(months=self.age_of_permanence_in_months)
+                    self.get_last_day_of_repo()
+                    - relativedelta(months=self.age_of_permanence_in_months)
             ).replace(day=1)
 
             # If the file is older than the three months required before permanence, it can be replaced by its permanent
@@ -188,79 +185,42 @@ class ERA5SLRepository(WeatherRepositoryBase):
         Returns:
             Nothing. Completion is assumed to have generated
         """
-        self.logger.debug(f"Formatting downloaded file [{unformatted_file}]")
-        ds_temp = self.load_file(Path(unformatted_file))
+        self.logger.debug(f"Formatting the downloaded file [{unformatted_file}]")
+        ds_unformatted_data = self.load_file(Path(unformatted_file))
 
-        # Delete attributes
-        ds_temp.attrs = {}
+        # Delete attributes (purging excess metadata)
+        ds_unformatted_data.attrs = {}
 
-        # Check for the rare occurrence in which both temporary and permanent data exist in a download.
-        if "expver" in ds_temp.keys():
-            self.logger.debug(
-                f"The loaded dataset contains both data for the regular ERA5SL as well as the Temporary version"
-            )
+        if "expver" in ds_unformatted_data.indexes.keys():
+            # While in v3.0 we want to keep the difference between expver versions, in 2.x the difference between
+            # validated and not yet validated data is not used.
+            # Therefor we split the data up in two sets while dropping expver and NaN values and then recombining them
+            ds_unformatted_data_expver_1 = ds_unformatted_data.sel(expver=1).drop('expver').dropna('time', how='all')
+            ds_unformatted_data_expver_5 = ds_unformatted_data.sel(expver=5).drop('expver').dropna('time', how='all')
 
-            expver_1, expver_5 = False, False
-            ds_expver_test = ds_temp.where(ds_temp.expver == 1)
-            if not math.isnan(ds_expver_test.d2m.values[0][0][0][0]):
-                self.logger.debug(f"Values for EXPVER=1 (Permanent) weather were found")
-                expver_1 = True
+            # Recombine data
+            ds_unformatted_data = ds_unformatted_data_expver_1.merge(ds_unformatted_data_expver_5)
 
-            ds_expver_test = ds_temp.where(ds_temp.expver == 5)
-            if not math.isnan(ds_expver_test.d2m.values[0][0][0][0]):
-                self.logger.debug(f"Values for EXPVER=5 (Temporary) weather were found")
-                expver_5 = True
-
-            if expver_5 and expver_1:
-                self.logger.error(
-                    f"Both Temporary and Permanent weather data were found. Aborting placement in repository"
-                )
-                raise ValueError(
-                    f"Both Temporary and Permanent weather data exist within the file [{unformatted_file}]."
-                )
-
-            if not expver_5 and not expver_1:
-                self.logger.error(
-                    f"Neither Temporary or Permanent weather data were found. Aborting placement in repository"
-                )
-                raise ValueError(
-                    f"Neither Temporary or Permanent weather data exist within the file [{unformatted_file}]."
-                )
-
-            # Select the proper sub-selection
-            if expver_5:
-                ds_temp = ds_temp.where(ds_temp.expver == 5, drop=True)
-            else:
-                ds_temp = ds_temp.where(ds_temp.expver == 1, drop=True)
-
-            # Remove the expver dimension completely now that we only have a single type remaining.
-            ds_temp = ds_temp.reset_index(['longitude', 'latitude', 'time']).drop('expver').squeeze()
-
-        # Rename factors to their longer names
-        for factor in ds_temp.variables.keys():
-            if factor in era5sl_factors:
-                ds_temp = ds_temp.rename_vars({factor: era5sl_factors[factor]})
-
-        ds_temp.time.encoding["units"] = "hours since 2016-01-01"
-        ds_temp = ds_temp.rename(name_dict={"latitude": "lat", "longitude": "lon"})
-        ds_temp.to_netcdf(path=unformatted_file, format="NETCDF4", engine="netcdf4")
+        ds_unformatted_data.time.encoding["units"] = "hours since 2016-01-01"
+        ds_unformatted_data = ds_unformatted_data.rename(name_dict={"latitude": "lat", "longitude": "lon"})
+        ds_unformatted_data.to_netcdf(path=unformatted_file, format="NETCDF4", engine="netcdf4")
 
     def _finalize_formatted_file(self, file_prefix: str):
         """
             A function that finalizes a formatted file by renaming it into the proper suffix (or lack thereof) for its
             type.
             No Suffix:      Permanent File
-            _INCOMPLETE:    As of yet incomplete file for the currently being processed month.
+            _INCOMPLETE:    Incomplete file for the currently being processed month.
             _TEMP:          Complete file using not yet verified values. Data is confirmed or replaced in about three
                             months by the permanent data.
         Args:
-            file_prefix:    The prefix for the file to verify. Does not included the assumed "_FORMATTED.nc" suffix and
+            file_prefix:    The prefix for the file to verify. Does not include the assumed "_FORMATTED.nc" suffix and
                             file extension.
         Returns:
             Doesn't return anything, but renames the _FORMATTED.nc file as appropriate for the data in it, based on
             data age.
         """
-        # First we verify that the required formatted file exists
+        # First we verify that the formatted file exists
         if not Path(file_prefix + "_FORMATTED.nc").exists():
             self.logger.error(
                 f"A formatted file for [{file_prefix}] was not found",
@@ -294,7 +254,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
             Path(file_prefix + "_FORMATTED.nc").rename(file_prefix + ".nc")
 
     def _download_era5sl_file(
-        self, weather_factors, years, months, days, area_box, target_location
+            self, weather_factors, years, months, days, area_box, target_location
     ):
         """
             A function that download a NetCDF file to the target location, containing the requested factors for an
@@ -358,33 +318,33 @@ class ERA5SLRepository(WeatherRepositoryBase):
             A function that deletes all files in the repository with a date not inside the repository's scope.
             All files labeled as either before or after the given scope will be deleted.
         Returns:
-            Nothing. Successful means the all files outside of the scope were deleted.
+            Nothing. Successful means the all files outside the scope were deleted.
         """
         len_filename_until_date = (
-            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+                len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
         )
 
         for file_name in glob.glob(
-            str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
+                str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
         ):
             file_year = int(
-                file_name[len_filename_until_date : len_filename_until_date + 4]
+                file_name[len_filename_until_date: len_filename_until_date + 4]
             )
             file_month = int(
-                file_name[len_filename_until_date + 5 : len_filename_until_date + 7]
+                file_name[len_filename_until_date + 5: len_filename_until_date + 7]
             )
 
             if (
-                file_year < self.get_first_day_of_repo().year
-                or file_year > self.get_last_day_of_repo().year
-                or (
+                    file_year < self.get_first_day_of_repo().year
+                    or file_year > self.get_last_day_of_repo().year
+                    or (
                     file_year == self.get_first_day_of_repo().year
                     and file_month < self.get_first_day_of_repo().month
-                )
-                or (
+                    )
+                    or (
                     file_year == self.get_last_day_of_repo().year
                     and file_month > self.get_last_day_of_repo().month
-                )
+                    )
             ):
                 self.logger.debug(
                     f"Deleting file [{file_name}] because it does not lie in the "
@@ -404,23 +364,23 @@ class ERA5SLRepository(WeatherRepositoryBase):
         self.cleanup()
 
         len_filename_until_date = (
-            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+                len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
         )
         full_list_of_files = glob.glob(
             str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
         )
         list_of_filtered_files = []
         for file in full_list_of_files:
-            file_year = int(file[len_filename_until_date : len_filename_until_date + 4])
+            file_year = int(file[len_filename_until_date: len_filename_until_date + 4])
             file_month = int(
-                file[len_filename_until_date + 5 : len_filename_until_date + 7]
+                file[len_filename_until_date + 5: len_filename_until_date + 7]
             )
             date_for_filename = datetime(year=file_year, month=file_month, day=15)
 
             if (
-                start.replace(day=1)
-                < date_for_filename
-                < datetime(year=end.year, month=end.month, day=28)
+                    start.replace(day=1)
+                    < date_for_filename
+                    < datetime(year=end.year, month=end.month, day=28)
             ):
                 # If the file is within the requested period, save it to the list of filtered files
                 list_of_filtered_files.append(file)

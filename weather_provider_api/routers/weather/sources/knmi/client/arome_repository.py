@@ -52,7 +52,8 @@ class AromeRepository(WeatherRepositoryBase):
             self.logger.warning("This means that though interactions with the existing repository will still work, "
                                 "the repository cannot be updated!")
 
-    def _get_repo_sub_folder(self):
+    @staticmethod
+    def _get_repo_sub_folder():
         return "AROME"
 
     @staticmethod
