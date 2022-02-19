@@ -72,14 +72,15 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         self.permanent_suffixes = None
         self.file_identifier_length = None
 
+    @staticmethod
     @abstractmethod
-    def _get_repo_sub_folder(self):
+    def _get_repo_sub_folder():
         print("This method is abstract and should be overridden.")
 
     def _validate_repo_folder(self):
         """
-        This function checks whether or not the repository folder already exists (starting from its parent folder)
-        and creates it, if it (or its parent folder) don't exist yet.
+        This function checks whether the repository folder already exists (starting from its parent folder)
+        and creates it, if it (or its parent folder) doesn't exist yet.
         """
         if not Path(
                 self.repository_folder
