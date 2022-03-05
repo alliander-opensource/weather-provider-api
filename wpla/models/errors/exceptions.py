@@ -4,7 +4,6 @@
 # SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
-import inspect
 from typing import Any
 
 
@@ -54,3 +53,15 @@ class InvalidWeatherSourceException(Exception):
 
     def __str__(self):
         return f"WeatherSource: {self.source} >> {self.detail}"
+
+
+class InvalidWeatherRequestException(Exception):
+    def __init__(self, model: str, request: str, detail: Any = None):
+        self.model = model
+        self.request = request
+        self.detail = (
+                detail or "A request made for this WeatherModel contained invalid elements"
+        )
+
+    def __str__(self):
+        return f"WeatherSource: {self.model} >> {self.detail} [{self.request}]"

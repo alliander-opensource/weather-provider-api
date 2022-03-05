@@ -3,7 +3,7 @@
 #SPDX-License-Identifier: MPL-2.0
 
 [tool.poetry]
-name = "weather_provider_api"
+name = "wpla"
 version = "3.0.1"
 description = "This API is intended to help you fetch weather data from different data sources in an efficient and uniform way. By just supplying a list of locations and a time window you can get data for a specific source immediately."
 authors = ["Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
@@ -28,5 +28,5 @@ cloud_sptheme = "^1.10.1"
 sphinxcontrib-napoleon = "^0.7"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.0.8"]
 build-backend = "poetry.core.masonry.api"

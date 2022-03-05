@@ -29,25 +29,27 @@ def initialize_validation_middleware(app):
     """Function that adds API version validation as middleware to an existing app"""
 
     async def check_api_validity(request: Request, call_next):
-        str_url = str(request.url)
-
-        start_version_number = re.search(r"/api/v[0-9]+/weather", str_url).start() + 5
-        end_version_number = re.search(r"/weather/", str_url).start()
-
-        requested_api_version = str_url[start_version_number: end_version_number]
+        request_url = str(request.url)
+        version_search_re = re.search(r"/api/v[0-9]+/", request_url)
         now = datetime.now()
 
-        valid_until = Config['app']['valid_until']
-        version_valid_until = Config['app']['active_api_versions'][f'{requested_api_version}_valid_until']
-        if now > valid_until:
+        base_validation_date = Config['app']['valid_until']
+
+        if now > base_validation_date:  # Check for validation date of the core application
             response = await handle_http_exception(request, APIExpiredException(
-                f"The API's base environment has expired on {valid_until}. Please contact the maintainer!")
-                                                   )
-        elif now > version_valid_until:
-            response = await handle_http_exception(request, APIExpiredException(
-                f"API version [{requested_api_version}] has expired on {version_valid_until}. "
-                "Please contact the maintainer!")
-                                                   )
+                f"This API's base environment support has expired on {base_validation_date}. "
+                f"Please contact the API's maintainer or install a newer version."
+            ))
+        elif version_search_re is not None:
+            requested_api_version = request_url[version_search_re.start() + 5: version_search_re.end() - 1]
+            version_validation_date = Config['app']['active_api_versions'][f'{requested_api_version}_valid_until']
+            if now > version_validation_date:
+                response = await handle_http_exception(request, APIExpiredException(
+                    f"The support for version [{requested_api_version}] has expired on {version_validation_date}. "
+                    f"Please contact the API's maintainer or install a newer version."
+                ))
+            else:
+                response = await call_next(request)
         else:
             response = await call_next(request)
 

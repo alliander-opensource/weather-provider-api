@@ -19,5 +19,5 @@ app = APIRouter()
 
 
 @app.get("/test_v2", tags=['test'])
-async def get_test_result():
-    return "I am a cheese sandwich"
+async def dummy_endpoint():
+    return "Version 2 - Dummy Endpoint"

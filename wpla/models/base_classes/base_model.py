@@ -14,6 +14,7 @@ import xarray as xr
 
 from wpla.models.base_classes.abc_enhanced import ABCEnhanced
 from wpla.models.generic_utils.geo_positioning import GeoCoordinateSystem
+from wpla.models.generic_utils.unit_system_conversion import UnitSystem
 
 
 class WeatherModelBase(metaclass=ABCEnhanced):
@@ -29,7 +30,9 @@ class WeatherModelBase(metaclass=ABCEnhanced):
         'information_url',  # A URL indicating where to find more information on the model and the data it contains
         'data_grid',  # Information on grid type the data uses (like WGS84) and on what resolution it does so
         'update_frequency',  # How often source data for the model gets refreshed
-        'data_period'  # The full time range from which data can be requested from the model (using the WeatherModel)
+        'request_timeframe'  # The full time range from which data can be requested from the model
+        # (using the WeatherModel). To be used when validating the timeframe for requests.
+        # Suggested format is a Tuple of datetimes.
     ]
 
     TIME_STRING_FORMAT = "%Y-%m-%d %H:%m"  # Base format of time used for timeframe validation
@@ -59,7 +62,7 @@ class WeatherModelBase(metaclass=ABCEnhanced):
             swap_coordinates: bool = False,
             coord_system: GeoCoordinateSystem = GeoCoordinateSystem.WGS84,
     ) -> xr.Dataset:
-        """The main method for retrieving weather data from a WeatherModel.
+        """The main method for retrieving harmonized weather data from a WeatherModel as a Xarray Dataset.
 
         Args:
             coordinates: A list of Tuples holding coordinates to use. The default format is WGS84.
@@ -82,6 +85,11 @@ class WeatherModelBase(metaclass=ABCEnhanced):
 
         Returns:
             A Xarray Dataset holding the requested weather data, fully harmonized
+
+        Note:
+            The returned harmonized weather dataset should also contain a metadata "short_name" value holding the
+            WeatherModel's short_name (id) for validation when using transformations into other unit systems or
+            retrieving the original factor names.
         """
         raise NotImplementedError
 
@@ -106,17 +114,83 @@ class WeatherModelBase(metaclass=ABCEnhanced):
         """
         raise NotImplementedError
 
+    @abstractmethod
     def validate_timeframe(
             self,
             timeframe: Tuple[Optional[datetime], Optional[datetime]]
     ) -> Tuple[Optional[datetime], Optional[datetime]]:
+        """The purpose of this function is to validate the timeframe for any given request. If it makes sense for the
+        WeatherModel in question any missing or invalid values should be replaced by default values, otherwise an
+        InvalidWeatherRequestException should be raised.
 
-        return timeframe
+        Args:
+            timeframe: A Tuple of two values holding up to two datetimes.
 
-    def _get_dataset_timeframe(self):
-        pass
+        Returns:
+            A tuple of two datetime values. Either a valid timeframe should be returned or an Exception raised.
 
+        """
+        raise NotImplementedError
 
+    @abstractmethod
+    def transform_dataset(
+            self,
+            source_dataset: xr.Dataset,
+            unit_system: UnitSystem = UnitSystem.SI,
+            use_harmonized_names: bool = True,
+            validity_overwrite: bool = False
+    ) -> xr.Dataset:
+        """This is the main function used for re-formatting any harmonized data into the requested unit system or
+        retrieving the source model's original names for its factors.
+
+        Args:
+            source_dataset: A Xarray Dataset holding the weather data to reformat.
+            unit_system: The UnitSystem (enum class) value that indicates the intended target system to convert to.
+            use_harmonized_names: A boolean holding whether to use the harmonized names (True) or the ones used by the
+                                  original source data. The default is True (harmonized names)
+            validity_overwrite: A boolean holding whether to check validity of a source_dataset by reading the
+                                "short_name" metadata property (False), or to just assume dataset formatting is
+                                valid (True)
+
+        Returns:
+            A Xarray Dataset with the same data as the source_dataset, but now altered to use the requested UnitSystem
+            and naming convention.
+
+        Note:
+            The source_dataset object should contain a metadata "short_name" value to identify it as a valid dataset
+            for the function.
+
+        Note:
+            If the source_dataset is formatted in any other unit system than SI, it should also hold a metadata
+            "unit_system" value, containing which unit system that is.
+
+        Note:
+            A WeatherModel class is free to allow for the transformation of not properly formatted or validated
+            datasets, but should always properly work with the metadata therein. At the very least the data
+            transformation should implement transformation between the original data and the 'SI' unit system format,
+            but the standard is definitely 'all of the official UnitSystem types'!
+
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def self_validate(self):
+        """Validates the WeatherModel by validating ...
+
+        Returns:
+            The value True if everything was validated successfully and raises an InvalidWeatherModelException if not.
+        """
+        raise NotImplementedError
+
+    @property
+    def valid_request_timeframe(self):
+        """A function that return the valid request timeframe for a WeatherModel.
+
+        Returns:
+            A Tuple holding the two moments in time in between which at the moment of function call a request could be
+            made to the source model in the format (start, end).
+        """
+        raise NotImplementedError
 
     @property
     def id(self):
