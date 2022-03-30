@@ -140,13 +140,14 @@ class ActueleWaarnemingenModel(WeatherModelBase):
                 column_dictionary = {
                     "Station": "station",
                     "Weer": "weather_description",
-                    "Temp (°C)": "temperature",
-                    "Chill (°C)": "wind_chill",
-                    "RV (%)": "relative_humidity",
-                    "Wind": "wind_direction",
-                    "Wind (m/s)": "wind_speed",
-                    "Zicht (m)": "visibility",
-                    "Druk (hPa)": "air_pressure",
+                    "Temp(°C)": "temperature",
+                    "Chill(°C)": "wind_chill",
+                    "RV(%)": "relative_humidity",
+                    "Wind(bft)": "wind_direction",
+                    "Wind(m/s)": "wind_speed",
+                    "Wind(km/uur)": "wind_speed_kmu",
+                    "Zicht(m)": "visibility",
+                    "Druk(hPa)": "air_pressure",
                 }
 
                 # Rename to conventional naming system used for Weather Provider API
@@ -155,6 +156,7 @@ class ActueleWaarnemingenModel(WeatherModelBase):
                         df = df.rename(
                             columns={dict_item: column_dictionary[dict_item]}
                         )
+
 
                 dt = self._retrieve_observation_date(knmi_response.text)
                 df["wind_direction"] = df["wind_direction"].str.strip("\n")
