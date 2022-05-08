@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "wpla"
+version = "3.0.0-alpha.1"
+description = "Weather Provider Libraries and API"
+authors = ["Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
+license = "MPL-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.75.1"
+loguru = "^0.6.0"
+importlib-metadata = "^4.11.3"
+toml = "^0.10.2"
+python-dateutil = "^2.8.2"
+starlette-prometheus = "^0.9.0"
+uvicorn = "^0.17.6"
+pyproj = "^3.3.1"
+numpy = "^1.22.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.1"
+coverage = "^6.3.2"
+black = "^22.3.0"
+pylint = "^2.13.8"
+pytest-asyncio = "^0.18.3"
+Sphinx = "^4.5.0"
+sphinxcontrib-napoleon = "^0.7"
+sphinx-sizzle-theme = "^0.1.1"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+asyncio_mode='strict'
+
+[tool.black]
+line-length = 120
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 120
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
