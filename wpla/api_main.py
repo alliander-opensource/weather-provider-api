@@ -40,7 +40,6 @@ from wpla.api.versions.core import app as core_view
 from wpla.api.versions.v2 import app as v2
 from wpla.api.versions.v3 import app as v3
 
-
 # Set up the app
 wpla_app = FastAPI(
     version=app_config.version,

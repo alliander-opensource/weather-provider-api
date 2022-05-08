@@ -17,3 +17,4 @@ from wpla.config.deployed_config import DeployedConfiguration
 
 class DebugDeployedConfiguration(DebugConfiguration, DeployedConfiguration):
     """Debugging and deployed settings."""
+    config_type = 'debug_deployed_configuration'
