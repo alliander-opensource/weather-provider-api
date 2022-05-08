@@ -21,9 +21,11 @@ class APIExpiredException(HTTPException):
     """An Exception type that can be used when the main API or its versioned API components have expired."""
 
     def __init__(self, detail: Any = None):
-        super().__init__(detail)
+        super().__init__(status_code=503, detail=detail)
         self.detail = (
-            detail
-            or "This API has passed its expiry date and should be revalidated. Please contact the API maintainer"
+            detail or "This API has passed its expiry date and should be revalidated. Please contact the API maintainer"
         )
         self.status_code = 503
+
+    def __str__(self):
+        return self.detail

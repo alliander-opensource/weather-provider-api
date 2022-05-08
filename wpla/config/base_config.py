@@ -27,9 +27,9 @@ DEFAULT_API_VERSIONS = {"v2": "3.0.0-alpha1", "v3": "3.0.0-alpha1"}
 
 class Configuration:
     """Base settings."""
-    name = os.environ.get(
-        f"{ENVIRONMENT_PREFIX}_APP_NAME", "weather_provider_lib_api"
-    )
+    config_type = 'configuration'
+
+    name = os.environ.get(f"{ENVIRONMENT_PREFIX}_APP_NAME", "weather_provider_lib_api")
     description = os.environ.get(
         f"{ENVIRONMENT_PREFIX}_APP_DESCRIPTION",
         "The Weather Provider Libraries and API",
@@ -65,27 +65,17 @@ class Configuration:
         }
 
     # Other configuration parameters
-    show_maintainer_info = bool(
-        os.environ.get(f"{ENVIRONMENT_PREFIX}_SHOW_MAINTAINER", False)
-    )
-    logging_level = os.environ.get(
-        f"{ENVIRONMENT_PREFIX}_DEFAULT_LOGGING_LEVEL", "INFO"
-    )
+    show_maintainer_info = bool(os.environ.get(f"{ENVIRONMENT_PREFIX}_SHOW_MAINTAINER", False))
+    logging_level = os.environ.get(f"{ENVIRONMENT_PREFIX}_DEFAULT_LOGGING_LEVEL", "INFO")
 
     # Network settings:
-    network_interface_ip = os.environ.get(
-        f"{ENVIRONMENT_PREFIX}_NETWORK_INTERFACE", "127.0.0.1"
-    )
-    network_interface_port = int(
-        os.environ.get(f"{ENVIRONMENT_PREFIX}_NETWORK_PORT", "8080")
-    )
+    network_interface_ip = os.environ.get(f"{ENVIRONMENT_PREFIX}_NETWORK_INTERFACE", "127.0.0.1")
+    network_interface_port = int(os.environ.get(f"{ENVIRONMENT_PREFIX}_NETWORK_PORT", "8080"))
 
     # Storage settings:
     repository_folder = os.environ.get(
         f"{ENVIRONMENT_PREFIX}_REPOSITORY_FOLDER",
-        os.path.join(
-            tempfile.gettempdir(), f"{ENVIRONMENT_PREFIX}_repositories"
-        ),
+        os.path.join(tempfile.gettempdir(), f"{ENVIRONMENT_PREFIX}_repositories"),
     )
     temporary_folder = os.environ.get(
         f"{ENVIRONMENT_PREFIX}_REPOSITORY_FOLDER",

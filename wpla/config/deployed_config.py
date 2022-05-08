@@ -19,6 +19,8 @@ from wpla.config.base_config import Configuration, ENVIRONMENT_PREFIX
 
 class DeployedConfiguration(Configuration):
     """Deployed settings"""
+    config_type = 'deployed_configuration'
+
     network_interface_ip = os.environ.get(
         f"{ENVIRONMENT_PREFIX}_NETWORK_INTERFACE", "0.0.0.0"
     )
