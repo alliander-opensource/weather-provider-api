@@ -25,7 +25,7 @@ pylint = "^2.13.8"
 pytest-asyncio = "^0.18.3"
 Sphinx = "^4.5.0"
 sphinxcontrib-napoleon = "^0.7"
-sphinx-sizzle-theme = "^0.1.1"
+sphinx-rtd-theme = "^1.0.0"
 
 [tool.pytest.ini_options]
 pythonpath = [

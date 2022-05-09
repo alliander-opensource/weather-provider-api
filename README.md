@@ -4,11 +4,11 @@ SPDX-License-Identifier: MPL-2.0
 -->
 
 [![WPLA: version](https://img.shields.io/badge/version-3.0.0a-blue)](https://github.com/alliander-opensource/Weather-Provider-API) [![License: MIT](https://img.shields.io/badge/License-MPL2.0-informational.svg)](https://github.com/alliander-opensource/Weather-Provider-API/blob/master/LICENSE) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=alliander-opensource_Weather-Provider-API) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=alliander-opensource_Weather-Provider-API) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&metric=coverage)](https://sonarcloud.io/summary/new_code?id=alliander-opensource_Weather-Provider-API) ![Python Version](https://img.shields.io/pypi/pyversions/wpla) 
-___________________
-Weather Provider Libraries and API
-===========================
 
-____
+Weather Provider Libraries and API
+==================================
+
+_______________________________________________________________________
 
 ## Introduction
 
@@ -19,7 +19,7 @@ For the supported weather datasets and sources it becomes possible to gather spe
 ## Table of contents
 
 1. [What is the Weather Provider Libraries and API exactly?](#what-is-the weather-provider-libraries-and-api-exactly)
-___________________
+__________________________________________________________________________________________________
 ## What is the Weather Provider Libraries and API exactly?
 
 As we stated in the introduction, the Weather Provider Libraries and API (or WPLA for short) is a set of libraries and an API shell that can be run as a whole or separately to gather and reformat meteorological data into an harmonized state, from which it can then be outputted in a multitude of file formats, coordinate systems and unit systems.
@@ -30,15 +30,15 @@ This means that the WPLA can be used and installed to match your specific needs.
 
 | **Situation**                                                | **Installation suggested**                                   |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| You want to gather a lot of date from multiple meteorological sources, or set up an environment from which this can be done at any given time. | The full API (separately) or the controller (built into other code)<br />*(certain sources may need to be installed separately)* |
-| You want to incidentally gather data from multiple datasets created by a single source. | Install the package for that source and use it directly using its WeatherSource class. |
-| You want to incidentally gather data from a single dataset.  | Install the package for that dataset and use it directly using its WeatherModel class. |
+| You want to gather a lot of date from multiple meteorological sources, or set up an environment from which this can be done at any given time. | The full API (separately) or the controller (built into other code)*(certain sources may need to be installed separately)* |
+| You want to incidentally gather data from multiple datasets created by a single source. | Install the package for that source and use it directly using its MeteoSource class. |
+| You want to incidentally gather data from a single dataset.  | Install the package for that dataset and use it directly using its MeteoModel class. |
 
 Regardless of the installation, there are no differences in the required input or methods.
 
 ### ***What is the required input?***
 
-At minimum the WPLA can work as little as:
+At minimum this models for this project can work with as little as:
 
 - A geographical location or zone to gather data for
 - A frame of time to gather the data for
@@ -51,34 +51,55 @@ However, when you want more control this can easily be achieved by using the fol
 - The desired meteorological factors
   *(These can be requested by using either their harmonized names or the original names used in the source data)*
 - The desired unit system for the output
-  *(currently WPLA supports the original system, the metric system (or 'human' system), the imperial system, and The International System of Units (or SI))*
+  *(currently this project supports the originally used unit system, the metric system (or 'human' system), the imperial system, and The International System of Units (or SI))*
 - The desired file format for the output
-  *(currently WPLA supports NetCDF4, NetCDF3, JSON, JSON dataset and CSV. Planned for the near future is support for HDF5)*
+  *(currently this project supports NetCDF4, NetCDF3, JSON, JSON dataset and CSV. Planned for the near future is support for HDF5)*
 
 Finally, for more professional control, you can use the following parameters:
 
 - The desired interpolation method (or lack thereof) to be used for value calculations when requesting locations in stead of zones.
 - The returned locations can also be switched to match the nearest found data locations instead. This will overwrite the setting for the desired interpolation method, however.
 - The used coordinate system for input if not the WGS84 standard. 
-  *(any EPSG registered grid system can be used. The data requested still needs to be available for the requested locations of course..)*
+  *(any EPSG registered grid system can be used by referencing its numeric code. The data requested still needs to be available for the requested locations of course..)*
 - The desired coordinate system to be used for the output.
   *(once again, any EPSG registered grid system can be used. The requested locations still need to be translatable to the new system of course..)*
 
 ## Installation as a package
 
-dafas
+#### Installing the full project:
+
+**pip install wpla**
+
+As with most packages on PyPI, it is possible to install a specific version if that is needed for some reason.
+
+#### Installing a specific package of datasets
+
+Go to the page that houses that package (likely a GitHub page) and follow the instructions provided there. 
+
+Most of the time installations will be along the lines of:
+
+**pip install wpla-<package-name>**
 
 ## Installation as a fully fledged API
 
-dafas
+There are three ways to install this project as a fully fledged API:
+
+1. By installing the project package.
+2. By cloning this repository and starting a FastAPI app with the project in it.
+   *(for an example on this, check out the **api_main.py** file in the projects main folder)*
+3. By launching this project's Docker image in an appropriate environment.
 
 ## Installing separate sources and models
 
-dafas
+Simply install the sources and models by installing their respective project packages and mount the models you wish to use by putting them into the modelconfig file.
+
+Every MeteoModel should have  a base configuration from which it can run without any customization, so 
+
+**TODO:** #################################################
 
 ## Meteorological factors per model
 
-As each model has its own factors that can be requested every properly build model should have its own **MODEL_FACTORS.md** file with its installation and/or repository.
+As each model has its own factors that can be requested every properly build model should have its own **MODEL_FACTORS.md** or **MODEL_FACTORS.rst** information file that comes with both its installation and repository.
 
 This file should contain every available factor to the model, as well as its harmonized name and source unit.
 ___________________
@@ -88,7 +109,10 @@ This project is Open Source and as such we welcome anyone willing to work on thi
 ___________________
 ## Contact
 
-If you wish to contact the project owners directly, please e-mail us at [weather.provider@alliander.com](mailto://weather.provider@alliander.com).
+If you wish to contact the project owners directly, please e-mail us at:
+
+[weather.provider@alliander.com](mailto://weather.provider@alliander.com).
+
 ___________________
 ## Notable Authors
 
@@ -114,4 +138,3 @@ Thanks to teams "Inzicht & Analytics" and "Strategie & Innovatie" to make this p
 A big thanks as well to [Alliander](https://www.alliander.com) for being the main sponsor for this open source project.
 
 And of course a big thanks to the guys of "IT New Business & R&D" to provide such an easy-to-use Python environment in the cloud.
-
