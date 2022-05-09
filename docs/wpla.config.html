@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wpla.config package &mdash; Weather Provider Libraries and API 3.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Weather Provider Libraries and API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basic information:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#table-of-contents">Table of contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#what-is-the-weather-provider-libraries-and-api-exactly">What is the Weather Provider Libraries and API exactly?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#installation-as-a-package">Installation as a package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#installation-as-a-fully-fledged-api">Installation as a fully fledged API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#installing-separate-sources-and-models">Installing separate sources and models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#meteorological-factors-per-model">Meteorological factors per model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#contributing-to-this-project">Contributing to this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#contact">Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#notable-authors">Notable Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#license">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#third-party-code-licenses">Third-party Code Licenses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Weather Provider Libraries and API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>wpla.config package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wpla.config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wpla-config-package">
+<h1>wpla.config package<a class="headerlink" href="#wpla-config-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wpla.config.base_config">
+<span id="wpla-config-base-config-module"></span><h2>wpla.config.base_config module<a class="headerlink" href="#module-wpla.config.base_config" title="Permalink to this headline"></a></h2>
+<p>The base configuration</p>
+<p>Contains any settings that should be the default for the configuration.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.base_config.</span></span><span class="sig-name descname"><span class="pre">Configuration</span></span><a class="reference internal" href="_modules/wpla/config/base_config.html#Configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.config.base_config.Configuration" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.API">
+<span class="sig-name descname"><span class="pre">API</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'v3'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.API" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.api_versions">
+<span class="sig-name descname"><span class="pre">api_versions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'v2':</span> <span class="pre">{'api_validation_date':</span> <span class="pre">datetime.date(2021,</span> <span class="pre">12,</span> <span class="pre">31),</span> <span class="pre">'api_version':</span> <span class="pre">'3.0.0-alpha1'},</span> <span class="pre">'v3':</span> <span class="pre">{'api_validation_date':</span> <span class="pre">datetime.date(2023,</span> <span class="pre">12,</span> <span class="pre">31),</span> <span class="pre">'api_version':</span> <span class="pre">'3.0.0-alpha1'}}</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.api_versions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.config_type">
+<span class="sig-name descname"><span class="pre">config_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'configuration'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.config_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.core_validation_date">
+<span class="sig-name descname"><span class="pre">core_validation_date</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">datetime.date(2023,</span> <span class="pre">12,</span> <span class="pre">31)</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.core_validation_date" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.debugging">
+<span class="sig-name descname"><span class="pre">debugging</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.debugging" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.deployed">
+<span class="sig-name descname"><span class="pre">deployed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.deployed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'The</span> <span class="pre">Weather</span> <span class="pre">Provider</span> <span class="pre">Libraries</span> <span class="pre">and</span> <span class="pre">API'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.description" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.logging_level">
+<span class="sig-name descname"><span class="pre">logging_level</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'INFO'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.logging_level" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.maintainer">
+<span class="sig-name descname"><span class="pre">maintainer</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DNB</span> <span class="pre">Verbindingsteam</span> <span class="pre">(Contact:</span> <span class="pre">Raoul</span> <span class="pre">Linnenbank)'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.maintainer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.maintainer_email">
+<span class="sig-name descname"><span class="pre">maintainer_email</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'weather.provider&#64;alliander.com'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.maintainer_email" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'weather_provider_lib_api'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.network_interface_ip">
+<span class="sig-name descname"><span class="pre">network_interface_ip</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'127.0.0.1'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.network_interface_ip" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.network_interface_port">
+<span class="sig-name descname"><span class="pre">network_interface_port</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8080</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.network_interface_port" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.repository_folder">
+<span class="sig-name descname"><span class="pre">repository_folder</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'C:\\Users\\hellt\\AppData\\Local\\Temp\\WPLA_repositories'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.repository_folder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.show_maintainer_info">
+<span class="sig-name descname"><span class="pre">show_maintainer_info</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.show_maintainer_info" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.temporary_folder">
+<span class="sig-name descname"><span class="pre">temporary_folder</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'C:\\Users\\hellt\\AppData\\Local\\Temp\\WPLA_temp'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.temporary_folder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration.version">
+<span class="sig-name descname"><span class="pre">version</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'3.0.0-alpha.1'</span></em><a class="headerlink" href="#wpla.config.base_config.Configuration.version" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wpla.config.debug_config">
+<span id="wpla-config-debug-config-module"></span><h2>wpla.config.debug_config module<a class="headerlink" href="#module-wpla.config.debug_config" title="Permalink to this headline"></a></h2>
+<p>The debug configuration</p>
+<p>Contains any settings that should be specific for a debugging environment.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.debug_config.DebugConfiguration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.debug_config.</span></span><span class="sig-name descname"><span class="pre">DebugConfiguration</span></span><a class="reference internal" href="_modules/wpla/config/debug_config.html#DebugConfiguration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.config.debug_config.DebugConfiguration" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wpla.config.base_config.Configuration" title="wpla.config.base_config.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">wpla.config.base_config.Configuration</span></code></a></p>
+<p>Debug settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.debug_config.DebugConfiguration.config_type">
+<span class="sig-name descname"><span class="pre">config_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'debug_configuration'</span></em><a class="headerlink" href="#wpla.config.debug_config.DebugConfiguration.config_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.debug_config.DebugConfiguration.debugging">
+<span class="sig-name descname"><span class="pre">debugging</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#wpla.config.debug_config.DebugConfiguration.debugging" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.debug_config.DebugConfiguration.logging_level">
+<span class="sig-name descname"><span class="pre">logging_level</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DEBUG'</span></em><a class="headerlink" href="#wpla.config.debug_config.DebugConfiguration.logging_level" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wpla.config.deployed_config">
+<span id="wpla-config-deployed-config-module"></span><h2>wpla.config.deployed_config module<a class="headerlink" href="#module-wpla.config.deployed_config" title="Permalink to this headline"></a></h2>
+<p>The deployed configuration</p>
+<p>Contains any settings that should be the default for a deployed environment.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.deployed_config.DeployedConfiguration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.deployed_config.</span></span><span class="sig-name descname"><span class="pre">DeployedConfiguration</span></span><a class="reference internal" href="_modules/wpla/config/deployed_config.html#DeployedConfiguration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.config.deployed_config.DeployedConfiguration" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wpla.config.base_config.Configuration" title="wpla.config.base_config.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">wpla.config.base_config.Configuration</span></code></a></p>
+<p>Deployed settings</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.deployed_config.DeployedConfiguration.config_type">
+<span class="sig-name descname"><span class="pre">config_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'deployed_configuration'</span></em><a class="headerlink" href="#wpla.config.deployed_config.DeployedConfiguration.config_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.deployed_config.DeployedConfiguration.deployed">
+<span class="sig-name descname"><span class="pre">deployed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#wpla.config.deployed_config.DeployedConfiguration.deployed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.deployed_config.DeployedConfiguration.network_interface_ip">
+<span class="sig-name descname"><span class="pre">network_interface_ip</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.0.0.0'</span></em><a class="headerlink" href="#wpla.config.deployed_config.DeployedConfiguration.network_interface_ip" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wpla.config.deployed_debug_config">
+<span id="wpla-config-deployed-debug-config-module"></span><h2>wpla.config.deployed_debug_config module<a class="headerlink" href="#module-wpla.config.deployed_debug_config" title="Permalink to this headline"></a></h2>
+<p>The debug-deployed configuration</p>
+<p>Contains any settings that should be specific for an environment that is both for debugging and full deployment.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.deployed_debug_config.DebugDeployedConfiguration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.deployed_debug_config.</span></span><span class="sig-name descname"><span class="pre">DebugDeployedConfiguration</span></span><a class="reference internal" href="_modules/wpla/config/deployed_debug_config.html#DebugDeployedConfiguration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.config.deployed_debug_config.DebugDeployedConfiguration" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wpla.config.debug_config.DebugConfiguration" title="wpla.config.debug_config.DebugConfiguration"><code class="xref py py-class docutils literal notranslate"><span class="pre">wpla.config.debug_config.DebugConfiguration</span></code></a>, <a class="reference internal" href="#wpla.config.deployed_config.DeployedConfiguration" title="wpla.config.deployed_config.DeployedConfiguration"><code class="xref py py-class docutils literal notranslate"><span class="pre">wpla.config.deployed_config.DeployedConfiguration</span></code></a></p>
+<p>Debugging and deployed settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.config.deployed_debug_config.DebugDeployedConfiguration.config_type">
+<span class="sig-name descname"><span class="pre">config_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'debug_deployed_configuration'</span></em><a class="headerlink" href="#wpla.config.deployed_debug_config.DebugDeployedConfiguration.config_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wpla.config">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wpla.config" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliander.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

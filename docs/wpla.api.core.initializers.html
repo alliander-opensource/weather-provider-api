@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wpla.api.core.initializers package &mdash; Weather Provider Libraries and API 3.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Weather Provider Libraries and API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basic information:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#table-of-contents">Table of contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#what-is-the-weather-provider-libraries-and-api-exactly">What is the Weather Provider Libraries and API exactly?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#installation-as-a-package">Installation as a package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#installation-as-a-fully-fledged-api">Installation as a fully fledged API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#installing-separate-sources-and-models">Installing separate sources and models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#meteorological-factors-per-model">Meteorological factors per model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#contributing-to-this-project">Contributing to this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#contact">Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#notable-authors">Notable Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#license">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#third-party-code-licenses">Third-party Code Licenses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Weather Provider Libraries and API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>wpla.api.core.initializers package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wpla.api.core.initializers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wpla-api-core-initializers-package">
+<h1>wpla.api.core.initializers package<a class="headerlink" href="#wpla-api-core-initializers-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wpla.api.core.initializers.exception_handling">
+<span id="wpla-api-core-initializers-exception-handling-module"></span><h2>wpla.api.core.initializers.exception_handling module<a class="headerlink" href="#module-wpla.api.core.initializers.exception_handling" title="Permalink to this headline"></a></h2>
+<section id="api-exception-handling-extension">
+<h3>API Exception Handling extension<a class="headerlink" href="#api-exception-handling-extension" title="Permalink to this headline"></a></h3>
+<p>This extended error handler reports back information on encountered exceptions, and if configured as such, information
+on the maintainer and how to contact him/her/other as well.
+The used format allows for tertiary parties and logging monitors to easily handle specific error situations.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.exception_handling.handle_http_exception">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.exception_handling.</span></span><span class="sig-name descname"><span class="pre">handle_http_exception</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">starlette.requests.Request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">starlette.exceptions.HTTPException</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">starlette.responses.JSONResponse</span></span></span><a class="reference internal" href="_modules/wpla/api/core/initializers/exception_handling.html#handle_http_exception"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.exception_handling.handle_http_exception" title="Permalink to this definition"></a></dt>
+<dd><p>Handles exceptions by reformatting them for proper consistent API output. If the maintainer isn’t hidden by the
+configuration, the maintainer’s name and email address will be supplied as well to allow the requesting party to
+inform the maintainer of any mishaps or structural errors.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.exception_handling.initialize_error_handling">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.exception_handling.</span></span><span class="sig-name descname"><span class="pre">initialize_error_handling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wpla/api/core/initializers/exception_handling.html#initialize_error_handling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.exception_handling.initialize_error_handling" title="Permalink to this definition"></a></dt>
+<dd><p>Function that adds the error handler to an existing app</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-wpla.api.core.initializers.headers">
+<span id="wpla-api-core-initializers-headers-module"></span><h2>wpla.api.core.initializers.headers module<a class="headerlink" href="#module-wpla.api.core.initializers.headers" title="Permalink to this headline"></a></h2>
+<section id="metadata-header-extension">
+<h3>Metadata Header Extension<a class="headerlink" href="#metadata-header-extension" title="Permalink to this headline"></a></h3>
+<p>The goal of this module is to add metadata about the API and if so configured, its maintainer to any generated page.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.headers.initialize_metadata_header_middleware">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.headers.</span></span><span class="sig-name descname"><span class="pre">initialize_metadata_header_middleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wpla/api/core/initializers/headers.html#initialize_metadata_header_middleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.headers.initialize_metadata_header_middleware" title="Permalink to this definition"></a></dt>
+<dd><p>Function that adds the add_metadata_headers() function as middleware to an existing app</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-wpla.api.core.initializers.logging">
+<span id="wpla-api-core-initializers-logging-module"></span><h2>wpla.api.core.initializers.logging module<a class="headerlink" href="#module-wpla.api.core.initializers.logging" title="Permalink to this headline"></a></h2>
+<p>The logging initialisation module</p>
+<p>This module holds the full configuration and initialisation for logging the entire API and its components. It only
+needs to be hooked up to the FastAPI app in the proper way, and if you wish to include pre-launch data with this
+configuration, it also needs to be started before the app configuration.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.logging.</span></span><span class="sig-name descname"><span class="pre">InterceptHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wpla/api/core/initializers/logging.html#InterceptHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Handler</span></code></p>
+<p>A Log level converter between the default logger and the loguru levels</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.emit">
+<span class="sig-name descname"><span class="pre">emit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">logging.LogRecord</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wpla/api/core/initializers/logging.html#InterceptHandler.emit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.emit" title="Permalink to this definition"></a></dt>
+<dd><p>Do whatever it takes to actually log the specified logging record.</p>
+<p>This version is intended to be implemented by subclasses and so
+raises a NotImplementedError.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.loglevel_mapping">
+<span class="sig-name descname"><span class="pre">loglevel_mapping</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{0:</span> <span class="pre">'NOTSET',</span> <span class="pre">10:</span> <span class="pre">'DEBUG',</span> <span class="pre">20:</span> <span class="pre">'INFO',</span> <span class="pre">30:</span> <span class="pre">'WARNING',</span> <span class="pre">40:</span> <span class="pre">'ERROR',</span> <span class="pre">50:</span> <span class="pre">'CRITICAL'}</span></em><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.loglevel_mapping" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.initialize_logging">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.logging.</span></span><span class="sig-name descname"><span class="pre">initialize_logging</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wpla/api/core/initializers/logging.html#initialize_logging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.logging.initialize_logging" title="Permalink to this definition"></a></dt>
+<dd><p>The logging initializer. The only place you need to look for log configuration.</p>
+</dd></dl>
+
+</section>
+<section id="module-wpla.api.core.initializers.monitoring">
+<span id="wpla-api-core-initializers-monitoring-module"></span><h2>wpla.api.core.initializers.monitoring module<a class="headerlink" href="#module-wpla.api.core.initializers.monitoring" title="Permalink to this headline"></a></h2>
+<p>Prometheus Monitoring</p>
+<p>This module initializes the Prometheus middleware component.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.monitoring.initialize_prometheus_middleware">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.monitoring.</span></span><span class="sig-name descname"><span class="pre">initialize_prometheus_middleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">fastapi.applications.FastAPI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/metrics'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wpla/api/core/initializers/monitoring.html#initialize_prometheus_middleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.monitoring.initialize_prometheus_middleware" title="Permalink to this definition"></a></dt>
+<dd><p>Starts the HTTP endpoint for Prometheus monitoring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> – FastAPI app instance</p></li>
+<li><p><strong>endpoint</strong> – URL at which the metrics should be available</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wpla.api.core.initializers.mounting">
+<span id="wpla-api-core-initializers-mounting-module"></span><h2>wpla.api.core.initializers.mounting module<a class="headerlink" href="#module-wpla.api.core.initializers.mounting" title="Permalink to this headline"></a></h2>
+<section id="api-version-mounting">
+<h3>API Version Mounting<a class="headerlink" href="#api-version-mounting" title="Permalink to this headline"></a></h3>
+<p>This module grafts a supplied output-version of the WPLA API onto the (supplied) base app.
+.. note:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">This</span> <span class="n">base</span> <span class="n">application</span> <span class="n">should</span> <span class="n">only</span> <span class="n">serve</span> <span class="k">as</span> <span class="n">a</span> <span class="n">mounting</span> <span class="n">point</span> <span class="k">for</span> <span class="n">middleware</span><span class="p">,</span> <span class="n">loggers</span> <span class="ow">and</span> <span class="n">error</span> <span class="n">handlers</span><span class="p">,</span> <span class="ow">and</span> <span class="k">as</span> <span class="n">the</span>
+<span class="n">place</span> <span class="n">to</span> <span class="n">hook</span> <span class="n">up</span> <span class="n">these</span> <span class="n">versioned</span> <span class="n">APIs</span><span class="o">.</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.mounting.mount_api_version">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.mounting.</span></span><span class="sig-name descname"><span class="pre">mount_api_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_app</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">fastapi.applications.FastAPI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">versioned_app</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">fastapi.applications.FastAPI</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wpla/api/core/initializers/mounting.html#mount_api_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.mounting.mount_api_version" title="Permalink to this definition"></a></dt>
+<dd><p>Function that adds the versioned API onto an existing app</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-wpla.api.core.initializers.validation">
+<span id="wpla-api-core-initializers-validation-module"></span><h2>wpla.api.core.initializers.validation module<a class="headerlink" href="#module-wpla.api.core.initializers.validation" title="Permalink to this headline"></a></h2>
+<section id="api-version-validation">
+<h3>API Version Validation<a class="headerlink" href="#api-version-validation" title="Permalink to this headline"></a></h3>
+<p>This module adds middleware that will check the API (sub-)versions for their validity based on their expiration dates.
+.. note:: Not only the API versions themselves have a ‘valid_until’ date, but also the full application.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.validation.initialize_validation_middleware">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.validation.</span></span><span class="sig-name descname"><span class="pre">initialize_validation_middleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wpla/api/core/initializers/validation.html#initialize_validation_middleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wpla.api.core.initializers.validation.initialize_validation_middleware" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the validation steps to be executed when running a request.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-wpla.api.core.initializers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wpla.api.core.initializers" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliander.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wpla.configuration &mdash; Weather Provider Libraries and API 3.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Weather Provider Libraries and API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basic information:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#table-of-contents">Table of contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#what-is-the-weather-provider-libraries-and-api-exactly">What is the Weather Provider Libraries and API exactly?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#installation-as-a-package">Installation as a package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#installation-as-a-fully-fledged-api">Installation as a fully fledged API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#installing-separate-sources-and-models">Installing separate sources and models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#meteorological-factors-per-model">Meteorological factors per model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#contributing-to-this-project">Contributing to this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#contact">Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#notable-authors">Notable Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#license">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#third-party-code-licenses">Third-party Code Licenses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Weather Provider Libraries and API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wpla.configuration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wpla.configuration</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># SPDX-FileCopyrightText: 2019-2021 Alliander N.V.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier: MPL-2.0</span>
+
+<span class="sd">&quot;&quot;&quot;The configuration for the API itself</span>
+
+<span class="sd">This module processes the appropriate configuration for the API itself.</span>
+<span class="sd">The settings themselves are gathered using the following separate files:</span>
+<span class="sd">    - base_config.py</span>
+<span class="sd">    - debug_config.py</span>
+<span class="sd">    - deployed_config.py</span>
+<span class="sd">    - deployed_debug_config.py</span>
+
+<span class="sd">These files configure the settings appropriate for their specific configurations by reading configuration settings</span>
+<span class="sd">from the environment, if available, or by supplying default settings when they are not.</span>
+
+<span class="sd">Depending on any found {ENVIRONMENT_PREFIX}_DEBUG and {ENVIRONMENT_PREFIX}_DEPLOYED environment settings a</span>
+<span class="sd">configuration will be loaded.</span>
+
+<span class="sd">As DebugConfiguration and DeployedConfiguration extend the base configuration and DebugDeployedConfiguration extends</span>
+<span class="sd">both the DebugConfiguration and the DeployedConfiguration, settings will carry over as follows:</span>
+
+<span class="sd"> * Settings made in the Configuration class in base_config.py will be inherited by all other configuration classes</span>
+<span class="sd"> unless overwritten.</span>
+<span class="sd"> * Settings made in the DebugConfiguration and DeployedConfiguration classes can overwrite settings made in the</span>
+<span class="sd"> Configuration class, and will be inherited by the DebugDeployedConfiguration class. DebugConfiguration settings will</span>
+<span class="sd"> take precedence over DeployedConfiguration settings if settings exist in both classes.</span>
+<span class="sd"> * The DebugDeployedConfiguration settings will only affect environments configured with both the DEBUG and DEPLOYED</span>
+<span class="sd"> settings as true. As most configuration settings will already be properly inherited from the DebugConfiguration and</span>
+<span class="sd"> DeployedConfiguration classes, there will usually be little reason to keep settings in this class.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">wpla.config.base_config</span> <span class="kn">import</span> <span class="n">ENVIRONMENT_PREFIX</span><span class="p">,</span> <span class="n">Configuration</span>
+<span class="kn">from</span> <span class="nn">wpla.config.debug_config</span> <span class="kn">import</span> <span class="n">DebugConfiguration</span>
+<span class="kn">from</span> <span class="nn">wpla.config.deployed_config</span> <span class="kn">import</span> <span class="n">DeployedConfiguration</span>
+<span class="kn">from</span> <span class="nn">wpla.config.deployed_debug_config</span> <span class="kn">import</span> <span class="n">DebugDeployedConfiguration</span>
+
+
+<div class="viewcode-block" id="get_configuration"><a class="viewcode-back" href="../../wpla.html#wpla.configuration.get_configuration">[docs]</a><span class="k">def</span> <span class="nf">get_configuration</span><span class="p">(</span><span class="n">debugging</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">deployed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fetch the proper configuration based on the debugging and deployment settings.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">debugging</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">deployed</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Configuration</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">debugging</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">deployed</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DebugConfiguration</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">debugging</span> <span class="ow">and</span> <span class="n">deployed</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DeployedConfiguration</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">DebugDeployedConfiguration</span><span class="p">()</span></div>
+
+
+<span class="n">app_config</span> <span class="o">=</span> <span class="n">get_configuration</span><span class="p">(</span>
+    <span class="nb">bool</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ENVIRONMENT_PREFIX</span><span class="si">}</span><span class="s2">_DEBUG&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+    <span class="nb">bool</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ENVIRONMENT_PREFIX</span><span class="si">}</span><span class="s2">_DEPLOYED&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+<span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliander.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

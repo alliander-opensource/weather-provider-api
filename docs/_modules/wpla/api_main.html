@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wpla.api_main &mdash; Weather Provider Libraries and API 3.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Weather Provider Libraries and API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basic information:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#table-of-contents">Table of contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#what-is-the-weather-provider-libraries-and-api-exactly">What is the Weather Provider Libraries and API exactly?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#installation-as-a-package">Installation as a package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#installation-as-a-fully-fledged-api">Installation as a fully fledged API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#installing-separate-sources-and-models">Installing separate sources and models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#meteorological-factors-per-model">Meteorological factors per model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#contributing-to-this-project">Contributing to this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#contact">Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#notable-authors">Notable Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#license">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#third-party-code-licenses">Third-party Code Licenses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Weather Provider Libraries and API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wpla.api_main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wpla.api_main</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># SPDX-FileCopyrightText: 2019-2021 Alliander N.V.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier: MPL-2.0</span>
+
+<span class="sd">&quot;&quot;&quot;Main file for running the full API.</span>
+
+<span class="sd">This module can be used in two ways:</span>
+<span class="sd"> - as an easy way to get started by running the API for you</span>
+<span class="sd"> - or as an example to use when building your own distribution of the API</span>
+
+<span class="sd">In essence we do the following:</span>
+<span class="sd"> 1. we setup the FastAPI app itself</span>
+<span class="sd"> 2. We hookup the logging, both inside the app, and outside of it to capture everything.</span>
+<span class="sd"> 3. We add the middleware we want. (Error handling, metadata addition, version validation, Prometheus..)</span>
+<span class="sd"> 4. We hook up any components as their own apps, with their own routers.</span>
+<span class="sd"> 5. We set any redirects</span>
+<span class="sd"> 6. And finally, we start the app using uvicorn, gunicorn, etcetera.</span>
+
+<span class="sd">Todo:</span>
+<span class="sd">    * Give more information on running under uvicorn, gunicorn and one or two other methods.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">uvicorn</span>
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span> <span class="nn">starlette.responses</span> <span class="kn">import</span> <span class="n">RedirectResponse</span>
+
+<span class="kn">from</span> <span class="nn">wpla.api.core.initializers.exception_handling</span> <span class="kn">import</span> <span class="n">initialize_error_handling</span>
+<span class="kn">from</span> <span class="nn">wpla.api.core.initializers.headers</span> <span class="kn">import</span> <span class="n">initialize_metadata_header_middleware</span>
+<span class="kn">from</span> <span class="nn">wpla.api.core.initializers.logging</span> <span class="kn">import</span> <span class="n">initialize_logging</span>
+<span class="kn">from</span> <span class="nn">wpla.api.core.initializers.monitoring</span> <span class="kn">import</span> <span class="n">initialize_prometheus_middleware</span>
+<span class="kn">from</span> <span class="nn">wpla.api.core.initializers.mounting</span> <span class="kn">import</span> <span class="n">mount_api_version</span>
+<span class="kn">from</span> <span class="nn">wpla.api.core.initializers.validation</span> <span class="kn">import</span> <span class="n">initialize_validation_middleware</span>
+
+<span class="kn">from</span> <span class="nn">wpla.configuration</span> <span class="kn">import</span> <span class="n">app_config</span>
+
+<span class="kn">from</span> <span class="nn">wpla.api.versions.core</span> <span class="kn">import</span> <span class="n">app</span> <span class="k">as</span> <span class="n">core_view</span>
+<span class="kn">from</span> <span class="nn">wpla.api.versions.v2</span> <span class="kn">import</span> <span class="n">app</span> <span class="k">as</span> <span class="n">v2</span>
+<span class="kn">from</span> <span class="nn">wpla.api.versions.v3</span> <span class="kn">import</span> <span class="n">app</span> <span class="k">as</span> <span class="n">v3</span>
+
+<span class="c1"># Set up the app</span>
+<span class="n">wpla_app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">version</span><span class="o">=</span><span class="n">app_config</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="n">app_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="n">app_config</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">wpla_app</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s2">&quot;startup&quot;</span><span class="p">,</span> <span class="n">initialize_logging</span><span class="p">)</span>
+<span class="n">initialize_logging</span><span class="p">()</span>
+
+<span class="c1"># Add the middleware</span>
+<span class="n">initialize_error_handling</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">)</span>
+<span class="n">initialize_metadata_header_middleware</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">)</span>
+<span class="n">initialize_validation_middleware</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">)</span>
+<span class="n">initialize_prometheus_middleware</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">)</span>  <span class="c1"># Optional</span>
+
+<span class="c1"># Add the endpoints</span>
+<span class="n">mount_api_version</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">,</span> <span class="n">core_view</span><span class="p">)</span>
+<span class="n">mount_api_version</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+<span class="n">mount_api_version</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">,</span> <span class="n">v3</span><span class="p">)</span>
+
+
+<span class="c1"># Add Redirects</span>
+<div class="viewcode-block" id="redirect_to_docs"><a class="viewcode-back" href="../../wpla.html#wpla.api_main.redirect_to_docs">[docs]</a><span class="nd">@wpla_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">redirect_to_docs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Redirect the visitors from the root location to the default version&#39;s &#39;docs&#39; for its Swagger UI&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">RedirectResponse</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;/api/v3/docs&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># And finally, if run directly, use uvicorn to start the app</span>
+    <span class="n">uvicorn</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">wpla_app</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliander.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

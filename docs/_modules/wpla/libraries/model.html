@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wpla.libraries.model &mdash; Weather Provider Libraries and API 3.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Weather Provider Libraries and API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Basic information:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#table-of-contents">Table of contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#what-is-the-weather-provider-libraries-and-api-exactly">What is the Weather Provider Libraries and API exactly?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#installation-as-a-package">Installation as a package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#installation-as-a-fully-fledged-api">Installation as a fully fledged API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#installing-separate-sources-and-models">Installing separate sources and models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#meteorological-factors-per-model">Meteorological factors per model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#contributing-to-this-project">Contributing to this project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#contact">Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#notable-authors">Notable Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#license">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#third-party-code-licenses">Third-party Code Licenses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Weather Provider Libraries and API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wpla.libraries.model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wpla.libraries.model</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># SPDX-FileCopyrightText: 2019-2021 Alliander N.V.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier: MPL-2.0</span>
+
+<span class="sd">&quot;&quot;&quot;The MeteoModel</span>
+
+<span class="sd">The MeteoModel class is how any and all meteorological data gets gathered and preformatted for use by the project.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">loguru</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">AnyHttpUrl</span>
+<span class="kn">from</span> <span class="nn">pyproj</span> <span class="kn">import</span> <span class="n">CRS</span><span class="p">,</span> <span class="n">transform</span>
+
+<span class="kn">from</span> <span class="nn">wpla.libraries.exceptions.exceptions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TimeFrameOutOfBoundException</span><span class="p">,</span>
+    <span class="n">LocationsOutOfBoundException</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="MeteoModel"><a class="viewcode-back" href="../../../wpla.libraries.html#wpla.libraries.model.MeteoModel">[docs]</a><span class="k">class</span> <span class="nc">MeteoModel</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The MeteoModel class</span>
+
+<span class="sd">    This class is used by any by the project&#39;s supported models out there. It provides easy and standardized access</span>
+<span class="sd">    to meteorological data and contains standard functionality for initialisation, validation checks and base interface</span>
+<span class="sd">    options. This makes creating your own model-class a lot easier, as you can focus on just downloading and</span>
+<span class="sd">    preformatting the data, as the base class does the rest.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span>
+            <span class="bp">cls</span><span class="p">,</span>
+            <span class="n">short_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">long_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">license_info</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">information_url</span><span class="p">:</span> <span class="n">AnyHttpUrl</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">short_name</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="n">long_name</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">license_info</span> <span class="o">=</span> <span class="n">license_info</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">information_url</span> <span class="o">=</span> <span class="n">information_url</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">version_support</span> <span class="o">=</span> <span class="s2">&quot;Unknown&quot;</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">oldest_day_of_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">newest_day_of_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">update_frequency</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">grid_type</span> <span class="o">=</span> <span class="n">CRS</span><span class="p">(</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>  <span class="c1"># Default is WGS84</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">grid_resolution</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">original_file_format</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">original_unit_system</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">factor_table</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+<div class="viewcode-block" id="MeteoModel.is_valid"><a class="viewcode-back" href="../../../wpla.libraries.html#wpla.libraries.model.MeteoModel.is_valid">[docs]</a>    <span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;MeteoModel self-check&quot;&quot;&quot;</span>
+        <span class="n">return_value</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Check 1: validate core data field length:</span>
+        <span class="n">dict_to_check</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>  <span class="c1"># The short name should consist of at least 3 letters</span>
+            <span class="s2">&quot;long_name&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>  <span class="c1"># The long name should consist of at least 8 letters</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>  <span class="c1"># A description should have at least 20 letters in it</span>
+            <span class="s2">&quot;information_url&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>  <span class="c1"># Even a short URL should usually have at least 16 letters when including &#39;https://&#39;</span>
+            <span class="s2">&quot;factor_table&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># At least a single factor should be returned from a MeteoModel</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_to_check</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The length of </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is less than [</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+                <span class="n">return_value</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Check 2: check for appropriate data types</span>
+        <span class="k">if</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The object type of [oldest_day_of_data] is expected to be [datetime.datetime], &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;not [</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span><span class="p">)</span><span class="si">}</span><span class="s2">]&quot;</span>
+            <span class="p">)</span>
+            <span class="n">return_value</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The object type of [newest_day_of_data] is expected to be [datetime.datetime], &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;not [</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span><span class="p">)</span><span class="si">}</span><span class="s2">]&quot;</span>
+            <span class="p">)</span>
+            <span class="n">return_value</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The datetime contained in [newest_day_of_data] (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span><span class="si">}</span><span class="s2">) &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;does not follow the one in [datetime.oldest_day_of_data] (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span>
+            <span class="n">return_value</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="p">,</span> <span class="n">CRS</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The object type of [grid_type] is expected to be [CRS], not [</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="p">)</span><span class="si">}</span><span class="s2">]&quot;</span>
+            <span class="p">)</span>
+            <span class="n">return_value</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">return_value</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">long_name</span><span class="si">}</span><span class="s2">] MeteoModel Class was found valid&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">long_name</span><span class="si">}</span><span class="s2">] MeteoModel Class was NOT found valid&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_value</span></div>
+
+<div class="viewcode-block" id="MeteoModel.validate_base_parameters"><a class="viewcode-back" href="../../../wpla.libraries.html#wpla.libraries.model.MeteoModel.validate_base_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">validate_base_parameters</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">list_of_coordinates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
+            <span class="n">source_crs</span><span class="p">:</span> <span class="n">CRS</span><span class="p">,</span>
+            <span class="n">oldest_moment</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+            <span class="n">newest_moment</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Input-validation of base parameters&quot;&quot;&quot;</span>
+        <span class="n">valid_coordinates</span><span class="p">,</span> <span class="n">invalid_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_coordinates</span><span class="p">(</span>
+            <span class="n">list_of_coordinates</span><span class="p">,</span> <span class="n">source_crs</span>
+        <span class="p">)</span>
+        <span class="n">valid_timeframe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_request_timeframe</span><span class="p">(</span>
+            <span class="n">oldest_moment</span><span class="p">,</span> <span class="n">newest_moment</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">LocationsOutOfBoundException</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">,</span>
+                <span class="n">source_crs</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">invalid_coordinates</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">valid_coordinates</span><span class="p">,</span> <span class="n">invalid_coordinates</span><span class="p">,</span> <span class="n">valid_timeframe</span></div>
+
+<div class="viewcode-block" id="MeteoModel.validate_coordinates"><a class="viewcode-back" href="../../../wpla.libraries.html#wpla.libraries.model.MeteoModel.validate_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">validate_coordinates</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">list_of_coordinates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
+            <span class="n">source_crs</span><span class="p">:</span> <span class="n">CRS</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Input-validation of coordinates&quot;&quot;&quot;</span>
+        <span class="n">validated_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">invalid_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">coordinate</span> <span class="ow">in</span> <span class="n">list_of_coordinates</span><span class="p">:</span>
+            <span class="n">validated_coordinate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_coordinate</span><span class="p">(</span>
+                <span class="n">coordinate</span><span class="p">,</span> <span class="n">source_crs</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">validated_coordinate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The coordinates (</span><span class="si">{</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">), resolved as model coordinates &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">validated_coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">validated_coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+                <span class="n">validated_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">validated_coordinate</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The coordinates (</span><span class="si">{</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">) could not be converted to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;the model&#39;s grid type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">invalid_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coordinate</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validated_coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">UnboundLocalError</span><span class="p">(</span>
+                <span class="s2">&quot;None of the passed coordinates could be validated!&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">validated_coordinates</span><span class="p">,</span> <span class="n">invalid_coordinates</span></div>
+
+    <span class="k">def</span> <span class="nf">_validate_coordinate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">source_crs</span><span class="p">:</span> <span class="n">CRS</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The actual validation process of the coordinates between any supported coordinate systems&quot;&quot;&quot;</span>
+        <span class="n">wgs84_crs</span> <span class="o">=</span> <span class="n">CRS</span><span class="p">(</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+        <span class="n">wgs84_coordinate</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span>
+            <span class="n">source_crs</span><span class="p">,</span> <span class="n">wgs84_crs</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Verify validity of coordinate within source grid:</span>
+        <span class="k">if</span> <span class="p">(</span>
+                <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">source_crs</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">west</span>
+                <span class="ow">or</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">source_crs</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">east</span>
+                <span class="ow">or</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">source_crs</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">north</span>
+                <span class="ow">or</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">source_crs</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">south</span>
+        <span class="p">):</span>
+            <span class="c1"># Invalid coordinate</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The supplied coordinate </span><span class="si">{</span><span class="n">coordinate</span><span class="si">}</span><span class="s2"> was invalid for the source grid: [</span><span class="si">{</span><span class="n">source_crs</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">]&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Verify validity of coordinate within target grid:</span>
+        <span class="k">if</span> <span class="p">(</span>
+                <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">west</span>
+                <span class="ow">or</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">east</span>
+                <span class="ow">or</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">north</span>
+                <span class="ow">or</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="o">.</span><span class="n">area_of_use</span><span class="o">.</span><span class="n">south</span>
+        <span class="p">):</span>
+            <span class="c1"># Invalid coordinate</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The supplied coordinate </span><span class="si">{</span><span class="n">coordinate</span><span class="si">}</span><span class="s2"> was invalid for the target grid: [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">]&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">validated_coordinate</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span>
+            <span class="n">wgs84_crs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_type</span><span class="p">,</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wgs84_coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">validated_coordinate</span>
+
+<div class="viewcode-block" id="MeteoModel.validate_request_timeframe"><a class="viewcode-back" href="../../../wpla.libraries.html#wpla.libraries.model.MeteoModel.validate_request_timeframe">[docs]</a>    <span class="k">def</span> <span class="nf">validate_request_timeframe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">oldest_moment</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">newest_moment</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Input-validation of the supplied timeframe&quot;&quot;&quot;</span>
+        <span class="n">validated_oldest_moment</span> <span class="o">=</span> <span class="n">oldest_moment</span>
+        <span class="n">validated_newest_moment</span> <span class="o">=</span> <span class="n">newest_moment</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">validated_oldest_moment</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span><span class="p">:</span>
+                <span class="n">validated_oldest_moment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Corrected starting datetime to oldest datetime in data&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">validated_newest_moment</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span><span class="p">:</span>
+                <span class="n">validated_newest_moment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Corrected ending datetime to newest datetime in data&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TimeFrameOutOfBoundException</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">oldest_moment</span><span class="p">,</span> <span class="n">newest_moment</span><span class="p">),</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oldest_day_of_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">newest_day_of_data</span><span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">validated_oldest_moment</span><span class="p">,</span> <span class="n">validated_newest_moment</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shorthand property for the short_name attribute.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span>
+
+<div class="viewcode-block" id="MeteoModel.get_weather"><a class="viewcode-back" href="../../../wpla.libraries.html#wpla.libraries.model.MeteoModel.get_weather">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_weather</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">locations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
+            <span class="n">starting</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+            <span class="n">ending</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+            <span class="n">factor_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+            <span class="n">source_epsg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;4326&quot;</span><span class="p">,</span>
+            <span class="n">target_epsg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;4326&quot;</span><span class="p">,</span>
+            <span class="n">use_nearest_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">return_used_locations</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The core function of this class, that gathers meteorological data based on passed request parameters and</span>
+<span class="sd">        returns a Xarray Dataset holding the requested data.</span>
+
+<span class="sd">        Note: The returned data is not yet harmonized, but can be requested using harmonized factor codes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            locations:              A list of location coordinates to try and gather the weather from.</span>
+<span class="sd">                                    Note: The function currently assumes purely numerical coordinate systems.</span>
+<span class="sd">            starting:               A datetime object holding the oldest moment from which data should be gathered.</span>
+<span class="sd">            ending:                 A datetime object holding the newest moment from which data should be gathered.</span>
+<span class="sd">            factor_list:            A list of weather factors to gather in string format.</span>
+<span class="sd">                                    Both harmonized and unharmonized factor names are supported.</span>
+<span class="sd">            source_epsg:            An optional EPSG coordinate system ID. Used to determine the location of the</span>
+<span class="sd">                                    supplied list of locations. The default is the WGS84 coordinate system.</span>
+<span class="sd">            target_epsg:            An optional EPSG coordinate system ID. Used to determine the format of the</span>
+<span class="sd">                                    returned list of locations. The default is the WGS84 coordinate system.</span>
+<span class="sd">            use_nearest_data:       A boolean indicating whether the returned data should contain the data found at the</span>
+<span class="sd">                                    location closest to a location (True), or data created for the exact location by</span>
+<span class="sd">                                    using an interpolation system, if supported (False, Default value).</span>
+<span class="sd">            return_used_locations:  A boolean indicating whether to append the locations used to the return data when</span>
+<span class="sd">                                    using the nearest data, rather than using interpolation.</span>
+<span class="sd">                                    Note: Only has any effect when the model uses nearby data instead of interpolated</span>
+<span class="sd">                                    data.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Xarray Dataset, fully harmonized and formatted with the data as requested.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="ne">NotImplementedError</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliander.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
