@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>API Reference &#8212; Weather Provider Libraries and API 3.0.0-alpha1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <table class="docutils align-default" id="api">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="index.html"><span class="doc">Weather Provider Libraries and API</span></a></p></td>
+<td><p><a class="reference internal" href="#"><span class="doc">API Reference</span></a></p></td>
+<td><p><a class="reference internal" href="config.html"><span class="doc">Configuration</span></a></p></td>
+<td><p><a class="reference internal" href="libraries.html"><span class="doc">Library elements</span></a></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">¶</a></h1>
+<section id="module-wpla.api.core.exceptions.exceptions">
+<span id="exceptions"></span><h2>Exceptions<a class="headerlink" href="#module-wpla.api.core.exceptions.exceptions" title="Permalink to this heading">¶</a></h2>
+<p>API Specific Exceptions</p>
+<p>This handles the exceptions specific for the API part of the project.
+Exceptions related to Libraries part of the project are kept there.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="wpla.api.core.exceptions.exceptions.APIExpiredException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.api.core.exceptions.exceptions.</span></span><span class="sig-name descname"><span class="pre">APIExpiredException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detail</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.exceptions.exceptions.APIExpiredException" title="Permalink to this definition">¶</a></dt>
+<dd><p>An Exception type that can be used when the main API or its versioned API components have expired.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.exceptions.exceptions.APIExpiredException.with_traceback">
+<span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.exceptions.exceptions.APIExpiredException.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) –
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-wpla.api.core.initializers.exception_handling">
+<span id="initializers"></span><h2>Initializers<a class="headerlink" href="#module-wpla.api.core.initializers.exception_handling" title="Permalink to this heading">¶</a></h2>
+<section id="exception-handling-middleware">
+<h3>Exception Handling Middleware<a class="headerlink" href="#exception-handling-middleware" title="Permalink to this heading">¶</a></h3>
+<dl class="simple">
+<dt>This middleware module intercepts the regular exception handling process and adjusts the output based on the</dt><dd><p>relevant configuration settings.</p>
+</dd>
+<dt>Currently, the most prominent use hereof is the reformatting of the output to JSON and the option to add contact</dt><dd><p>information on a project maintainer, but it can easily be adjusted to add relevant Exception parameters that would
+otherwise be lost.</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.exception_handling.handle_http_exception">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.exception_handling.</span></span><span class="sig-name descname"><span class="pre">handle_http_exception</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HTTPException</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">JSONResponse</span></span></span><a class="headerlink" href="#wpla.api.core.initializers.exception_handling.handle_http_exception" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>This function intercepts the StarletteHTTPExceptions generated by the project, adds extra information and</dt><dd><p>formats it to JSON, before returning it to continue the default process.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function also adds information on the project maintainer if so configured.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> – The original Starlette requests information that caused the exception</p></li>
+<li><p><strong>exc</strong> – The original Starlette HTTP Exception that contains the Exception data to use</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A JSONResponse object, holding important properties of the Exception in its body, any header information in its</dt><dd><p>headers and an HTTP status code to inform the party that send the original request what went wrong</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.exception_handling.initialize_error_handling">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.exception_handling.</span></span><span class="sig-name descname"><span class="pre">initialize_error_handling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.exception_handling.initialize_error_handling" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function that add the errorhandler handle_http_exception() to the given app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> – The application to add the errorhandler to</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<span class="target" id="module-wpla.api.core.initializers.headers"></span><section id="header-metadata-enhancement-middleware">
+<h3>Header Metadata Enhancement Middleware<a class="headerlink" href="#header-metadata-enhancement-middleware" title="Permalink to this heading">¶</a></h3>
+<dl class="simple">
+<dt>This module intercepts the regular response and enriches it with extra metadata like the project’s version or the</dt><dd><p>project maintainer’s name and email address, if so configured.</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.headers.initialize_metadata_header_middleware">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.headers.</span></span><span class="sig-name descname"><span class="pre">initialize_metadata_header_middleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.headers.initialize_metadata_header_middleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function defines the function to use to add extra meta-data headers and attaches it to the given app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> – The app to add the  middleware function to</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<span class="target" id="module-wpla.api.core.initializers.logging"></span><section id="logging-handler">
+<h3>Logging Handler<a class="headerlink" href="#logging-handler" title="Permalink to this heading">¶</a></h3>
+<dl class="simple">
+<dt>This module holds the configuration and initialisation settings used for the entire API and its components. Just by</dt><dd><p>hooking up this module in the right way, any and all logging can be handled using this handler.</p>
+</dd>
+<dt>TODO:   While this handler does intercept everything, and properly replaces the Uvicorn Handlers, the four startup</dt><dd><p>lines generated by Uvicorn will still also be handled by the Uvicorn Error Handler before it is replaced.
+If possible, it would be nice to get those four lines to also only show through loguru.</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.logging.</span></span><span class="sig-name descname"><span class="pre">InterceptHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intercept logging handler class with the purpose of intercepting any and all logging for the project.</p>
+<p class="rubric">Notes</p>
+<p>This includes translating other log-level methods and sources.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.acquire">
+<span class="sig-name descname"><span class="pre">acquire</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.acquire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquire the I/O thread lock.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.addFilter">
+<span class="sig-name descname"><span class="pre">addFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.addFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the specified filter to this handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tidy up any resources used by the handler.</p>
+<p>This version removes the handler from an internal map of handlers,
+_handlers, which is used for handler lookup by name. Subclasses
+should ensure that this gets called from overridden close()
+methods.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.createLock">
+<span class="sig-name descname"><span class="pre">createLock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.createLock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquire a thread lock for serializing access to the underlying I/O.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.emit">
+<span class="sig-name descname"><span class="pre">emit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LogRecord</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.emit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles log data translation from other logging systems</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a record is loggable by consulting all the filters.</p>
+<p>The default is to allow the record to be logged; any filter can veto
+this and the record is then dropped. Returns a zero value if a record
+is to be dropped, else non-zero.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.2: </span>Allow filters to be just callables.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure all logging output has been flushed.</p>
+<p>This version does nothing and is intended to be implemented by
+subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.format">
+<span class="sig-name descname"><span class="pre">format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format the specified record.</p>
+<p>If a formatter is set, use it. Otherwise, use the default formatter
+for the module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.handle">
+<span class="sig-name descname"><span class="pre">handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conditionally emit the specified logging record.</p>
+<p>Emission depends on filters which may have been added to the handler.
+Wrap the actual emission of the record with acquisition/release of
+the I/O thread lock. Returns whether the filter passed the record for
+emission.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.handleError">
+<span class="sig-name descname"><span class="pre">handleError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.handleError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle errors which occur during an emit() call.</p>
+<p>This method should be called from handlers when an exception is
+encountered during an emit() call. If raiseExceptions is false,
+exceptions get silently ignored. This is what is mostly wanted
+for a logging system - most users will not care about errors in
+the logging system, they are more interested in application errors.
+You could, however, replace this with a custom handler if you wish.
+The record which was being processed is passed in to this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.release">
+<span class="sig-name descname"><span class="pre">release</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.release" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release the I/O thread lock.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.removeFilter">
+<span class="sig-name descname"><span class="pre">removeFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.removeFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the specified filter from this handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.setFormatter">
+<span class="sig-name descname"><span class="pre">setFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.setFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the formatter for this handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.InterceptHandler.setLevel">
+<span class="sig-name descname"><span class="pre">setLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.InterceptHandler.setLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the logging level of this handler.  level must be an int or a str.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.logging.initialize_logging">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.logging.</span></span><span class="sig-name descname"><span class="pre">initialize_logging</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.logging.initialize_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function that initialises the logging handler.</p>
+<dl class="simple">
+<dt>By removing the loguru default logger and adding our own, we set the project handler to our specifications.</dt><dd><p>Finally, by replacing the uvicorn logging handlers with our own, loguru handles all of the logging for the project.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<span class="target" id="module-wpla.api.core.initializers.monitoring"></span><section id="prometheus-monitoring-middleware">
+<h3>Prometheus Monitoring Middleware<a class="headerlink" href="#prometheus-monitoring-middleware" title="Permalink to this heading">¶</a></h3>
+<p>This module initializes a Prometheus middleware component that allows Prometheus installations to interact with this
+project.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.monitoring.initialize_prometheus_middleware">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.monitoring.</span></span><span class="sig-name descname"><span class="pre">initialize_prometheus_middleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/metrics'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.monitoring.initialize_prometheus_middleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function adds (Starlette) Prometheus middleware to the given app at the given endpoint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> – The app to add the middleware to</p></li>
+<li><p><strong>endpoint</strong> – A string that holds the endpoint location for the app where the middleware should be mounted</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<span class="target" id="module-wpla.api.core.initializers.mounting"></span><section id="api-version-mounting">
+<h3>API Version Mounting<a class="headerlink" href="#api-version-mounting" title="Permalink to this heading">¶</a></h3>
+<p>This module allows for the mounting of several sub-applications onto a main application.</p>
+<dl class="simple">
+<dt>In practice this means that we mount the actual API component versions onto the main application to allow for multiple</dt><dd><p>versions being accessible simultaneously.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>While the main application can also contain API elements itself, for greater clarity, it is best if the main</dt><dd><p>application only serves as a mounting point for middleware, logging, exception handling and mounting the actual
+API elements.</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.mounting.mount_api_version">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.mounting.</span></span><span class="sig-name descname"><span class="pre">mount_api_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_app</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FastAPI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_app</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FastAPI</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.mounting.mount_api_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function mounts a sub-application to a base main application</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_app</strong> – The base main application to use as a mounting point</p></li>
+<li><p><strong>versioned_app</strong> – The sub-application to mount</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<span class="target" id="module-wpla.api.core.initializers.validation"></span><section id="api-version-validation-middleware">
+<h3>API Version Validation Middleware<a class="headerlink" href="#api-version-validation-middleware" title="Permalink to this heading">¶</a></h3>
+<dl class="simple">
+<dt>This module can add middleware to the project application that will check the main API and its sub-versions for</dt><dd><p>validity based on any set expiry dates.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>For this project both the main API and the available API sub-versions have their own expiry dates in the</dt><dd><p>configuration.</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.api.core.initializers.validation.initialize_validation_middleware">
+<span class="sig-prename descclassname"><span class="pre">wpla.api.core.initializers.validation.</span></span><span class="sig-name descname"><span class="pre">initialize_validation_middleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.api.core.initializers.validation.initialize_validation_middleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function adds the middleware defined in the check_api_validity() to the given app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> – The application to mount the middleware onto</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nothing</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Weather Provider Libraries and API</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Raoul Linnenbank.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

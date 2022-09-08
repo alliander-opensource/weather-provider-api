@@ -1,0 +1,347 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Weather Provider Libraries and API &#8212; Weather Provider Libraries and API 3.0.0-alpha1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <table class="docutils align-default" id="index">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#"><span class="doc">Weather Provider Libraries and API</span></a></p></td>
+<td><p><a class="reference internal" href="api.html"><span class="doc">API Reference</span></a></p></td>
+<td><p><a class="reference internal" href="config.html"><span class="doc">Configuration</span></a></p></td>
+<td><p><a class="reference internal" href="libraries.html"><span class="doc">Library elements</span></a></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<p><a class="reference external" href="https://github.com/alliander-opensource/Weather-Provider-API"><img alt="image1" src="https://img.shields.io/badge/version-3.0.0a-blue" /></a> <a class="reference external" href="https://github.com/alliander-opensource/Weather-Provider-API/blob/master/LICENSE"><img alt="image2" src="https://img.shields.io/badge/License-MPL2.0-informational.svg" /></a> <a class="reference external" href="https://sonarcloud.io/summary/new_code?id=alliander-opensource_Weather-Provider-API"><img alt="image3" src="https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&amp;metric=alert_status" /></a> <a class="reference external" href="https://sonarcloud.io/summary/new_code?id=alliander-opensource_Weather-Provider-API"><img alt="image4" src="https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&amp;metric=vulnerabilities" /></a> <a class="reference external" href="https://sonarcloud.io/summary/new_code?id=alliander-opensource_Weather-Provider-API"><img alt="image5" src="https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_Weather-Provider-API&amp;metric=coverage" /></a> <img alt="image6" src="https://img.shields.io/pypi/pyversions/wpla" /></p>
+<section id="weather-provider-libraries-and-api">
+<h1>Weather Provider Libraries and API<a class="headerlink" href="#weather-provider-libraries-and-api" title="Permalink to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p>The Weather Provider Libraries and API is a set of libraries and an API shell that can be run as a whole or separately
+to gather and reformat meteorological data into an harmonized state, from which it can then be outputted in a multitude
+of file formats, coordinate systems and unit systems.</p>
+<p>For the supported weather datasets and sources it becomes possible to gather specific data and change it into a
+desired format, even without prior knowledge of contents and formatting of the dataset itself..</p>
+</section>
+<section id="table-of-contents">
+<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><a class="reference external" href="#what-is-the-weather-provider-libraries-and-api-exactly">What is the Weather Provider Libraries and API
+exactly?</a></p></li>
+<li><p><a class="reference external" href="#installation-as-a-package">Installation as a package</a></p></li>
+<li><p><a class="reference external" href="#installation-as-a-fully-fledged-api">Installation as a fully fledged
+API</a></p></li>
+<li><p><a class="reference external" href="#installing-separate-sources-and-models">Installing separate sources and
+models</a></p></li>
+<li><p><a class="reference external" href="#meteorological-factors-per-model">Meteorological factors per
+model</a></p></li>
+<li><p><a class="reference external" href="#contributing-to-this-project">Contributing to this project</a></p></li>
+<li><p><a class="reference external" href="#contact">Contact</a></p></li>
+<li><p><a class="reference external" href="#notable-authors">Notable Authors</a></p></li>
+<li><p><a class="reference external" href="#license">License</a></p></li>
+<li><p><a class="reference external" href="#third-party-code-licenses">Third-party Code Licenses</a></p></li>
+<li><p><a class="reference external" href="#acknowledgements">Acknowledgements</a></p></li>
+</ol>
+</section>
+<section id="what-is-the-weather-provider-libraries-and-api-exactly">
+<h2>What is the Weather Provider Libraries and API exactly?<a class="headerlink" href="#what-is-the-weather-provider-libraries-and-api-exactly" title="Permalink to this heading">¶</a></h2>
+<p>As we stated in the introduction, the Weather Provider Libraries and API
+(or WPLA for short) is a set of libraries and an API shell that can be
+run as a whole or separately to gather and reformat meteorological data
+into an harmonized state, from which it can then be outputted in a
+multitude of file formats, coordinate systems and unit systems.</p>
+<section id="but-what-does-that-mean">
+<h3>But what does that mean?<a class="headerlink" href="#but-what-does-that-mean" title="Permalink to this heading">¶</a></h3>
+<p>This means that the WPLA can be used and installed to match your
+specific needs. Depending on your intended use you can use what you need
+based on the situation:</p>
+<section id="situation-1-you-want-access-to-multiple-meteorological-sources">
+<h4>Situation 1: You want access to multiple meteorological sources:<a class="headerlink" href="#situation-1-you-want-access-to-multiple-meteorological-sources" title="Permalink to this heading">¶</a></h4>
+<p>Install the full API if you want to a separate environment or use just
+the MeteoController class to access multiple sources and their models.</p>
+<p><em>(the desired sources will still need to be installed separately)</em></p>
+</section>
+<section id="situation-2-you-only-need-access-to-a-single-meteorological-source">
+<h4>Situation 2: You only need access to a single meteorological source<a class="headerlink" href="#situation-2-you-only-need-access-to-a-single-meteorological-source" title="Permalink to this heading">¶</a></h4>
+<p>Gather data from the MeteoSource directly and use the MeteoTransformer
+to reformat the data as desired.</p>
+</section>
+<section id="situation-3-you-only-need-access-to-a-single-meteorological-model">
+<h4>Situation 3: You only need access to a single meteorological model<a class="headerlink" href="#situation-3-you-only-need-access-to-a-single-meteorological-model" title="Permalink to this heading">¶</a></h4>
+<p>Gather data from the MeteoModel directly and use the MeteoTransformer to
+reformat the data as desired.</p>
+<p><strong>NOTE: Regardless of the installation type, there are no differences in
+the required input or methods.</strong></p>
+</section>
+</section>
+<section id="what-is-the-required-input">
+<h3><strong>What is the required input?</strong><a class="headerlink" href="#what-is-the-required-input" title="Permalink to this heading">¶</a></h3>
+<p>At minimum this models for this project can work with as little as:</p>
+<ul class="simple">
+<li><p>A geographical location or zone to gather data for</p></li>
+<li><p>A frame of time to gather the data for</p></li>
+<li><p>If multiple models or sources are available to the installation you
+are using, a specific model and source.</p></li>
+</ul>
+<p>As a default the model will then return all of the meteorological
+factors that were set as default for the model in question and return
+them in a harmonized NetCDF4 file or Xarray dataset, depending on the
+method used for the request.</p>
+<p>However, when you want more control this can easily be achieved by using
+the following other (optional) parameters:</p>
+<ul>
+<li><div class="line-block">
+<div class="line">The desired meteorological factors</div>
+<div class="line"><em>(These can be requested by using either their harmonized names or
+the original names used in the source data)</em></div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">The desired unit system for the output</div>
+<div class="line"><em>(currently this project supports the originally used unit system,
+the metric system (or ‘human’ system), the imperial system, and The
+International System of Units (or SI))</em></div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">The desired file format for the output</div>
+<div class="line"><em>(currently this project supports NetCDF4, NetCDF3, JSON, JSON
+dataset and CSV. Planned for the near future is support for HDF5)</em></div>
+</div>
+</li>
+</ul>
+<p>Finally, for more professional control, you can use the following
+parameters:</p>
+<ul>
+<li><p>The desired interpolation method (or lack thereof) to be used for
+value calculations when requesting locations in stead of zones.</p></li>
+<li><p>The returned locations can also be switched to match the nearest
+found data locations instead. This will overwrite the setting for the
+desired interpolation method, however.</p></li>
+<li><div class="line-block">
+<div class="line">The used coordinate system for input if not the WGS84 standard.</div>
+<div class="line"><em>(any EPSG registered grid system can be used by referencing its
+numeric code. The data requested still needs to be available for
+the requested locations of course..)</em></div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">The desired coordinate system to be used for the output.</div>
+<div class="line"><em>(once again, any EPSG registered grid system can be used. The
+requested locations still need to be translatable to the new system
+of course..)</em></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+<section id="installation-as-a-package">
+<h2>Installation as a package<a class="headerlink" href="#installation-as-a-package" title="Permalink to this heading">¶</a></h2>
+<section id="installing-the-full-project">
+<h3>Installing the full project:<a class="headerlink" href="#installing-the-full-project" title="Permalink to this heading">¶</a></h3>
+<p><strong>pip install wpla</strong></p>
+<p>As with most packages on PyPI, it is possible to install a specific
+version if that is needed for some reason.</p>
+</section>
+<section id="installing-a-specific-package-of-datasets">
+<h3>Installing a specific package of datasets<a class="headerlink" href="#installing-a-specific-package-of-datasets" title="Permalink to this heading">¶</a></h3>
+<p>Go to the page that houses that package (likely a GitHub page) and
+follow the instructions provided there.</p>
+<p>Most of the time installations will be along the lines of:</p>
+<p><strong>pip install wpla-</strong></p>
+</section>
+</section>
+<section id="installation-as-a-fully-fledged-api">
+<h2>Installation as a fully fledged API<a class="headerlink" href="#installation-as-a-fully-fledged-api" title="Permalink to this heading">¶</a></h2>
+<p>There are three ways to install this project as a fully fledged API:</p>
+<ol class="arabic">
+<li><p>By installing the project package.</p></li>
+<li><div class="line-block">
+<div class="line">By cloning this repository and starting a FastAPI app with the
+project in it.</div>
+<div class="line"><em>(for an example on this, check out the</em>**api_main.py<em>**file
+in the projects main folder)</em></div>
+</div>
+</li>
+<li><p>By launching this project’s Docker image in an appropriate
+environment.</p></li>
+</ol>
+</section>
+<section id="installing-separate-sources-and-models">
+<h2>Installing separate sources and models<a class="headerlink" href="#installing-separate-sources-and-models" title="Permalink to this heading">¶</a></h2>
+<p>Simply install the sources and models by installing their respective
+project packages and mount the models you wish to use by putting them
+into the “modelconfig” file.</p>
+<p>Every MeteoModel should have a base configuration from which it can run
+without any customization, so</p>
+<p><strong>TODO:</strong> #################################################</p>
+</section>
+<section id="meteorological-factors-per-model">
+<h2>Meteorological factors per model<a class="headerlink" href="#meteorological-factors-per-model" title="Permalink to this heading">¶</a></h2>
+<p>As each model has its own factors that can be requested every properly
+build model should have its own <strong>MODEL_FACTORS.md</strong> or
+<strong>MODEL_FACTORS.rst</strong> information file that comes with both its
+installation and repository.</p>
+<p>This file should contain every available factor to the model, as well as
+its harmonized name and source unit.</p>
+</section>
+<hr class="docutils" />
+<section id="contributing-to-this-project">
+<h2>Contributing to this project<a class="headerlink" href="#contributing-to-this-project" title="Permalink to this heading">¶</a></h2>
+<p>This project is Open Source and as such we welcome anyone willing to
+work on this project. If you wish to contribute, please read the
+“CONTRIBUTING.md” file in the root of this project
+for our code of conduct and the process of submitting pull requests to
+us.</p>
+</section>
+<hr class="docutils" />
+<section id="contact">
+<h2>Contact<a class="headerlink" href="#contact" title="Permalink to this heading">¶</a></h2>
+<p>If you wish to contact the project owners directly, please e-mail us at:</p>
+<p><a class="reference external" href="mailto://weather&#46;provider&#37;&#52;&#48;alliander&#46;com">weather<span>&#46;</span>provider<span>&#64;</span>alliander<span>&#46;</span>com</a>.</p>
+</section>
+<hr class="docutils" />
+<section id="notable-authors">
+<h2>Notable Authors<a class="headerlink" href="#notable-authors" title="Permalink to this heading">¶</a></h2>
+<p>This project made notable progress thanks to:</p>
+<ul class="simple">
+<li><p>Tongyou Gu - Who did the original API development</p></li>
+<li><p>Jeroen van de Logt - Who wrote a lot of the initial utility functions
+for the project</p></li>
+<li><p>Bas Niesink - Who implemented the initial REST API functionality,
+brought a lot of the code and data to its 1.0 release status and
+helped out deciphering the KNMI Harmonie Arome model.</p></li>
+<li><p>Raoul Linnenbank - Who has done most of the development for version
+2.0 and is the current lead developer for the project.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this heading">¶</a></h2>
+<p>This project is licensed under the Mozilla Public License, version 2.0
+-see <a class="reference external" href="LICENSE.MD">LICENSE.md</a> for the details</p>
+</section>
+<hr class="docutils" />
+<section id="third-party-code-licenses">
+<h2>Third-party Code Licenses<a class="headerlink" href="#third-party-code-licenses" title="Permalink to this heading">¶</a></h2>
+<p>This project includes third-party code, which is licensed under their
+own respective Open-Source licenses. SPDX-License-Identifier headers are
+used to show which license is applicable. The concerning license files
+can be found in the LICENSES directory.</p>
+</section>
+<hr class="docutils" />
+<section id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this heading">¶</a></h2>
+<p>Thanks to teams “Inzicht &amp; Analytics” and “Strategie &amp; Innovatie” to
+make this project possible.</p>
+<p>A big thanks as well to <a class="reference external" href="https://www.alliander.com">Alliander</a> for
+being the main sponsor for this open source project.</p>
+<p>And of course a big thanks to the guys of “IT New Business &amp; R&amp;D” to
+provide such an easy-to-use Python environment in the cloud.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Weather Provider Libraries and API</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Raoul Linnenbank.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

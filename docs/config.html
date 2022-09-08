@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Configuration &#8212; Weather Provider Libraries and API 3.0.0-alpha1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <table class="docutils align-default" id="config">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="index.html"><span class="doc">Weather Provider Libraries and API</span></a></p></td>
+<td><p><a class="reference internal" href="api.html"><span class="doc">API Reference</span></a></p></td>
+<td><p><a class="reference internal" href="#"><span class="doc">Configuration</span></a></p></td>
+<td><p><a class="reference internal" href="libraries.html"><span class="doc">Library elements</span></a></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h1>
+<section id="module-wpla.configuration">
+<span id="main-configuration"></span><h2>Main configuration<a class="headerlink" href="#module-wpla.configuration" title="Permalink to this heading">¶</a></h2>
+<section id="api-configuration-interface">
+<h3>API Configuration Interface<a class="headerlink" href="#api-configuration-interface" title="Permalink to this heading">¶</a></h3>
+<dl class="simple">
+<dt>This module supplies the project with its configuration settings. It processes and selects an appropriate configuration</dt><dd><p>based on only two base settings from the system environment, though alternate settings can be passed using that
+same system environment.</p>
+</dd>
+<dt>Based on any existing {ENVIRONMENT_PREFIX}_DEBUG and/or {ENVIRONMENT_PREFIX}_DEPLOYED environment variables found, a</dt><dd><p>specific configuration is selected and retrieved from the four configuration files in the config package folder.</p>
+</dd>
+</dl>
+<p>These four configuration files each contain solely the settings for one specific situation:</p>
+<ul class="simple">
+<li><p>base_config.py:              Holds all of the configuration settings that need to be applied regardless of the
+environment</p></li>
+<li><p>debug_config.py:             Holds all of the configuration settings that only apply in debugging situations</p></li>
+<li><p>deployed_config.py:          Holds all of the configuration settings that only apply when deployed</p></li>
+<li><p>deployed_debug_config.py:    Holds all of the configuration settings that only apply in situations where the project
+is both being debugged and deployed</p></li>
+</ul>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>As DebugConfiguration and DeployedConfiguration extend the base configuration and DebugDeployedConfiguration extends</dt><dd><p>both the DebugConfiguration and the DeployedConfiguration, settings will carry over as follows:</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Settings made in the Configuration class in base_config.py will be inherited by all other configuration classes
+unless overwritten.</p></li>
+<li><p>Settings made in the DebugConfiguration and DeployedConfiguration classes can overwrite settings made in the
+Configuration class, and will be inherited by the DebugDeployedConfiguration class. DebugConfiguration settings
+will take precedence over DeployedConfiguration settings if settings exist in both classes.</p></li>
+<li><p>The DebugDeployedConfiguration settings will only affect environments configured with both the DEBUG and DEPLOYED
+settings as true. As most configuration settings will already be properly inherited from the DebugConfiguration
+and DeployedConfiguration classes, there will usually be little reason to keep settings in this class.</p></li>
+</ul>
+<dl class="py function">
+<dt class="sig sig-object py" id="wpla.configuration.get_configuration">
+<span class="sig-prename descclassname"><span class="pre">wpla.configuration.</span></span><span class="sig-name descname"><span class="pre">get_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debugging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deployed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wpla.configuration.get_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the appropriate configuration based on the two passed parameters</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-wpla.config.base_config">
+<span id="configuration-files"></span><h2>Configuration files<a class="headerlink" href="#module-wpla.config.base_config" title="Permalink to this heading">¶</a></h2>
+<p>The base configuration</p>
+<p>Contains any settings that should be the default for the configuration.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.base_config.Configuration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.base_config.</span></span><span class="sig-name descname"><span class="pre">Configuration</span></span><a class="headerlink" href="#wpla.config.base_config.Configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base settings.</p>
+</dd></dl>
+
+<span class="target" id="module-wpla.config.debug_config"></span><p>The debug configuration</p>
+<p>Contains any settings that should be specific for a debugging environment.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.debug_config.DebugConfiguration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.debug_config.</span></span><span class="sig-name descname"><span class="pre">DebugConfiguration</span></span><a class="headerlink" href="#wpla.config.debug_config.DebugConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Debug settings.</p>
+</dd></dl>
+
+<span class="target" id="module-wpla.config.deployed_config"></span><p>The deployed configuration</p>
+<p>Contains any settings that should be the default for a deployed environment.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.deployed_config.DeployedConfiguration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.deployed_config.</span></span><span class="sig-name descname"><span class="pre">DeployedConfiguration</span></span><a class="headerlink" href="#wpla.config.deployed_config.DeployedConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deployed settings</p>
+</dd></dl>
+
+<span class="target" id="module-wpla.config.deployed_debug_config"></span><p>The debug-deployed configuration</p>
+<p>Contains any settings that should be specific for an environment that is both for debugging and full deployment.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wpla.config.deployed_debug_config.DebugDeployedConfiguration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wpla.config.deployed_debug_config.</span></span><span class="sig-name descname"><span class="pre">DebugDeployedConfiguration</span></span><a class="headerlink" href="#wpla.config.deployed_debug_config.DebugDeployedConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Debugging and deployed settings.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Weather Provider Libraries and API</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Raoul Linnenbank.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
