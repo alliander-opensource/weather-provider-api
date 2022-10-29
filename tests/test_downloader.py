@@ -11,18 +11,21 @@ import re
 import pytest
 
 from weather_provider_api.routers.weather.sources.cds.client import downloader
-from weather_provider_api.routers.weather.sources.cds.client.downloader import bytes_to_string, Client
-
+from weather_provider_api.routers.weather.sources.cds.client.downloader import (
+    Client,
+    bytes_to_string,
+)
 
 # downloader.py is based on a file by ECMWF. This
 
+
 def test_bytes_to_string():
-    assert bytes_to_string(1024 ** 0) == "1"  # Bytes
-    assert bytes_to_string(1024 ** 1) == "1K"  # Kilobytes
-    assert bytes_to_string(1024 ** 2) == "1M"  # Megabytes
-    assert bytes_to_string(1024 ** 3) == "1G"  # Gigabytes
-    assert bytes_to_string(1024 ** 4) == "1T"  # Terabytes
-    assert bytes_to_string(1024 ** 5) == "1P"  # Peta-bytes
+    assert bytes_to_string(1024**0) == "1"  # Bytes
+    assert bytes_to_string(1024**1) == "1K"  # Kilobytes
+    assert bytes_to_string(1024**2) == "1M"  # Megabytes
+    assert bytes_to_string(1024**3) == "1G"  # Gigabytes
+    assert bytes_to_string(1024**4) == "1T"  # Terabytes
+    assert bytes_to_string(1024**5) == "1P"  # Peta-bytes
 
     assert bytes_to_string(0.003) == "0"  # should be rounded down to zero
     assert bytes_to_string(0.08) == "0.1"  # should be rounded to the nearest tenth
@@ -36,34 +39,51 @@ def mock_callback(*args, **kwargs):
     print("Received kwargs: ", kwargs)
 
 
-@pytest.mark.skip(reason="Monkeypatch for _request_handler() not working. ")  # TODO: FIX
+@pytest.mark.skip(
+    reason="Monkeypatch for _request_handler() not working. "
+)  # TODO: FIX
 def test_client(monkeypatch):
     mock_client = Client(persist_request_callback=mock_callback(), debug=True)
-    mock_request = {'product_type': 'reanalysis',
-                    'variable': ['2m_dewpoint_temperature', ],
-                    'year': [2020], 'month': [1, ], 'day': [1, ],
-                    'time': ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00'],
-                    'area': [51, 3.5, 53.75, 7.25], 'grid': [0.25, 0.25],
-                    'format': 'netcdf'}
+    mock_request = {
+        "product_type": "reanalysis",
+        "variable": [
+            "2m_dewpoint_temperature",
+        ],
+        "year": [2020],
+        "month": [
+            1,
+        ],
+        "day": [
+            1,
+        ],
+        "time": ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00"],
+        "area": [51, 3.5, 53.75, 7.25],
+        "grid": [0.25, 0.25],
+        "format": "netcdf",
+    }
 
-    mock_client.retrieve('reanalysis-era5-single-levels',
-                         mock_request,
-                         'C:/Temp/dummyfile.nc')
+    mock_client.retrieve(
+        "reanalysis-era5-single-levels", mock_request, "C:/Temp/dummyfile.nc"
+    )
 
     # Regular use: Dummyfile should exist.
-    assert os.path.isfile('C:/Temp/dummyfile.nc')
+    assert os.path.isfile("C:/Temp/dummyfile.nc")
 
     # Call without destination file: Dummyfile should not exist.
-    result = mock_client.retrieve('reanalysis-era5-single-levels', mock_request)
+    result = mock_client.retrieve("reanalysis-era5-single-levels", mock_request)
     assert os.path.isfile(result.location) is False
     assert re.match(r"https://.*nc", result.location) is not None
 
     # Calls to trigger specific Client._api() states
-    era5sl_url = "%s/resources/%s" % (mock_client.url, 'reanalysis-era5-single-levels')
-    monkeypatch.setattr(downloader.Client, '_request_handler', {"state": "queued", "request_id": 1})
+    era5sl_url = "%s/resources/%s" % (mock_client.url, "reanalysis-era5-single-levels")
+    monkeypatch.setattr(
+        downloader.Client, "_request_handler", {"state": "queued", "request_id": 1}
+    )
 
     mock_client._load_cdsapi_config(None, None, None)
     mock_client._api(era5sl_url, mock_request, 1)
 
-    monkeypatch.setattr(downloader.Client, '_request_handler', {"state": "failed", "request_id": 2})
+    monkeypatch.setattr(
+        downloader.Client, "_request_handler", {"state": "failed", "request_id": 2}
+    )
     mock_client._api(era5sl_url, mock_request, 2)

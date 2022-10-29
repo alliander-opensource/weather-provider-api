@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.
 import glob
 from datetime import datetime
 from pathlib import Path
@@ -115,7 +111,8 @@ def file_requires_update(file_prefix: str, last_day_of_repo: datetime):
         A Function that checks if a file with a given prefix exists, and if it is a repository file that should
          be updated.
     Args:
-        file_prefix:    The prefix of the filename to check. A file extension of .nc is assumed.
+        file_prefix:        The prefix of the filename to check. A file extension of .nc is assumed.
+        last_day_of_repo:   The last day in the repository
     Returns:
         Returns True if the file should be updated, and False if no update is required.
     """
@@ -165,8 +162,8 @@ def format_downloaded_file(unformatted_file: str):
         # While in v3.0 we want to keep the difference between expver versions, in 2.x the difference between
         # validated and not yet validated data is not used.
         # Therefor we split the data up in two sets while dropping expver and NaN values and then recombining them
-        ds_unformatted_data_expver_1 = ds_unformatted_data.sel(expver=1).drop('expver').dropna('time', how='all')
-        ds_unformatted_data_expver_5 = ds_unformatted_data.sel(expver=5).drop('expver').dropna('time', how='all')
+        ds_unformatted_data_expver_1 = ds_unformatted_data.sel(expver=1).drop_sel('expver').dropna('time', how='all')
+        ds_unformatted_data_expver_5 = ds_unformatted_data.sel(expver=5).drop_sel('expver').dropna('time', how='all')
 
         # Recombine data
         ds_unformatted_data = ds_unformatted_data_expver_1.merge(ds_unformatted_data_expver_5)
@@ -249,7 +246,7 @@ def load_file(file: Path) -> xr.Dataset:
     Args:
         file:   The filename (in the Path format by PathLib) specifying the file to load
     Returns:
-        An Xarray Dataset containing all of the weather data held within the specified file.
+        An Xarray Dataset containing all the weather data held within the specified file.
     """
     if file.exists():
         with xr.open_dataset(file) as ds:

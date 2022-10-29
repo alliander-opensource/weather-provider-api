@@ -1,0 +1,10 @@
+{
+  "stl1": "soil_temperature_level_1",
+  "stl2": "soil_temperature_level_2",
+  "stl3": "soil_temperature_level_3",
+  "stl4": "soil_temperature_level_4",
+  "swvl1": "volumetric_soil_water_layer_1",
+  "swvl2": "volumetric_soil_water_layer_2",
+  "swvl3": "volumetric_soil_water_layer_3",
+  "swvl4": "volumetric_soil_water_layer_4"
+}

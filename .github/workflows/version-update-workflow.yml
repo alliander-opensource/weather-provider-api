@@ -1,0 +1,178 @@
+name: Version Update
+on:
+  push:
+    branches:
+      main
+jobs:
+  # ---------------------------------------------------------------- #
+  # |  Coverage and SonarCloud.io upload                           | #
+  # ---------------------------------------------------------------- #
+  tests-and-sonarcloud:
+    strategy:
+      matrix:
+        version: ["3.8", "3.9", "3.10"]  # TODO: Get Python versions from the project
+    name: Testing and updating SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - name: Branch checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      # Install Python
+      - name: Setup Python installation
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }}
+      # Install Poetry
+      - name: Setup Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry self update --preview
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      # Install required dependencies
+      - name: Install dependencies
+        run: poetry install -vv --with dev
+      # Run Coverage
+      - name: Run Coverage
+        run: |
+          poetry run coverage run -m pytest
+          poetry run coverage report
+      # Generate XML Coverage result file
+      - if: matrix.version == '3.8'
+        name: Generate Coverage XML file
+        run: poetry run coverage xml
+      # Upload coverage data to SonarCloud.io
+      - if: matrix.version == '3.8'
+        name: Update SonarCloud.io
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # ---------------------------------------------------------------- #
+  # |  Build package and upload it to PyPI                         | #
+  # ---------------------------------------------------------------- #
+  package-creation-and-upload:
+    name: Create package and upload to PyPI
+    needs: tests-and-sonarcloud
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - name: Repository checkout
+        uses: actions/checkout@v3
+      # Install Poetry
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "POETRY_VIRTUALENVS_CREATE=true" >> $GITHUB_ENV
+          echo "POETRY_VIRTUALENVS_IN_PROJECT=true" >> $GITHUB_ENV
+          echo "POETRY_INSTALLER_PARALLEL=true" >> $GITHUB_ENV
+      # Install Python
+      - name: Python setup
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      # Install required dependencies
+      - name: Install dependencies
+        run: poetry install -vv --no-interaction --without dev
+      # Configure Nexus in Poetry
+      - name: Poetry Nexus configuration
+        run: |
+          poetry source add nexus https://nexus.appx.cloud/repository/pypi-hosted/simple
+          poetry config http-basic.nexus ${{ secrets.EKS_NEXUS_USER }} ${{ secrets.EKS_NEXUS_PASSWORD }}
+      # Determine the current version of the application (for main branch)
+      - name: Determine current version
+        if: ${{ github.ref_name == 'main' }}
+        run: |
+          version="$(poetry version --short)${{ github.run_number }}"
+          echo "Package version: $version"
+          echo "package_version=$version" >> $GITHUB_ENV
+      # Determine the current version of the application (for non-main branch)
+      - name: Determine a version non-main branch
+        if: ${{ github.ref_name != 'main' }}
+        run: |
+          version="$(poetry version --short)rc${{ github.run_number }}"  # rc
+          echo "Package version: $version"
+          echo "package_version=$version" >> $GITHUB_ENV
+      # Build the package and publish it to PyPI
+      - name: Build and publish package
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          echo "Package version: ${{ env.package_version }}"
+          poetry version ${{ env.package_version }}
+          poetry publish --build
+      # Create a Release on GitHub for the new package
+      - name: Create a Release for the new package
+        uses: softprops/action-gh-release@v0.1.14
+        if: ${{ github.ref_name == 'main' }}
+        with:
+          tag_name: ${{ env.package_version }}
+          name: "Release ${{ env.package_version }}"
+          generate_release_notes: True
+  # ---------------------------------------------------------------- #
+  # |  Build image and upload it to AWS and DockerHub              | #
+  # ---------------------------------------------------------------- #
+  create-and-upload-image:
+    name: Create and upload the image
+    needs: package-creation-and-upload
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment:
+      name: ci
+    steps:
+      # Checkout
+      - name: Check out source code
+        uses: actions/checkout@v3
+      # Configure AWS
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
+          aws-region: eu-central-1
+      # Install Poetry  (Needed for determining the version)
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "POETRY_VIRTUALENVS_CREATE=true" >> $GITHUB_ENV
+          echo "POETRY_VIRTUALENVS_IN_PROJECT=true" >> $GITHUB_ENV
+          echo "POETRY_INSTALLER_PARALLEL=true" >> $GITHUB_ENV
+      # Determine the current version of the application
+      - name: Determine current version
+        run: |
+          version="$(poetry version --short)${{ github.run_number }}"
+          echo "Package version: $version"
+          echo "package_version=$version" >> $GITHUB_ENV
+      # Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      # Create the image and upload it to Amazon ECR
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: 325973380531.dkr.ecr.eu-central-1.amazonaws.com
+          ECR_REPOSITORY: dnb-inno-image-repository
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api:${{ env.package_version }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api:${{ env.package_version }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api
+      # Login to DockerHub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Create the image and upload it to DockerHub as "latest"
+      - name: Build and push as latest
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: rflinnenbank/weather-provider-api:latest
+      # Create the image and upload it to DockerHub as version
+      - name: Build and push as latest
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: rflinnenbank/weather-provider-api:${{ env.package_version }}

@@ -1,0 +1,50 @@
+name: Pull Request Handling
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  # ---------------------------------------------------------------- #
+  # |  Coverage and SonarCloud.io upload                           | #
+  # ---------------------------------------------------------------- #
+  tests-and-sonarcloud:
+    strategy:
+      matrix:
+        version: ["3.8", "3.9", "3.10"]  # TODO: Get Python versions from the project
+    name: Testing and updating SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - name: Branch checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      # Install Python
+      - name: Setup Python installation
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }}
+      # Install Poetry
+      - name: Setup Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry self update --preview
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      # Install required dependencies
+      - name: Install dependencies
+        run: poetry install -vv --with dev
+      # Run Coverage
+      - name: Run Coverage
+        run: |
+          poetry run coverage run -m pytest
+          poetry run coverage report
+      # Generate XML Coverage result file
+      - if: matrix.version == '3.8'
+        name: Generate Coverage XML file
+        run: poetry run coverage xml
+      # Upload coverage data to SonarCloud.io
+      - if: matrix.version == '3.8'
+        name: Update SonarCloud.io
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
