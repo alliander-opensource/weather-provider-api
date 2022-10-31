@@ -31,7 +31,6 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     """
     This is the base class for all weather data storage repositories. Any new repositories should implement this
     as their base class.
-
     All valid stored repository files are named as follows:
     {file_prefix}_{file_identifier}.nc
     or
@@ -58,7 +57,6 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
                                     or having a suffix not matching this list will be deleted upon cleanup.
             - file_identifier_length:   This is the length in characters that the unique identifier part of the
                                         filename takes up. Usually this is based on a datetime.
-
         """
         self.repository_folder = Path(get_setting("REPO_FOLDER")).joinpath(
             self._get_repo_sub_folder()
@@ -67,10 +65,16 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         self.repository_name = None
         self.file_prefix = None
         self.runtime_limit = 60 * 60 * 2  # seconds * minutes * hours (2 hours default)
-        self.first_day_of_repo = None
-        self.last_day_of_repo = None
         self.permanent_suffixes = None
         self.file_identifier_length = None
+
+    @property
+    def first_day_of_repo(self):
+        raise NotImplementedError()
+
+    @property
+    def last_day_of_repo(self):
+        raise NotImplementedError()
 
     @staticmethod
     @abstractmethod
@@ -80,7 +84,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     def _validate_repo_folder(self):
         """
         This function checks whether the repository folder already exists (starting from its parent folder)
-        and creates it, if it (or its parent folder) doesn't exist yet.
+        and creates it, if it (or its parent folder) don't exist yet.
         """
         if not Path(
                 self.repository_folder
@@ -101,7 +105,6 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     def cleanup(self):
         """
         This is the cleanup function for any Weather Repository.
-
         Any files not matching the pattern required for the Repository shall be deleted.
         """
         self._validate_repo_folder()
@@ -134,9 +137,8 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             end:            A datetime holding the ending moment for the requested period to gather data for
             coordinates:    A list of GeoPositions holding the coordinates that the data request is for
         Returns:
-            A Xarray Dataset containing all of the repository data that matches both the requested period, as well as
+            A Xarray Dataset containing all the repository data that matches both the requested period, and
             the requested coordinates.
-
         """
         self.cleanup()
         self.logger.debug(
@@ -177,7 +179,6 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             file:   The filename (in the Path format by PathLib) specifying the file to load
         Returns:
             An Xarray Dataset containing all of the weather data held within the specified file.
-
         """
         if file.exists():
             with xr.open_dataset(file) as ds:
@@ -245,8 +246,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             set(
                 [
                     file[
-                    len_filename_until_date: len_filename_until_date
-                                             + self.file_identifier_length
+                    len_filename_until_date: len_filename_until_date + self.file_identifier_length
                     ]
                     for file in file_list
                 ]
@@ -327,7 +327,6 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
                 ds_single_coord.lon == coordinate.get_WGS84()[1], drop=True
             )
             ds_single_coord = ds_single_coord.unstack("coord")
-
             # Then append this to a clean list
             if coordinate == coordinate_list[0]:
                 ds_selected = ds_single_coord
@@ -338,5 +337,5 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
 
     @abstractmethod
     def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
-        print("This method is abstract and should be overridden.")
-        return [GeoPosition(0, 0)]
+        self.logger.error("This method is abstract and should be overridden.")
+        raise NotImplementedError()

@@ -24,7 +24,7 @@ from weather_provider_api.routers.weather.repository.repository import WeatherRe
 from weather_provider_api.routers.weather.sources.knmi.client.knmi_downloader import KNMIDownloader
 from weather_provider_api.routers.weather.sources.knmi.knmi_factors import arome_factors
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-from weather_provider_api.routers.weather.utils.grid_helpers import round_to_grid
+from weather_provider_api.routers.weather.utils.grid_helpers import round_coordinates_to_wgs84_grid
 
 
 class AromeRepository(WeatherRepositoryBase):
@@ -175,7 +175,6 @@ class AromeRepository(WeatherRepositoryBase):
         # Determine current CET Time
         t_cet = datetime_to_check.astimezone(pytz.timezone("Europe/Amsterdam"))
         t_cet += t_cet.utcoffset()  # Add the offset to get the actual time in the values
-        # TODO: This should be easier and less messy
 
         # Subtract the lag
         t_cet = t_cet.replace(tzinfo=None, microsecond=0) - relativedelta(hours=lag_knmi)
@@ -267,8 +266,6 @@ class AromeRepository(WeatherRepositoryBase):
 
         field_values = np.reshape(cfg_message["values"], len(lats) * len(lons))
 
-        # allowed_netcdf4_names = re.compile('([a-zA-Z0-9_]| {MUTF8})([^\x00-\x1F/\x7F -\xFF] | {MUTF8})')
-
         data_dict = {field_name: (["time", "coord"], [field_values])}
         prediction_time = time_prediction_made + relativedelta(hours=predicted_hour)
 
@@ -305,7 +302,7 @@ class AromeRepository(WeatherRepositoryBase):
         for cf_line in cf_streamed_file:
             # Make sure we don't pick up the rotated grid that exists in the first hourly file (0000) for each
             # prediction..
-            if cf_line["gridType"] == "regular_ll":
+            if cf_line['gridType'] == 'regular_ll':
                 line_to_use = cf_line
                 break
 
@@ -346,7 +343,6 @@ class AromeRepository(WeatherRepositoryBase):
         )
         prediction_files = sorted(glob.glob(str(Path(download_folder).joinpath("AROME*.nc"))))
 
-        # TODO: Verify that the only .nc files are those that need to be fused
         ds = None
 
         for prediction_file in prediction_files:
@@ -479,4 +475,4 @@ class AromeRepository(WeatherRepositoryBase):
 
     def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
         """ Rounds a list of GeoPositions to the resolution set through grid_resolution """
-        return round_to_grid(coordinates, 0.023, 0.037, 49, 0)
+        return round_coordinates_to_wgs84_grid(coordinates, (0.023, 0.037), (49, 0))

@@ -1,28 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
 # SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
 
 import os
+import tempfile
+from importlib import metadata as importlib_metadata
 
 
 class BaseConfig(object):
     """ Base configuration class
 
-    This class holds and/or gathers all of the API's base settings..
+    This class holds and/or gathers all the APIs base settings...
 
     """
 
-    APP_NAME = os.environ.get("APP_NAME", "application")
+    APP_NAME = os.environ.get("APP_NAME", __name__)
     APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION", """Alliander Weather Provider API""")
     APP_MAINTAINER = os.environ.get("APP_MAINTAINER", "DNB/ST Innovatieteam")
     APP_MAINTAINER_EMAIL = os.environ.get(
         "APP_MAINTAINER_EMAIL", "weather.provider@alliander.com"
     )
     SHOW_MAINTAINER = os.environ.get("SHOW_MAINTAINER", False)
-    APP_VERSION = os.environ.get("APP_VERSION", "2.03")
+    APP_VERSION = os.environ.get("APP_VERSION", importlib_metadata.version(__package__))
     APP_V1_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
     APP_V2_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
     APP_VALID_DATE = os.environ.get("APP_VALID_DATE", "2099-12-31")
@@ -34,7 +36,7 @@ class BaseConfig(object):
     DEPLOYED = os.environ.get("DEPLOYED", False)
     DEBUG = os.environ.get("DEBUG", True)
 
-    REPO_FOLDER = os.environ.get("REPO_FOLDER", "/tmp/Weather_Repository")
+    REPO_FOLDER = os.environ.get("REPO_FOLDER", f"{tempfile.gettempdir()}/Weather_Repository")
 
 
 class LocalConfig(BaseConfig):

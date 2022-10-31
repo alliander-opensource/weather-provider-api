@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
+# SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
 
-"""KNMI hour models data fetcher.
+""" KNMI current weather data fetcher.
 """
 import copy
-import datetime
 import locale
 import re
+from datetime import datetime
 from typing import List, Optional
 
+import numpy as np
 import pandas as pd
 import requests
 import structlog
@@ -23,7 +24,9 @@ from weather_provider_api.routers.weather.sources.knmi.stations import (
     stations_actual,
     stations_actual_reversed,
 )
-from weather_provider_api.routers.weather.sources.knmi.utils import find_closest_stn_list
+from weather_provider_api.routers.weather.sources.knmi.utils import (
+    find_closest_stn_list,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
@@ -33,8 +36,7 @@ logger = structlog.get_logger(__name__)
 class ActueleWaarnemingenModel(WeatherModelBase):
     """
     A Weather Model that incorporates the:
-        KNMI Actuele Waarnemingen
-    dataset into the Weather Provider API
+    "KNMI Actuele Waarnemingen" dataset into the Weather Provider API
     """
 
     def __init__(self):
@@ -69,28 +71,28 @@ class ActueleWaarnemingenModel(WeatherModelBase):
     def get_weather(
         self,
         coords: List[GeoPosition],
-        begin: datetime,
-        end: datetime,
+        begin: Optional[np.datetime64],
+        end: Optional[np.datetime64],
         weather_factors: List[str] = None,
     ) -> xr.Dataset:
         """
-            The function that gathers and processes the requested Actuele Waarnemingen weather data from the KNMI site
-            and returns it as an Xarray Dataset.
-            (This model interprets directly from a HTML page, but the information is also available from the data
-            platform. Due to it being rather impractically handled, we stick to the site for now.)
+        The function that gathers and processes the requested Actuele Waarnemingen weather data from the KNMI site
+        and returns it as a Xarray Dataset.
+        (This model interprets directly from an HTML page, but the information is also available from the data
+        platform. Due to it being rather impractically handled, we stick to the site for now.)
+
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
 
         NOTES:
-            As this model only return the current weather data the begin and end values are not actually used.
+            As this model only return the current weather data the 'begin' and 'end' values are not actually used.
         """
-        # TODO: Switch to KNMI Data Platform version when their naming has been fixed.
-
         updated_weather_factors = self._request_weather_factors(weather_factors)
 
         # Download the current weather data
@@ -102,7 +104,6 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         )
 
         # Select the data for the found closest STNs
-
         ds = raw_ds.sel(STN=coords_stn)
 
         data_dict = {
@@ -122,94 +123,110 @@ class ActueleWaarnemingenModel(WeatherModelBase):
 
     def _download_weather(self) -> Optional[xr.Dataset]:
         """
-            A function that downloads the Actuele Waarnemingen site and parses it into a Weather Provider API compatible
-            format.
+        A function that downloads the Actuele Waarnemingen site and parses it into a Weather Provider API compatible
+        format.
+
         Returns:
             An Xarray Dataset containing the parsed weather data.
         """
-        """
-        Download the current weather data and return it as a Xarray Dataset
-        :return: A Xarray Dataset containing the current weather data
-        """
-        ds = None
-        try:
-            knmi_response = requests.get(self.url)
+        raw_ds = None
 
-            if knmi_response.ok:
-                df = pd.read_html(knmi_response.text)[0]
-                column_dictionary = {
+        try:
+            knmi_site_response = requests.get(self.url)
+
+            if knmi_site_response.ok:
+                knmi_site_df = pd.read_html(knmi_site_response.text)[0]
+
+                column_translations = {
                     "Station": "station",
                     "Weer": "weather_description",
-                    "Temp(°C)": "temperature",
-                    "Chill(°C)": "wind_chill",
-                    "RV(%)": "relative_humidity",
-                    "Wind(bft)": "wind_direction",
-                    "Wind(m/s)": "wind_speed",
-                    "Wind(km/uur)": "wind_speed_kmu",
-                    "Zicht(m)": "visibility",
-                    "Druk(hPa)": "air_pressure",
+                    "Temp (°C)": "temperature",
+                    "Chill (°C)": "wind_chill",
+                    "RV (%)": "relative_humidity",
+                    "Wind (bft)": "wind_direction",
+                    "Wind (m/s)": "wind_speed",
+                    "Wind (km/uur)": "wind_speed_kmu",
+                    "Zicht (m)": "visibility",
+                    "Druk (hPa)": "air_pressure",
                 }
 
-                # Rename to conventional naming system used for Weather Provider API
-                for dict_item in column_dictionary:
-                    if dict_item in df.columns:
-                        df = df.rename(
-                            columns={dict_item: column_dictionary[dict_item]}
+                # Rename to the conventional naming system used for the Weather Provider API
+                for dictionary_item in knmi_site_df.columns.copy(deep=True):
+                    if dictionary_item in column_translations.keys():
+                        knmi_site_df = knmi_site_df.rename(
+                            columns={
+                                dictionary_item: column_translations[dictionary_item]
+                            }
+                        )
+                    else:
+                        knmi_site_df = knmi_site_df.drop(
+                            dictionary_item, axis="columns"
                         )
 
-
-                dt = self._retrieve_observation_date(knmi_response.text)
-                df["wind_direction"] = df["wind_direction"].str.strip("\n")
-                df["time"] = dt
+                current_observation_moment = self.retrieve_observation_moment(
+                    knmi_site_response.text
+                )
+                knmi_site_df["time"] = current_observation_moment
+                if "wind_direction" in knmi_site_df:
+                    knmi_site_df["wind_direction"] = knmi_site_df[
+                        "wind_direction"
+                    ].str.strip("\n")
 
                 # Add a field for the station with its (lat, lon)-coordinates and remove the original station code
-                df["STN"] = df["station"].apply(
+                knmi_site_df["STN"] = knmi_site_df["station"].apply(
                     lambda x: stations_actual_reversed[x.upper()]
                 )
+
                 stations_actual_indexed = stations_actual.set_index("STN")
-                df["lat"] = df["STN"].apply(
+
+                knmi_site_df["lat"] = knmi_site_df["STN"].apply(
                     lambda x: stations_actual_indexed.loc[x, "lat"]
                 )
-                df["lon"] = df["STN"].apply(
+                knmi_site_df["lon"] = knmi_site_df["STN"].apply(
                     lambda x: stations_actual_indexed.loc[x, "lon"]
                 )
-                del df["station"]
+                knmi_site_df = knmi_site_df.drop("station", axis="columns")
 
-                # Rebuild index for the new setup
-                df.set_index(["time", "STN"], inplace=True)
+                # Rebuild the index
+                knmi_site_df = knmi_site_df.set_index(["time", "STN"])
 
-                # Remove the weather description since it's irrelevant for this API
-                del df["weather_description"]
-                # Remove the wind_chill if it is there, since it's irrelevant for this API
-                if "wind_chill" in df.columns:
-                    del df["wind_chill"]
+                # The following fields get removed because they aren't currently used in this API
+                if "weather_description" in knmi_site_df:
+                    knmi_site_df = knmi_site_df.drop(
+                        "weather_description", axis="columns"
+                    )
+                if "wind_chill" in knmi_site_df:
+                    knmi_site_df = knmi_site_df.drop("wind_chill", axis="columns")
 
-                ds = df.to_xarray()
+                # Generate a Xarray DataSet
+                raw_ds = knmi_site_df.to_xarray()
 
         except (requests.exceptions.BaseHTTPError, IndexError) as e:
             logger.exception(str(e))
 
-        return ds
+        return raw_ds
 
     @staticmethod
-    def _retrieve_observation_date(html_body):
+    def retrieve_observation_moment(html_body: str):
         """
-            A function that extracts the observation date from the supplied html body of the Actuele Waarnemingen site.
+        A function that extracts the observation date from the supplied html body of the Actuele Waarnemingen site.
+
         Args:
             html_body:  The text from the body downloaded from the Actuele Waarnemingen Site.
+
         Returns:
             Either the matching datetime if it can be extracted, or the current datetime if it cannot.
         """
         try:
             re_match = re.search(
-                r"Waarnemingen\s([0-9]+\s\w+\s[0-9]{4}\s[0-9]{2}:[0-9]{2})\suur",
+                r"Waarnemingen\s(\d+\s\w+\s\d{4}\s\d{2}:\d{2})\suur",
                 html_body,
             )
             if re_match:
                 dt_str = re_match.group(1)
                 current_locale = locale.getlocale(locale.LC_TIME)
                 locale.setlocale(locale.LC_TIME, "dutch")
-                dt = datetime.datetime.strptime(dt_str, "%d %B %Y %H:%M")
+                dt = datetime.strptime(dt_str, "%d %B %Y %H:%M")
                 locale.setlocale(locale.LC_TIME, current_locale)
                 return dt
         except Exception as e:
@@ -217,7 +234,13 @@ class ActueleWaarnemingenModel(WeatherModelBase):
                 "An exception occurred while retrieving the KNMI Waarnemingen timestamp. Using current datetime.",
                 error=e,
             )
-            return datetime.datetime.now()
+            return datetime.now()
+
+        current_locale = locale.getlocale(locale.LC_TIME)
+        locale.setlocale(locale.LC_TIME, "dutch")
+        dt = datetime.now()
+        locale.setlocale(locale.LC_TIME, current_locale)
+        return dt
 
     def is_async(self):  # pragma: no cover
         return self.async_model

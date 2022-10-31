@@ -11,7 +11,9 @@ import pytest
 import requests
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import DagGegevensModel
+from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import (
+    DagGegevensModel,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 inseason_options = {True, False}
@@ -29,10 +31,14 @@ def end():
 
 @pytest.mark.parametrize("inseason", inseason_options)
 def test_retrieve_weather(mock_coordinates, start, end, inseason):
-    mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
+    mock_geoposition_coordinates = [
+        GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates
+    ]
     # TODO: Monkeypatch the download call to test without connection
     daggegevens_model = DagGegevensModel()
-    ds = daggegevens_model.get_weather(coords=mock_geoposition_coordinates, begin=start, end=end, inseason=inseason)
+    ds = daggegevens_model.get_weather(
+        coords=mock_geoposition_coordinates, begin=start, end=end, inseason=inseason
+    )
 
     assert ds is not None
     assert "TN" in ds
@@ -54,12 +60,15 @@ def test__download_weather(monkeypatch):
 
     def mock_request_post(*args, **kwargs):
         return MockResponse({"dummy": "value"}, 404)
+
     monkeypatch.setattr(requests, "post", mock_request_post)
 
     with pytest.raises(requests.HTTPError) as e:
-        assert dag_model._download_weather([1, 2],
-                                           datetime(year=2020, month=3, day=1),
-                                           datetime(year=2020, month=3, day=2),
-                                           False,
-                                           None)
+        assert dag_model._download_weather(
+            [1, 2],
+            datetime(year=2020, month=3, day=1),
+            datetime(year=2020, month=3, day=2),
+            False,
+            None,
+        )
     assert str(e.value.args[0]) == "Failed to retrieve data from the KNMI website"

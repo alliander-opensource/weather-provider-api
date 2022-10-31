@@ -12,7 +12,6 @@ from fastapi import HTTPException
 
 import weather_provider_api.routers.weather.utils.date_helpers as dh
 
-
 # The function time_unknown() isn't tested as it only verifies that no time may have been set in the datetime conversion
 # and that the datetime string didn't contain a colon.
 
@@ -27,41 +26,69 @@ import weather_provider_api.routers.weather.utils.date_helpers as dh
 # - A FastAPI HTTPException (status code 422), also containing any given value for loc,
 #   if the raise_errors parameter was True
 # If no value was given at all, None should be returned
-@pytest.mark.parametrize("test_datetime,test_round_time,test_round_days,test_raise_errors,test_loc,test_result", [
-    ("2019-01-01 00:00", False, False, False, None, datetime(2019, 1, 1, 0, 0)),
-    ("2019-01-01 23:59", True, True, False, None, datetime(2019, 1, 1, 23, 59)),
-    ("2019-01-01", True, False, False, None, datetime(2019, 1, 1, 23, 59, 59)),
-    ("2019-01-01", False, True, False, None, datetime(2019, 1, 2, 0, 0)),
-    ("2019-01-01", True, True, False, None, datetime(2019, 1, 2, 0, 0)),
-])
-def test_parse_datetime(test_datetime, test_round_time, test_round_days, test_raise_errors, test_loc, test_result):
-    assert dh.parse_datetime(datetime_string=test_datetime,
-                             round_missing_time_up=test_round_time,
-                             round_to_days=test_round_days,
-                             raise_errors=test_raise_errors,
-                             loc=test_loc) == test_result
+@pytest.mark.parametrize(
+    "test_datetime,test_round_time,test_round_days,test_raise_errors,test_loc,test_result",
+    [
+        ("2019-01-01 00:00", False, False, False, None, datetime(2019, 1, 1, 0, 0)),
+        ("2019-01-01 23:59", True, True, False, None, datetime(2019, 1, 1, 23, 59)),
+        ("2019-01-01", True, False, False, None, datetime(2019, 1, 1, 23, 59, 59)),
+        ("2019-01-01", False, True, False, None, datetime(2019, 1, 2, 0, 0)),
+        ("2019-01-01", True, True, False, None, datetime(2019, 1, 2, 0, 0)),
+    ],
+)
+def test_parse_datetime(
+    test_datetime,
+    test_round_time,
+    test_round_days,
+    test_raise_errors,
+    test_loc,
+    test_result,
+):
+    assert (
+        dh.parse_datetime(
+            datetime_string=test_datetime,
+            round_missing_time_up=test_round_time,
+            round_to_days=test_round_days,
+            raise_errors=test_raise_errors,
+            loc=test_loc,
+        )
+        == test_result
+    )
 
 
 def test_parse_datetime_error_handling():
     with pytest.raises(HTTPException) as e:
-        assert dh.parse_datetime(datetime_string="2019-01-0Z",
-                                 round_missing_time_up=False,
-                                 round_to_days=False,
-                                 raise_errors=True,
-                                 loc="Oh no")
+        assert dh.parse_datetime(
+            datetime_string="2019-01-0Z",
+            round_missing_time_up=False,
+            round_to_days=False,
+            raise_errors=True,
+            loc="Oh no",
+        )
     assert e is not None
 
-    assert dh.parse_datetime(datetime_string="2019-01-0Z",
-                             round_missing_time_up=False,
-                             round_to_days=False,
-                             raise_errors=False,
-                             loc="Oh no") is None
+    assert (
+        dh.parse_datetime(
+            datetime_string="2019-01-0Z",
+            round_missing_time_up=False,
+            round_to_days=False,
+            raise_errors=False,
+            loc="Oh no",
+        )
+        is None
+    )
 
-    assert dh.parse_datetime(datetime_string=None,
-                             round_missing_time_up=False,
-                             round_to_days=False,
-                             raise_errors=False,
-                             loc="Oh no") is None
+    assert (
+        dh.parse_datetime(
+            datetime_string=None,
+            round_missing_time_up=False,
+            round_to_days=False,
+            raise_errors=False,
+            loc="Oh no",
+        )
+        is None
+    )
+
 
 """
 @pytest.mark.parametrize("starting_date, ending_date, result", [
