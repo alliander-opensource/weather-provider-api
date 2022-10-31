@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "weather_provider_api"
+version = "2.21.08"
+description = "Weather Provider Libraries and API"
+authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
+license = "MPL-2.0"
+readme = "README.md"
+repository="https://github.com/alliander-opensource/wpla/"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+starlette-prometheus = "^0.9.0"
+numpy = "^1.23.3"
+structlog = "^22.1.0"
+bs4 = "^0.0.1"
+netCDF4 = "^1.6.1"
+pandas = "^1.5.0"
+xarray = "^2022.9.0"
+fastapi = "^0.85.0"
+requests = "^2.28.1"
+geopy = "^2.2.0"
+accept-types = "^0.4.1"
+lxml = "^4.9.1"
+uvicorn = "^0.18.3"
+gunicorn = "^20.1.0"
+eccodes = "^1.5.0"
+ecmwflibs = "^0.4.17"
+cfgrib = "^0.9.10.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.1.3"
+coverage = "^6.5.0"
+pytest-cov = "^4.0.0"
+isort = "^5.10.1"
+black = "^22.10.0"
+
+[tool.poetry.scripts]
+wpla_update_era5sl = "weather_provider_api.scripts.update_era5sl_repository:main"
+wpla_update_era5land = "weather_provider_api.scripts.update_era5land_repository:main"
+wpla_update_arome = "weather_provider_api.scripts.update_arome_repository:main"
+wpla_clear_era5sl = "weather_provider_api.scripts.erase_era5sl_repository:main"
+wpla_clear_era5land = "weather_provider_api.scripts.erase_era5land_repository:main"
+wpla_clear_arome = "weather_provider_api.scripts.erase_arome_repository:main"
+wpla_run_api = "weather_provider_api.main:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

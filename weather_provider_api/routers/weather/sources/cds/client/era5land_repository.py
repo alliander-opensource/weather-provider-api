@@ -12,24 +12,24 @@ from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.repository.repository import WeatherRepositoryBase
 from weather_provider_api.routers.weather.sources.cds.client.utils_era5 import era5_update
-from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
+from weather_provider_api.routers.weather.sources.cds.factors import era5land_factors
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.grid_helpers import round_coordinates_to_wgs84_grid
 
 
-class ERA5SLRepository(WeatherRepositoryBase):
+class ERA5LandRepository(WeatherRepositoryBase):
     """
     A class that holds all functionality (excepting the downloader) for the ERA5 Single Levels Repository
     """
 
     def __init__(self):
         super().__init__()
-        self.repository_name = "CSD ERA5 Single Levels"
+        self.repository_name = "CSD: ERA5-Land"
         self.logger.debug(
             f"Initializing {self.repository_name} repository",
             datetime=datetime.utcnow(),
         )
-        self.file_prefix = "ERA5SL"
+        self.file_prefix = "ERA5LAND"
         self.runtime_limit = 3 * 60  # 3 hours maximum runtime
         self.permanent_suffixes = ["INCOMPLETE", "TEMP"]
         self.grid_resolution = 0.25
@@ -42,7 +42,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
 
     @staticmethod
     def _get_repo_sub_folder():
-        return "ERA5_SL"
+        return "ERA5LAND"
 
     @property
     def first_day_of_repo(self):
@@ -54,7 +54,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
 
     @property
     def last_day_of_repo(self):
-        last_day_of_repo = datetime.utcnow() - relativedelta(days=5)
+        last_day_of_repo = datetime.utcnow() - relativedelta(days=2)
         last_day_of_repo = last_day_of_repo.replace(
             hour=0, minute=0, second=0, microsecond=0
         )
@@ -63,7 +63,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
     def update(self):
         """
             The implementation of the WeatherRepository required update() function.
-            This function handles all of the required actions to update the repository completely, but taking into
+            This function handles all the required actions to update the repository completely, but taking into
             account its set runtime_limit. If based on the time of completion of other downloaded files this session
             the next file wouldn't complete within the runtime_limit, the update process halts.
             (if no other downloads were made yet, a generous rough estimate is used)
@@ -78,11 +78,11 @@ class ERA5SLRepository(WeatherRepositoryBase):
             self.file_prefix,
             self.repository_folder,
             (self.first_day_of_repo, self.last_day_of_repo),
-            'reanalysis-era5-single-levels',
+            'reanalysis-era5-land',
             'reanalysis',
-            [era5sl_factors[x] for x in list(era5sl_factors.keys())],
+            [era5land_factors[x] for x in list(era5land_factors.keys())],
             (self.grid_resolution, self.grid_resolution),
-            era5sl_factors,
+            era5land_factors,
             self.runtime_limit,
             True
         )
@@ -95,11 +95,11 @@ class ERA5SLRepository(WeatherRepositoryBase):
             Nothing. Successful means the all files outside the scope were deleted.
         """
         len_filename_until_date = (
-                len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
         )
 
         for file_name in glob.glob(
-                str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
+            str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
         ):
             file_year = int(
                 file_name[len_filename_until_date: len_filename_until_date + 4]
@@ -109,9 +109,16 @@ class ERA5SLRepository(WeatherRepositoryBase):
             )
 
             if (
-                    file_year < self.first_day_of_repo.year or file_year > self.last_day_of_repo.year
-                    or (file_year == self.first_day_of_repo.year and file_month < self.first_day_of_repo.month)
-                    or (file_year == self.last_day_of_repo.year and file_month > self.last_day_of_repo.month)
+                file_year < self.first_day_of_repo.year
+                or file_year > self.last_day_of_repo.year
+                or (
+                    file_year == self.first_day_of_repo.year
+                    and file_month < self.first_day_of_repo.month
+                )
+                or (
+                    file_year == self.last_day_of_repo.year
+                    and file_month > self.last_day_of_repo.month
+                )
             ):
                 self.logger.debug(
                     f"Deleting file [{file_name}] because it does not lie in the "
@@ -131,7 +138,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         self.cleanup()
 
         len_filename_until_date = (
-                len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
         )
         full_list_of_files = glob.glob(
             str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
@@ -145,9 +152,9 @@ class ERA5SLRepository(WeatherRepositoryBase):
             date_for_filename = datetime(year=file_year, month=file_month, day=15)
 
             if (
-                    start.replace(day=1)
-                    < date_for_filename
-                    < datetime(year=end.year, month=end.month, day=28)
+                start.replace(day=1)
+                < date_for_filename
+                < datetime(year=end.year, month=end.month, day=28)
             ):
                 # If the file is within the requested period, save it to the list of filtered files
                 list_of_filtered_files.append(file)
@@ -157,5 +164,6 @@ class ERA5SLRepository(WeatherRepositoryBase):
     def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
         # Rounds a list of GeoPositions to the resolution set through grid_resolution
         return round_coordinates_to_wgs84_grid(
-            coordinates, (self.grid_resolution, self.grid_resolution)
+            coordinates,
+            (self.grid_resolution, self.grid_resolution)
         )
