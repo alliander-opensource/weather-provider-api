@@ -9,10 +9,6 @@
     Class to retrieve the current Weather Alert status according to the KNMI site
 """
 
-# TODO: Though the alert output on the site is on a province-per-page basis, which is rather slow, there is a component
-#       on the page that carries the info on all of the provinces at once:an image of the Netherlands containing
-#       the color-coded info for all of the provinces at once.
-#       Solely loading the image and pinpointing the colors for the provinces by location might be faster..
 from enum import Enum
 
 import requests
@@ -64,12 +60,13 @@ class WeatherAlert:
             A list of strings holding all of the provinces and their retrieved current alarm stages according to KNMI
         """
         alarm_list = []
-        page = None
         for province in self.provinces:
             # Every province is available from a different page, so we have to request all of them separately
+            page_text = ""
             try:
                 page = self._requests_retry_session().get(self.url + province)
                 status_code = page.status_code
+                page_text = page.text
             except Timeout:
                 status_code = 408
             except ProxyError:
@@ -77,16 +74,16 @@ class WeatherAlert:
             except TooManyRedirects:
                 status_code = 999
 
-            append_string = self.process_page(page, status_code, province)
+            append_string = self.process_page(page_text, status_code, province)
             alarm_list.append(append_string)
         return alarm_list
 
     @staticmethod
-    def process_page(page, status_code, province):
+    def process_page(page_text: str, status_code, province):
         """
             A function that parses the weather alert page for a province and retrieves its current alarm stage.
         Args:
-            page:           The URL used to notify KNMI site visitors what alarm stage a specific province currently has
+            page_text:      The response content retrieved while trying to download the page
             status_code:    The status code retrieved while trying to download the page.
             province:       The province associated with the url, status code and alarm stage.
         Returns:
@@ -94,19 +91,22 @@ class WeatherAlert:
             A result-string usually hold the alarm stage for that province, but can also hold exceptions when
             downloading did not succeed as intended.
         """
-        if status_code == 200:
+        if status_code == 200 and page_text is not None:
             # A page was found and loaded
-            soup = BeautifulSoup(page.content, features="lxml")
+            soup = BeautifulSoup(page_text, features="lxml")
+            print(soup.find("div"))
 
-            classes_first_warning_block = soup.find("div", class_="warning-overview")[
-                "class"
-            ]
+            classes_first_warning_block = soup.find(
+                "div", {"class": "warning-overview"}
+            )
+            if classes_first_warning_block is not None:
+                classes_first_warning_block = classes_first_warning_block["class"]
 
-            for class_name in classes_first_warning_block:
-                if len(class_name) > len("warning-overview") and class_name[
-                                                                 len("warning-overview--"):
-                                                                 ] in set(item.value for item in WeatherAlertCode):
-                    return province, class_name[len("warning-overview--"):]
+                for class_name in classes_first_warning_block:
+                    if len(class_name) > len("warning-overview") and class_name[
+                        len("warning-overview--") :
+                    ] in set(item.value for item in WeatherAlertCode):
+                        return province, class_name[len("warning-overview--") :]
 
             # If no valid code was found return an invalid data message
             return province, "could not find expected data on page"
@@ -119,12 +119,12 @@ class WeatherAlert:
 
     @staticmethod
     def _requests_retry_session(
-            # A function for basic retrying of an url when it isn't accessible immediately.
-            retries=8,
-            backoff_factor=0.01,
-            status_forcelist=(500, 502, 504),
-            session=None,
-    ):
+        # A function for basic retrying of an url when it isn't accessible immediately.
+        retries=8,
+        backoff_factor=0.01,
+        status_forcelist=(500, 502, 504),
+        session=None,
+    ) -> requests.Session:
         session = session or requests.Session()
         retry = Retry(
             total=retries,
