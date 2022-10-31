@@ -8,7 +8,6 @@ import glob
 from datetime import datetime
 from typing import List
 
-import structlog
 from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.repository.repository import WeatherRepositoryBase
@@ -16,8 +15,6 @@ from weather_provider_api.routers.weather.sources.cds.client.utils_era5 import e
 from weather_provider_api.routers.weather.sources.cds.factors import era5land_factors
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.grid_helpers import round_coordinates_to_wgs84_grid
-
-logger = structlog.get_logger(__name__)
 
 
 class ERA5LandRepository(WeatherRepositoryBase):
@@ -33,7 +30,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
             datetime=datetime.utcnow(),
         )
         self.file_prefix = "ERA5LAND"
-        self.runtime_limit = 60 * 60 * 3  # 3 hours maximum runtime
+        self.runtime_limit = 3 * 60  # 3 hours maximum runtime
         self.permanent_suffixes = ["INCOMPLETE", "TEMP"]
         self.grid_resolution = 0.25
         self.file_identifier_length = 7
@@ -49,14 +46,18 @@ class ERA5LandRepository(WeatherRepositoryBase):
 
     @property
     def first_day_of_repo(self):
-        first_day_of_repo = datetime.utcnow() - relativedelta(years=3, days=5)
-        first_day_of_repo = first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        first_day_of_repo = datetime.utcnow() - relativedelta(years=12, days=5)
+        first_day_of_repo = first_day_of_repo.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
         return first_day_of_repo
 
     @property
     def last_day_of_repo(self):
-        last_day_of_repo = datetime.utcnow() - relativedelta(months=5)
-        last_day_of_repo = last_day_of_repo.replace(hour=0, minute=0, second=0, microsecond=0)
+        last_day_of_repo = datetime.utcnow() - relativedelta(days=2)
+        last_day_of_repo = last_day_of_repo.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         return last_day_of_repo
 
     def update(self):
@@ -75,14 +76,15 @@ class ERA5LandRepository(WeatherRepositoryBase):
 
         return era5_update(
             self.file_prefix,
-            self.first_day_of_repo,
-            self.last_day_of_repo,
-            self.runtime_limit,
-            str(self.repository_folder.joinpath(self.file_prefix)),
+            self.repository_folder,
+            (self.first_day_of_repo, self.last_day_of_repo),
             'reanalysis-era5-land',
             'reanalysis',
             [era5land_factors[x] for x in list(era5land_factors.keys())],
-            self.grid_resolution
+            (self.grid_resolution, self.grid_resolution),
+            era5land_factors,
+            self.runtime_limit,
+            True
         )
 
     def _delete_files_outside_of_scope(self):
@@ -93,11 +95,11 @@ class ERA5LandRepository(WeatherRepositoryBase):
             Nothing. Successful means the all files outside the scope were deleted.
         """
         len_filename_until_date = (
-                len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
         )
 
         for file_name in glob.glob(
-                str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
+            str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
         ):
             file_year = int(
                 file_name[len_filename_until_date: len_filename_until_date + 4]
@@ -107,16 +109,16 @@ class ERA5LandRepository(WeatherRepositoryBase):
             )
 
             if (
-                    file_year < self.first_day_of_repo.year
-                    or file_year > self.last_day_of_repo.year
-                    or (
+                file_year < self.first_day_of_repo.year
+                or file_year > self.last_day_of_repo.year
+                or (
                     file_year == self.first_day_of_repo.year
                     and file_month < self.first_day_of_repo.month
-            )
-                    or (
+                )
+                or (
                     file_year == self.last_day_of_repo.year
                     and file_month > self.last_day_of_repo.month
-            )
+                )
             ):
                 self.logger.debug(
                     f"Deleting file [{file_name}] because it does not lie in the "
@@ -136,7 +138,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         self.cleanup()
 
         len_filename_until_date = (
-                len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
         )
         full_list_of_files = glob.glob(
             str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
@@ -150,9 +152,9 @@ class ERA5LandRepository(WeatherRepositoryBase):
             date_for_filename = datetime(year=file_year, month=file_month, day=15)
 
             if (
-                    start.replace(day=1)
-                    < date_for_filename
-                    < datetime(year=end.year, month=end.month, day=28)
+                start.replace(day=1)
+                < date_for_filename
+                < datetime(year=end.year, month=end.month, day=28)
             ):
                 # If the file is within the requested period, save it to the list of filtered files
                 list_of_filtered_files.append(file)

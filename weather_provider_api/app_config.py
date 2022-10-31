@@ -11,7 +11,7 @@ import os
 class BaseConfig(object):
     """ Base configuration class
 
-    This class holds and/or gathers all of the API's base settings..
+    This class holds and/or gathers all the API's base settings...
 
     """
 
