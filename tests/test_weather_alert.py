@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pandas as pd
-import pytest
+
+# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.
 import requests
 from requests.exceptions import ProxyError
 
 from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import (
     WeatherAlert,
 )
-
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.
 
 
 def test_weather_alert_():
