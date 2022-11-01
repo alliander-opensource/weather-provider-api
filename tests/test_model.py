@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 
 # Not testing the abstract get_weather and is_async functions as they are implemented and defined outside this scope
 # Also not testing because they are just return value functions (with at most basic math applied):

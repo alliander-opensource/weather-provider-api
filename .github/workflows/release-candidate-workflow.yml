@@ -1,8 +1,8 @@
-name: Pull request evaluation
+name: Release Candidate evaluation
 on:
   push:
     branches:
-      release-v2
+      release-*
 jobs:
   # ---------------------------------------------------------------- #
   # |  Coverage and SonarCloud.io upload                           | #
@@ -32,7 +32,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Install required dependencies
       - name: Install dependencies
-        run: poetry install -vv --with dev
+        run: poetry install -v --with dev
       # Run Coverage
       - name: Run Coverage
         run: |
@@ -71,6 +71,12 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
+      # Install Poetry (needed for version)
+      - name: Setup Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry self update --preview
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
@@ -86,5 +92,5 @@ jobs:
           ECR_REGISTRY: 325973380531.dkr.ecr.eu-central-1.amazonaws.com
           ECR_REPOSITORY: dnb-inno-image-repository
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api:${{ env.package_version }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api:${{ env.package_version }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }}

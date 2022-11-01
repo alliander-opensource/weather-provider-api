@@ -1,6 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-
+SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 SPDX-License-Identifier: MPL-2.0
 -->
 [![License: MIT](https://img.shields.io/badge/License-MPL2.0-informational.svg)](https://github.com/alliander-opensource/Weather-Provider-API/blob/master/LICENSE)

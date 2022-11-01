@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 
 import os
 import re
@@ -15,6 +14,7 @@ from weather_provider_api.routers.weather.sources.cds.client.downloader import (
     Client,
     bytes_to_string,
 )
+
 
 # downloader.py is based on a file by ECMWF. This
 

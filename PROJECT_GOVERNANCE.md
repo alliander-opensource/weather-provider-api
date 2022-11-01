@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2021 Alliander N.V.
+SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 SPDX-License-Identifier: MPL-2.0
 -->
 
@@ -19,7 +19,7 @@ The Technical Steering Committee (TSC) is responsible for:
 
 The community council consists of the following members:
 
-* **Tongyou Gu** - *API development*
+* **Tim Weelinck** - *API development*
 * **Raoul Linnenbank** - *Active API Development, Geo positioning, CDS ERA5, caching, remodeling, Harmonie Arome and optimisation*
 * **Joan Ressing** - *Infrastructure and deployment*
 

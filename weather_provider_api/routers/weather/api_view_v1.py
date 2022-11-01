@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.0
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 
 """
 TODO:
@@ -53,7 +52,7 @@ async def get_sources():  # pragma: no cover
 # @weather_provider_api.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync", "async"])
 @app.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync"])
 async def get_source(source_id: str):  # pragma: no cover
-    # List all of the models supported by the selected source
+    # List all the models supported by the selected source
     source_id = source_id.lower()
     return controller.get_source(source_id)
 
@@ -62,7 +61,7 @@ async def get_source(source_id: str):  # pragma: no cover
     "/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"]
 )
 async def get_sync_models(source_id: str):  # pragma: no cover
-    # List all of the synchronous models supported by the selected source
+    # List all the synchronous models supported by the selected source
     source_id = source_id.lower()
     return controller.get_models(source_id, fetch_async=False)
 
@@ -84,8 +83,8 @@ async def get_sync_weather(
         source_id:  The identifier for the chosen source
         model_id:   The identifier for the chosen model
         cleanup_tasks: Holder for background tasks, in get_sync_weather solely used for file cleanup, hence the name
-        ret_args:   Contains a WeatherContentRequestQuery item with all of the settings to be used for data collection
-        fmt_args:   Contains a WeatherFormattingRequestQuery item with all of the setting to be used for formatting the
+        ret_args:   Contains a WeatherContentRequestQuery item with all the settings to be used for data collection
+        fmt_args:   Contains a WeatherFormattingRequestQuery item with all the setting to be used for formatting the
                     output
         accept:
 
@@ -151,6 +150,6 @@ async def get_sync_weather(
 # @weather_provider_api.get("/weeralarm")
 @app.get("/alarms/knmi", tags=["alerts"])
 async def get_alarm():  # pragma: no cover
-    # Fetches the WeatherAlarm status for all of the provinces from KNMI Weer Alarm and returns the results
+    # Fetches the WeatherAlarm status for all the provinces from KNMI Weer Alarm and returns the results
     weather_alert = WeatherAlert()
     return weather_alert.get_alarm()

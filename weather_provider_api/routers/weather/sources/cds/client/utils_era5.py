@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.
+
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
+
 import glob
 import tempfile
+from datetime import datetime, date
 from pathlib import Path
+from typing import Tuple, List, Dict
 
 import structlog
-from dateutil.relativedelta import relativedelta
-
-from datetime import datetime, date
-from typing import Tuple, List, Dict
 import xarray as xr
+from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.repository.repository import RepositoryUpdateResult
 from weather_provider_api.routers.weather.sources.cds.client import downloader

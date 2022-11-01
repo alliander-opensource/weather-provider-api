@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.0
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 
 import random
 from datetime import datetime, timedelta
@@ -20,6 +19,7 @@ from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome imp
     AromeModel,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+
 
 # The get_weather() function is not part of the test, as it consists purely of function calls to other functions that
 # are already part of the testing regiment.

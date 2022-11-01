@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.0
+
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 
 import os
 import tempfile
@@ -27,7 +26,7 @@ class BaseConfig(object):
     APP_VERSION = os.environ.get("APP_VERSION", importlib_metadata.version(__package__))
     APP_V1_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
     APP_V2_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
-    APP_VALID_DATE = os.environ.get("APP_VALID_DATE", "2099-12-31")
+    APP_VALID_DATE = os.environ.get("APP_VALID_DATE", "2024-12-31")
     NETWORK_INTERFACE = os.environ.get("NETWORK_INTERFACE", "127.0.0.1")
     NETWORK_PORT = os.environ.get("NETWORK_PORT", 8080)
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
