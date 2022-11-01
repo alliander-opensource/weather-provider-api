@@ -82,14 +82,14 @@ jobs:
           poetry config http-basic.nexus ${{ secrets.EKS_NEXUS_USER }} ${{ secrets.EKS_NEXUS_PASSWORD }}
       # Determine the current version of the application (for main branch)
       - name: Determine current version
-        if: ${{ github.ref_name == 'main-v2' }}
+        if: ${{ github.ref_name == 'main-2.0' }}
         run: |
           version="$(poetry version --short)${{ github.run_number }}"
           echo "Package version: $version"
           echo "package_version=$version" >> $GITHUB_ENV
       # Determine the current version of the application (for non-main branch)
       - name: Determine a version non-main branch
-        if: ${{ github.ref_name != 'main-v2' }}
+        if: ${{ github.ref_name != 'main-2.0' }}
         run: |
           version="$(poetry version --short)rc${{ github.run_number }}"  # rc
           echo "Package version: $version"
@@ -103,6 +103,7 @@ jobs:
           poetry publish --build
       # Create a Release on GitHub for the new package
       - name: Create a Release for the new package
+        if: ${{ github.ref_name == 'main-2.0' }}
         uses: softprops/action-gh-release@v0.1.14
         with:
           tag_name: ${{ env.package_version }}
