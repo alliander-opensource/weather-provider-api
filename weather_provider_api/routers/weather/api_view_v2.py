@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.0
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 
 """
 TODO:
@@ -76,7 +75,7 @@ async def get_source(source_id: str):  # pragma: no cover
     "/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"]
 )
 async def get_sync_models(source_id: str):  # pragma: no cover
-    """<B>List all of the synchronous Models available for the selected Source</B>"""
+    """<B>List all the synchronous Models available for the selected Source</B>"""
     """
         An API function that returns all of the synchronous models available for the given source
     Args:
@@ -103,7 +102,7 @@ async def get_sync_weather(
     This data is then formatted as the requested output format (output unit system and file format) before returning the requested data.</B>
 
     <I>(Please note that as some models are predictive or otherwise restricted in the periods available for requests,
-    that sometimes the begin and end values will altered to match these restrictions.)</I>
+    that sometimes the 'begin' and 'end' values will be altered to match these restrictions.)</I>
     """
     """
         An API function that retrieves specific weather data for a specific Weather Model and returns it as the 
@@ -177,7 +176,7 @@ async def get_sync_weather(
 # @weather_provider_api.get("/weeralarm")
 @app.get("/alarms/knmi", tags=["alerts"])
 async def get_alarm():  # pragma: no cover
-    """<B>Fetches the WeatherAlarm status for all of the provinces from KNMI Weer Alarm and returns the results</B>"""
+    """<B>Fetches the WeatherAlarm status for all the provinces from KNMI Weer Alarm and returns the results</B>"""
     """
         An API Function that reads the status of the Weer Alarm pages on the KNMI Site and returns them.
     Returns:

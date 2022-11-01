@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
+
 import locale
 from datetime import datetime
 
@@ -12,10 +16,6 @@ from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarneming
     ActueleWaarnemingenModel,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.
 
 
 @pytest.fixture()
