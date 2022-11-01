@@ -92,5 +92,5 @@ jobs:
           ECR_REGISTRY: 325973380531.dkr.ecr.eu-central-1.amazonaws.com
           ECR_REPOSITORY: dnb-inno-image-repository
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }}
+          docker build -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ env.package_version }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ env.package_version }}
