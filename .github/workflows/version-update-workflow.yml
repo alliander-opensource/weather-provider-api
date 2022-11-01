@@ -114,7 +114,7 @@ jobs:
   # ---------------------------------------------------------------- #
   create-and-upload-image:
     name: Create and upload the image
-    needs: package-creation-and-upload
+    needs: tests-and-sonarcloud
     runs-on: ubuntu-latest
     permissions:
       id-token: write
