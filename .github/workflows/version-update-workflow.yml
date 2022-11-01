@@ -174,4 +174,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: rflinnenbank/weather-provider-api:${{ env.package_version }}
+          tags: weatherproviderapi/weather-provider-api:${{ env.package_version }}
