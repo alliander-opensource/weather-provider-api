@@ -11,7 +11,6 @@ from fastapi import HTTPException
 
 import weather_provider_api.routers.weather.utils.date_helpers as dh
 
-
 # The function time_unknown() isn't tested as it only verifies that no time may have been set in the datetime conversion
 # and that the datetime string didn't contain a colon.
 
