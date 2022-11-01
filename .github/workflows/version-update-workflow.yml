@@ -104,7 +104,6 @@ jobs:
       # Create a Release on GitHub for the new package
       - name: Create a Release for the new package
         uses: softprops/action-gh-release@v0.1.14
-        if: ${{ github.ref_name == 'main-v2' }}
         with:
           tag_name: ${{ env.package_version }}
           name: "Release ${{ env.package_version }}"
@@ -168,7 +167,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: rflinnenbank/weather-provider-api:latest
+          tags: weatherproviderapi/weather-provider-api:latest
       # Create the image and upload it to DockerHub as version
       - name: Build and push as latest
         uses: docker/build-push-action@v3
