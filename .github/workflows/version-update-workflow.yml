@@ -2,7 +2,7 @@ name: Version Update
 on:
   push:
     branches:
-      main
+      main-*
 jobs:
   # ---------------------------------------------------------------- #
   # |  Coverage and SonarCloud.io upload                           | #
