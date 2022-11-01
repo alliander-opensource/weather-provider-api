@@ -71,6 +71,12 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
+      # Install Poetry (needed for version)
+      - name: Setup Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry self update --preview
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr

@@ -131,13 +131,12 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
-      # Install Poetry  (Needed for determining the version)
-      - name: Install Poetry
+      # Install Poetry (needed for version)
+      - name: Setup Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          echo "POETRY_VIRTUALENVS_CREATE=true" >> $GITHUB_ENV
-          echo "POETRY_VIRTUALENVS_IN_PROJECT=true" >> $GITHUB_ENV
-          echo "POETRY_INSTALLER_PARALLEL=true" >> $GITHUB_ENV
+          poetry self update --preview
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Determine the current version of the application
       - name: Determine current version
         run: |
