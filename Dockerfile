@@ -1,6 +1,7 @@
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
 #
+# SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 # SPDX-License-Identifier: MPL-2.0
+#
 
 # *** BASE IMAGE ***
 FROM rflinnenbank/wpla-eccodes-ubuntu:latest as base-image

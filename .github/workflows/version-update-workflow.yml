@@ -1,4 +1,4 @@
-name: Version Update
+name: Version update
 on:
   push:
     branches:
@@ -32,7 +32,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Install required dependencies
       - name: Install dependencies
-        run: poetry install -vv --with dev
+        run: poetry install -v --with dev
       # Run Coverage
       - name: Run Coverage
         run: |
