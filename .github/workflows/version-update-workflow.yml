@@ -82,14 +82,14 @@ jobs:
           poetry config http-basic.nexus ${{ secrets.EKS_NEXUS_USER }} ${{ secrets.EKS_NEXUS_PASSWORD }}
       # Determine the current version of the application (for main branch)
       - name: Determine current version
-        if: ${{ github.ref_name == 'main-v2' }}
+        if: ${{ github.ref_name == 'main-2.0' }}
         run: |
           version="$(poetry version --short)${{ github.run_number }}"
           echo "Package version: $version"
           echo "package_version=$version" >> $GITHUB_ENV
       # Determine the current version of the application (for non-main branch)
       - name: Determine a version non-main branch
-        if: ${{ github.ref_name != 'main-v2' }}
+        if: ${{ github.ref_name != 'main-2.0' }}
         run: |
           version="$(poetry version --short)rc${{ github.run_number }}"  # rc
           echo "Package version: $version"
@@ -103,12 +103,14 @@ jobs:
           poetry publish --build
       # Create a Release on GitHub for the new package
       - name: Create a Release for the new package
+        if: ${{ github.ref_name == 'main-2.0' }}
         uses: softprops/action-gh-release@v0.1.14
-        if: ${{ github.ref_name == 'main-v2' }}
         with:
           tag_name: ${{ env.package_version }}
           name: "Release ${{ env.package_version }}"
           generate_release_notes: True
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # ---------------------------------------------------------------- #
   # |  Build image and upload it to AWS and DockerHub              | #
   # ---------------------------------------------------------------- #
@@ -168,10 +170,10 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: rflinnenbank/weather-provider-api:latest
+          tags: weatherproviderapi/weather-provider-api:latest
       # Create the image and upload it to DockerHub as version
       - name: Build and push as latest
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: rflinnenbank/weather-provider-api:${{ env.package_version }}
+          tags: weatherproviderapi/weather-provider-api:${{ env.package_version }}
