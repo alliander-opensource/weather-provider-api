@@ -100,7 +100,6 @@ def test_weather_alert_wrongly_formatted_page(monkeypatch):
         requests.Session, "get", mock_request_response
     )  # Intercepting request response
     output = wa.get_alarm()
-    print(output)
 
     assert (
         len(output) == 12

@@ -6,6 +6,11 @@
 
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import AromeRepository
 
-if __name__ == "__main__":
+
+def main():
     arome_repo = AromeRepository()
     arome_repo.purge_repository()
+
+
+if __name__ == "__main__":
+    main()

@@ -44,8 +44,6 @@ def round_coordinates_to_wgs84_grid(
         for coordinate in wgs84_coordinate_list
     ]
 
-    print(rounded_wgs84_coordinate_list)
-
     return [
         GeoPosition(coordinate[0], coordinate[1])
         for coordinate in rounded_wgs84_coordinate_list

@@ -56,7 +56,7 @@ class WeatherAlert:
             A function that retrieves the current weather alarm stage for each of the Dutch provinces and puts those
             together into a formatted list of results (string-based).
         Returns:
-            A list of strings holding all of the provinces and their retrieved current alarm stages according to KNMI
+            A list of strings holding all the provinces and their retrieved current alarm stages according to KNMI
         """
         alarm_list = []
         for province in self.provinces:
@@ -93,7 +93,6 @@ class WeatherAlert:
         if status_code == 200 and page_text is not None:
             # A page was found and loaded
             soup = BeautifulSoup(page_text, features="lxml")
-            print(soup.find("div"))
 
             classes_first_warning_block = soup.find(
                 "div", {"class": "warning-overview"}
