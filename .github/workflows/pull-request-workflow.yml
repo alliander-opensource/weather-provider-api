@@ -1,4 +1,4 @@
-name: Pull Request Handling
+name: Pull Request Evaluation
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -31,7 +31,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Install required dependencies
       - name: Install dependencies
-        run: poetry install -vv --with dev
+        run: poetry install -v --with dev
       # Run Coverage
       - name: Run Coverage
         run: |

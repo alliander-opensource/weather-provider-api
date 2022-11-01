@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# SPDX-FileCopyrightText: 2019-2021 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.0
-
-# -*- coding: utf-8 -*-
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 
 # repo_get_repository_location() isn't tested as it only fetches a value and if none is found a specific value is used.
 # A test would therefore be bigger and more error-prone than the code itself.
