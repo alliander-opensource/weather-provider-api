@@ -58,6 +58,5 @@ def test_round_to_grid(
         coordinates, grid_resolution_lat_lon, starting_points_lat_lon
     )
 
-    print(len(results))
     for result_coordinate, expected_result_coordinate in zip(results, expected_results):
         assert result_coordinate.get_WGS84() == expected_result_coordinate.get_WGS84()

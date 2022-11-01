@@ -5,14 +5,14 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 import os
-import sys
+import site
 from pathlib import Path
 
 import structlog
 
 
 async def remove_file(
-    file_path, logger=structlog.get_logger(__name__)
+        file_path, logger=structlog.get_logger(__name__)
 ):  # pragma: no cover
     if file_path is not None:
         try:
@@ -27,16 +27,20 @@ async def remove_file(
 
 
 def get_var_map_file_location(filename: str) -> Path:
+    logger = structlog.get_logger(__name__)
     var_map_folder = 'var_maps'
 
     possible_main_folders = [
-        Path(os.getcwd()),
-        Path(os.getcwd()).parent,
-        Path(sys.prefix)
+        Path(os.getcwd()),  # Running from main folder
+        Path(os.getcwd()).parent,  # Running from weather_provider_api folder or scripts
+        Path(site.getsitepackages()[-1]),   # Running as package
     ]
 
     for folder in possible_main_folders:
-        if folder.joinpath(var_map_folder).exists():
-            return folder.joinpath(var_map_folder).joinpath(filename)
+        possible_var_map_folder = folder.joinpath(var_map_folder)
+        if possible_var_map_folder.exists():
+            logger.info(f'"var_maps" folder was found at: {possible_var_map_folder}')
+            return possible_var_map_folder.joinpath(filename)
+
 
     raise FileNotFoundError

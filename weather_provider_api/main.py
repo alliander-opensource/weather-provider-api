@@ -10,6 +10,7 @@ This module contains everything required to boot the Weather Provider API.
 Its '__main__' if-clause handles running it directly from a directory or IDE setting.
 
 """
+from datetime import datetime
 
 import structlog
 import uvicorn
@@ -30,29 +31,39 @@ from weather_provider_api.core.initializers.validation import \
 from weather_provider_api.versions.v1 import app as v1
 from weather_provider_api.versions.v2 import app as v2
 
-# Enable logging
-initialize_logging()
-logger = structlog.get_logger(__name__)
 
-# Create and configure new application instance
-app = FastAPI(version=get_setting("APP_VERSION"), title=get_setting("APP_NAME"))
-initialize_error_handling(app)
-initialize_metadata_header_middleware(app)
-initialize_validation_middleware(app)
-initialize_prometheus_middleware(app)
+def main():
+    # Enable logging
+    initialize_logging()
+    logger = structlog.get_logger(__name__)
+    logger.info(f'--------------------------------------', datetime=datetime.utcnow())
+    logger.info(f'Booting Weather Provider API Systems..', datetime=datetime.utcnow())
+    logger.info(f'--------------------------------------', datetime=datetime.utcnow())
 
-# Activate enabled API versions
-mount_api_version(app, v1)
-mount_api_version(app, v2)
+    # Create and configure new application instance
+    app = FastAPI(version=get_setting("APP_VERSION"), title=get_setting("APP_NAME"))
+    initialize_error_handling(app)
+    initialize_metadata_header_middleware(app)
+    initialize_validation_middleware(app)
+    initialize_prometheus_middleware(app)
 
+    # Activate enabled API versions
+    mount_api_version(app, v1)
+    mount_api_version(app, v2)
 
-# Redirect users to the docs
-@app.get("/")
-def redirect_to_docs():
-    redirect_url = "/api/v2/docs"  # replace with docs URL or use weather_provider_api.url_path_for()
-    return RedirectResponse(url=redirect_url)
+    # Redirect users to the docs
+    @app.get("/")
+    def redirect_to_docs():
+        redirect_url = "/api/v2/docs"  # replace with docs URL or use weather_provider_api.url_path_for()
+        return RedirectResponse(url=redirect_url)
+
+    logger.info(f'--------------------------------------', datetime=datetime.utcnow())
+    logger.info(f'Finished booting; starting uvicorn...', datetime=datetime.utcnow())
+    logger.info(f'--------------------------------------', datetime=datetime.utcnow())
+
+    uvicorn.run(app, host="127.0.0.1", port=8080)
 
 
 if __name__ == "__main__":
-    # Run the application locally
-    uvicorn.run(app, host="127.0.0.1", port=8080)
+    main()
+
