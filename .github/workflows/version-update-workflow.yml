@@ -153,10 +153,10 @@ jobs:
           ECR_REGISTRY: 325973380531.dkr.ecr.eu-central-1.amazonaws.com
           ECR_REPOSITORY: dnb-inno-image-repository
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api:${{ env.package_version }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api:${{ env.package_version }}
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY.weather-provider-api
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY
       # Login to DockerHub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
