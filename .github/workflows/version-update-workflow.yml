@@ -109,6 +109,8 @@ jobs:
           tag_name: ${{ env.package_version }}
           name: "Release ${{ env.package_version }}"
           generate_release_notes: True
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # ---------------------------------------------------------------- #
   # |  Build image and upload it to AWS and DockerHub              | #
   # ---------------------------------------------------------------- #
