@@ -2,7 +2,7 @@ name: Release Candidate evaluation
 on:
   push:
     branches:
-      release-v2
+      release-*
 jobs:
   # ---------------------------------------------------------------- #
   # |  Coverage and SonarCloud.io upload                           | #
