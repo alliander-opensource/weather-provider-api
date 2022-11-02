@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weather_provider_api"
-version = "2.29.0"
+version = "2.30.0"
 description = "Weather Provider Libraries and API"
 authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -29,6 +29,7 @@ gunicorn = "^20.1.0"
 eccodes = "^1.5.0"
 ecmwflibs = "^0.4.17"
 cfgrib = "^0.9.10.2"
+tomli = "^2.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.3"
