@@ -8,6 +8,8 @@ import os
 import tempfile
 from importlib import metadata as importlib_metadata
 
+import tomli
+
 
 class BaseConfig(object):
     """ Base configuration class
@@ -23,9 +25,20 @@ class BaseConfig(object):
         "APP_MAINTAINER_EMAIL", "weather.provider@alliander.com"
     )
     SHOW_MAINTAINER = os.environ.get("SHOW_MAINTAINER", False)
-    APP_VERSION = os.environ.get("APP_VERSION", importlib_metadata.version(__package__))
-    APP_V1_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
-    APP_V2_VERSION = os.environ.get("APP_V1_VERSION", "2.0.3")
+
+    default_version = None
+    try:
+        default_version = importlib_metadata.version(__package__)
+    except importlib_metadata.PackageNotFoundError:
+        with open('/pyproject.toml', mode='rb') as pyproject_file:
+            default_version = tomli.load(pyproject_file)['tool']['poetry']['version']
+    finally:
+        if not default_version:
+            default_version = 'Version Unidentified'
+    APP_VERSION = os.environ.get("APP_VERSION", default_version)
+
+    APP_V1_VERSION = os.environ.get("APP_V1_VERSION", f"{APP_VERSION} - v1 API (1.0.3)")
+    APP_V2_VERSION = os.environ.get("APP_V1_VERSION", f"{APP_VERSION} - v2 API (2.0.3)")
     APP_VALID_DATE = os.environ.get("APP_VALID_DATE", "2024-12-31")
     NETWORK_INTERFACE = os.environ.get("NETWORK_INTERFACE", "127.0.0.1")
     NETWORK_PORT = os.environ.get("NETWORK_PORT", 8080)
