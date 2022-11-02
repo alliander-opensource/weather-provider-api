@@ -151,14 +151,11 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       # Create the image and upload it to Amazon ECR
       - name: Build, tag, and push image to Amazon ECR
-        env:
-          ECR_REGISTRY: 325973380531.dkr.ecr.eu-central-1.amazonaws.com
-          ECR_REPOSITORY: dnb-inno-image-repository
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.package_version }}
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY
+          docker build -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ env.package_version }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ env.package_version }}
+          docker build -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}
       # Login to DockerHub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
