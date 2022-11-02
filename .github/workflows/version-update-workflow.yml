@@ -149,28 +149,51 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      # Create the image and upload it to Amazon ECR
-      - name: Build, tag, and push image to Amazon ECR
+      # Create the image and upload it to Amazon ECR (Uvicorn edition)
+      - name: Build, tag, and push image to Amazon ECR - Uvicorn
         run: |
-          docker build -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ env.package_version }} .
-          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ env.package_version }}
-          docker build -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }} .
-          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}
+          docker build --target uvicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }}:${{ env.package_version }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }}:${{ env.package_version }}
+          docker build --target uvicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }}
+      # Create the image and upload it to Amazon ECR (Uvicorn edition)
+      - name: Build, tag, and push image to Amazon ECR - Gunicorn
+        run: |
+          docker build --target gunicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:${{ env.package_version }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:${{ env.package_version }}
+          docker build --target gunicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}
       # Login to DockerHub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # Create the image and upload it to DockerHub as "latest"
-      - name: Build and push as latest
+      # Create Gunicorn image and upload as latest
+      - name: Gunicorn - Build and Upload to Docker (latest)
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: weatherproviderapi/weather-provider-api:latest
-      # Create the image and upload it to DockerHub as version
-      - name: Build and push as latest
+          tags: weatherproviderapi/weather-provider-api-gunicorn:latest
+          target: gunicorn-image
+      # Create Gunicorn image and upload as version
+      - name: Gunicorn - Build and Upload to Docker (versioned)
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: weatherproviderapi/weather-provider-api:${{ env.package_version }}
+          tags: weatherproviderapi/weather-provider-api-gunicorn:${{ env.package_version }}
+          target: gunicorn-image
+      # Create Uvicorn image and upload as latest
+      - name: Uvicorn - Build and Upload to Docker (latest)
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: weatherproviderapi/weather-provider-api-uvicorn:latest
+          target: uvicorn-image
+      # Create Uvicorn image and upload as version
+      - name: Uvicorn - Build and Upload to Docker (versioned)
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: weatherproviderapi/weather-provider-api-uvicorn:${{ env.package_version }}
+          target: uvicorn-image
