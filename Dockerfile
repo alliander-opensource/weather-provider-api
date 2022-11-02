@@ -16,6 +16,7 @@ RUN poetry install --without dev
 WORKDIR /
 COPY ./weather_provider_api ./weather_provider_api
 COPY ./var_maps ./var_maps
+COPY ./pyproject.toml ./pyproject.toml
 
 # *** DEV IMAGE ***
 # The purpose of this image is to supply the project as an interpreter / testing ground
