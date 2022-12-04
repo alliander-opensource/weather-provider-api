@@ -35,6 +35,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
     def __init__(self):
         # Pre-work
         super().__init__()
+
+        self.logger = structlog.get_logger(__name__)
         self.repository_name = "KNMI Harmonie (Arome)"
         self.logger.debug(f"Initialized {self.repository_name} repository", datetime=datetime.utcnow())
 

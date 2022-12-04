@@ -81,7 +81,7 @@ class HarmonieAromeModel(WeatherModelBase):
         )
 
         # Gather the period from the repository
-        weather_dataset = self.repository.gather_period(valid_begin, valid_end, coordinates=coords)
+        weather_dataset = self.repository.gather_period(begin=valid_begin, end=valid_end, coordinates=coords)
 
         # Filter the requested factors
         # TODO: Implement
