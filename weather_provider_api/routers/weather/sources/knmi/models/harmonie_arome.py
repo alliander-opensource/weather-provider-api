@@ -61,11 +61,11 @@ class HarmonieAromeModel(WeatherModelBase):
         self.logger.debug(f'The Weather model "{self.id}" was successfully initialized', datetime=datetime.utcnow())
 
     def get_weather(
-        self,
-        coords: List[GeoPosition],
-        begin: datetime = None,
-        end: datetime = None,
-        weather_factors: List[str] = None,
+            self,
+            coords: List[GeoPosition],
+            begin: datetime = None,
+            end: datetime = None,
+            weather_factors: List[str] = None,
     ) -> xr.Dataset:
         """ Implementation of the WeatherModelBase get_weather function that fetches weather data and returns it as a
          Xarray DataSet.
@@ -89,7 +89,6 @@ class HarmonieAromeModel(WeatherModelBase):
 
         return weather_dataset
 
-    @property
     def is_async(self):
         return self.async_model
 
