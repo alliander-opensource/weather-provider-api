@@ -228,7 +228,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         """
         prediction_moment, predicted_hour = self._get_times_from_filename(grib_file.name)
         grib_filestream = cfgrib.FileStream(str(grib_file))
-        file_dataset = None
+        file_dataset = xr.Dataset()
 
         for item in grib_filestream.items():
             grib_message = item[1]
@@ -391,7 +391,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         minimum_longitude = float(grib_message['longitudeOfFirstGridPointInDegrees'])
         maximum_longitude = float(grib_message['longitudeOfLastGridPointInDegrees'])
 
-        # And the step value needed to get all of the inbetween values
+        # And the step value needed to get all the inbetween values
         step_for_latitude = int(grib_message['jDirectionIncrement'])
         step_for_longitude = int(grib_message['iDirectionIncrement'])
 
@@ -406,7 +406,6 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         latitudes = [x / 1_000 for x in latitudes]
         longitudes = [y / 1_000 for y in longitudes]
 
-        self.logger.debug(f'')
         return latitudes, longitudes
 
     def _get_times_from_filename(self, filename: str) -> Tuple[datetime, int]:

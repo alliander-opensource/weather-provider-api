@@ -5,7 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 import tempfile
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import pandas as pd
 import xarray
@@ -14,7 +14,7 @@ from starlette.responses import FileResponse
 from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
     ScientificJSONResponse,
-    WeatherContentRequestQuery,
+    WeatherContentRequestQuery, WeatherContentRequestMultiLocationQuery,
 )
 
 
@@ -23,7 +23,7 @@ def file_or_text_response(
     response_format: ResponseFormat,
     source_id: str,
     model_id: str,
-    request: WeatherContentRequestQuery,
+    request: Union[WeatherContentRequestQuery, WeatherContentRequestMultiLocationQuery],
     coords: List[Tuple[float, float]],
 ):
     if response_format == ResponseFormat.json:
@@ -42,7 +42,7 @@ def file_response(
     source_id: str,
     model_id: str,
     request: WeatherContentRequestQuery,
-    coords: List[List[Tuple[float, float]]],
+    coords: List[Tuple[float, float]],
 ):
     if response_format == ResponseFormat.netcdf4:
         file_path = to_netcdf4(unserialized_data)

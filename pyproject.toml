@@ -36,6 +36,7 @@ coverage = "^6.5.0"
 pytest-cov = "^4.0.0"
 isort = "^5.10.1"
 black = "^22.10.0"
+jupyter = "^1.0.0"
 
 
 [tool.poetry.scripts]

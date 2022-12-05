@@ -42,4 +42,5 @@ def get_var_map_file_location(filename: str) -> Path:
             logger.info(f'"var_maps" folder was found at: {possible_var_map_folder}')
             return possible_var_map_folder.joinpath(filename)
 
+    logger.exception(f'File was not found: {filename}')
     raise FileNotFoundError
