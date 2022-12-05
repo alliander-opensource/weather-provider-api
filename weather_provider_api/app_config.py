@@ -7,6 +7,7 @@
 import os
 import tempfile
 from importlib import metadata as importlib_metadata
+from pathlib import Path
 
 import tomli
 
@@ -28,10 +29,14 @@ class BaseConfig(object):
 
     default_version = None
     try:
+        if Path('./pyproject.toml').exists():
+            pyproject_file = Path('./pyproject.toml')
+        elif Path('../pyproject.toml').exists():
+            pyproject_file = Path('../pyproject.toml')
+        with open(pyproject_file, mode='rb') as file:
+            default_version = tomli.load(file)['tool']['poetry']['version']
+    except Exception:
         default_version = importlib_metadata.version(__package__)
-    except importlib_metadata.PackageNotFoundError:
-        with open('/pyproject.toml', mode='rb') as pyproject_file:
-            default_version = tomli.load(pyproject_file)['tool']['poetry']['version']
     finally:
         if not default_version:
             default_version = 'Version Unidentified'

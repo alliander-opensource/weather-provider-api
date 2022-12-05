@@ -130,7 +130,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     ) -> xr.Dataset:
         """
             A function that gathers the repository files associated with a requested period, and then returns the full
-            weather data that matches both that period as the requested locations from those files, as an Xarray Dataset
+            weather data that matches both that period as the requested locations from those files, as a Xarray Dataset
         Args:
             begin:          A datetime holding the starting moment for the requested period to gather data for
             end:            A datetime holding the ending moment for the requested period to gather data for
@@ -173,7 +173,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
 
     def load_file(self, file: Path) -> xr.Dataset:
         """
-            A function that loads and returns the full data for a specific repository file as an Xarray Dataset
+            A function that loads and returns the full data for a specific repository file as a Xarray Dataset
         Args:
             file:   The filename (in the Path format by PathLib) specifying the file to load
         Returns:
@@ -245,7 +245,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             set(
                 [
                     file[
-                    len_filename_until_date: len_filename_until_date + self.file_identifier_length
+                        len_filename_until_date: len_filename_until_date + self.file_identifier_length
                     ]
                     for file in file_list
                 ]

@@ -21,6 +21,7 @@ from weather_provider_api.core.base_model import BaseModel
     API request models, response models, and examples.
 """
 
+
 # Note: while this can be done automatically, and for e.g. sources as well,
 # I don't want new OpenAPI specs to be created when e.g. a source is added.
 
@@ -88,6 +89,21 @@ class WeatherContentRequestQuery:
     )
     lon: float = Query(
         ..., description="GPS Longitude or RD y-coordinate", example=5.18
+    )
+    factors: List[str] = Query(
+        None, description="Only return these weather factors (default: all factors)"
+    )
+
+
+@dataclass
+class WeatherContentRequestMultiLocationQuery:
+    begin: str = Query(
+        None, description="From date and time", example="2019-01-01 00:00"
+    )
+    end: str = Query(None, description="To date and time", example="2019-01-31 23:59")
+    locations: str = Query(
+        None, description="Locations in either WGS84 (lat,lon) or RD (x,y) format, "
+                          "in parentheses, separated by a comma", example='(52.1, 5.18), (52.2, 5.22)'
     )
     factors: List[str] = Query(
         None, description="Only return these weather factors (default: all factors)"
