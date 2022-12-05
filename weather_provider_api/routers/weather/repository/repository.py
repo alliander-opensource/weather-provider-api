@@ -162,6 +162,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         # Load files into datasets, select the requested data and aggregate that into a single dataset
         ds = xr.Dataset()
         for file in file_list:
+            self.logger.debug(f'Processing file: {file}', datetime=datetime.utcnow())
             ds_temp = xr.open_dataset(file).load()
 
             ds_temp = self._filter_dataset_by_coordinates(coordinates, ds_temp)
@@ -177,7 +178,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         Args:
             file:   The filename (in the Path format by PathLib) specifying the file to load
         Returns:
-            An Xarray Dataset containing all of the weather data held within the specified file.
+            An Xarray Dataset containing all the weather data held within the specified file.
         """
         if file.exists():
             with xr.open_dataset(file) as ds:
