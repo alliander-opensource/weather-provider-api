@@ -50,15 +50,18 @@ initialize_prometheus_middleware(app)
 mount_api_version(app, v1)
 mount_api_version(app, v2)
 
+
 # Redirect users to the docs
 @app.get("/")
 def redirect_to_docs():
     redirect_url = "/api/v2/docs"  # replace with docs URL or use weather_provider_api.url_path_for()
     return RedirectResponse(url=redirect_url)
 
+
 logger.info(f'--------------------------------------', datetime=datetime.utcnow())
 logger.info(f'Finished booting; starting uvicorn...', datetime=datetime.utcnow())
 logger.info(f'--------------------------------------', datetime=datetime.utcnow())
+
 
 def main():
     uvicorn.run(app, host="127.0.0.1", port=8080)
@@ -66,4 +69,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -23,7 +23,7 @@ from weather_provider_api.routers.weather.api_models import (
     WeatherFormattingRequestQuery,
     WeatherModel,
     WeatherSource,
-    result_mime_types,
+    result_mime_types, WeatherContentRequestMultiLocationQuery,
 )
 from weather_provider_api.routers.weather.controller import WeatherController
 from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
@@ -184,3 +184,66 @@ async def get_alarm():  # pragma: no cover
     """
     weather_alert = WeatherAlert()
     return weather_alert.get_alarm()
+
+
+# Handler for requests with multiple locations:
+@app.get("/sources/{source_id}/models/{model_id}/multiple-locations/", tags=["sync"])
+async def get_sync_weather_multi_loc(
+    source_id: str,
+    model_id: str,
+    cleanup_tasks: BackgroundTasks,
+    ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
+    fmt_args: WeatherFormattingRequestQuery = Depends(),
+    accept: str = Depends(header_accept_type),
+):  # pragma: no cover
+    source_id = source_id.lower()
+    model_id = model_id.lower()
+
+    coords = controller.str_to_coords(ret_args.locations)
+
+    begin = parse_datetime(ret_args.begin, raise_errors=True, loc=["query", "begin"])
+    end = parse_datetime(
+        ret_args.end,
+        round_missing_time_up=True,
+        raise_errors=True,
+        loc=["query", "end"],
+    )
+
+    try:
+        weather_data = controller.get_weather(
+            source_id,
+            model_id,
+            fetch_async=False,
+            coords=coords,
+            begin=begin,
+            end=end,
+            factors=ret_args.factors,
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=e.args[0])
+
+    if weather_data is None:
+        raise HTTPException(
+            status_code=404, detail="No data was found for the given period"
+        )
+
+    response_format = fmt_args.response_format or accept
+
+    converted_weather_data = controller.convert_names_and_units(
+        source_id, model_id, False, weather_data, fmt_args.units
+    )
+
+    coords = [
+        (lat_val, lon_val)
+        for (lat_val, lon_val) in zip(
+            converted_weather_data.coords["lat"].values,
+            converted_weather_data.coords["lon"].values,
+        )
+    ]
+
+    response, optional_file_path = serializers.file_or_text_response(
+        converted_weather_data, response_format, source_id, model_id, ret_args, coords
+    )
+    cleanup_tasks.add_task(remove_file, optional_file_path)
+
+    return response
