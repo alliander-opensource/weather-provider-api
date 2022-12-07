@@ -153,7 +153,7 @@ class FloatEncoder(json.JSONEncoder):
             elif obj == -FloatEncoder.INFINITY:
                 yield "-Infinity"
             else:
-                yield format(obj, ".2f")
+                yield format(obj, ".4f")
         elif isinstance(obj, dict):
             last_index = len(obj) - 1
             yield "{"
