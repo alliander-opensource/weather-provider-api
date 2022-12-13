@@ -5,7 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 import tempfile
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import pandas as pd
 import xarray
@@ -14,7 +14,7 @@ from starlette.responses import FileResponse
 from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
     ScientificJSONResponse,
-    WeatherContentRequestQuery,
+    WeatherContentRequestQuery, WeatherContentRequestMultiLocationQuery,
 )
 
 
@@ -23,7 +23,7 @@ def file_or_text_response(
     response_format: ResponseFormat,
     source_id: str,
     model_id: str,
-    request: WeatherContentRequestQuery,
+    request: Union[WeatherContentRequestQuery, WeatherContentRequestMultiLocationQuery],
     coords: List[Tuple[float, float]],
 ):
     if response_format == ResponseFormat.json:
@@ -42,7 +42,7 @@ def file_response(
     source_id: str,
     model_id: str,
     request: WeatherContentRequestQuery,
-    coords: List[List[Tuple[float, float]]],
+    coords: List[Tuple[float, float]],
 ):
     if response_format == ResponseFormat.netcdf4:
         file_path = to_netcdf4(unserialized_data)
@@ -105,7 +105,7 @@ def to_csv(unserialized_data: xarray.Dataset, coords):
             cols.remove("lon")
             cols = ["lat", "lon"] + cols
 
-        csv_str = df.to_csv(columns=cols, header=False, float_format="%.2f")
+        csv_str = df.to_csv(columns=cols, header=False, float_format="%.4f")
         csv_strings[serialize_coords(c)] = csv_str
 
     cols = ["time"] + cols
@@ -126,10 +126,10 @@ def get_weather_slice_for_coords(coord, unserialized_data) -> pd.DataFrame:
     # We then switch to a Pandas dataframe
     weather = unserialized_data.sel(lat=coord[0], lon=coord[1])
     if weather.dims["time"] == 1:
-        # Because the singular dimension of time can't be squeezed..
+        # Because a single moment in time can't be squeezed...
         df = weather.to_dataframe()
     else:
-        # .. and multiple times need to be..
+        # ... and multiple times need to be.
         df = weather.squeeze().to_dataframe()
     return df
 

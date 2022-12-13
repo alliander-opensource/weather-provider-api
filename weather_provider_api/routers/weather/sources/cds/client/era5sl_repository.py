@@ -63,7 +63,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
     def update(self):
         """
             The implementation of the WeatherRepository required update() function.
-            This function handles all of the required actions to update the repository completely, but taking into
+            This function handles all the required actions to update the repository completely, but taking into
             account its set runtime_limit. If based on the time of completion of other downloaded files this session
             the next file wouldn't complete within the runtime_limit, the update process halts.
             (if no other downloads were made yet, a generous rough estimate is used)

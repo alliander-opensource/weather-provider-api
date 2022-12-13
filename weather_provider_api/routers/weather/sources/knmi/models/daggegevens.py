@@ -190,7 +190,7 @@ class DagGegevensModel(WeatherModelBase):
     ) -> xr.Dataset:
         """
             The function that gathers and processes the requested Daggegevens weather data from the KNMI site
-            and returns it as an Xarray Dataset.
+            and returns it as a Xarray Dataset.
             (Though this model downloads from a specific download url, the question remains whether this source is also
             listed on the new KNMI Data Platform)
         Args:

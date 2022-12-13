@@ -6,7 +6,6 @@
 
 import os
 import re
-import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -20,11 +19,12 @@ class KNMIDownloader:
     """
 
     def __init__(
-        self,
-        dataset_name: str,
-        dataset_version: str,
-        ignore_files_up_to: str,
-        number_of_files: int,
+            self,
+            dataset_name: str,
+            dataset_version: str,
+            ignore_files_up_to: str,
+            number_of_files: int,
+            download_folder: Path
     ):
         self.api_url = os.environ.get("KNMI_API_URL")
         self.api_key = os.environ.get("KNMI_API_KEY")
@@ -33,6 +33,7 @@ class KNMIDownloader:
         self.dataset_version = dataset_version
         self.start_after_filename = ignore_files_up_to
         self.max_keys = number_of_files
+        self.download_folder = download_folder
 
     def knmi_download_request(self):
         # A function that looks up the files to download (based on the ignore_files_up_to field), downloads those and
@@ -58,23 +59,21 @@ class KNMIDownloader:
         files_for_dataset = files_for_dataset.json()  # Reformat to JSON
         file_list = files_for_dataset.get("files")
 
-        file_storage_directory = Path(tempfile.gettempdir()).joinpath(self.dataset_name)
-        if not file_storage_directory.exists():
-            file_storage_directory.mkdir()
-        else:
-            for root, dirs, files in os.walk(file_storage_directory):
-                for file in files:
-                    os.remove(os.path.join(root, file))
+        if self.download_folder.exists():
+            self.download_folder.rmdir()  # Remove the folder (immediately cleaning it) if it already existed
+
+        # Create a nice clean folder to use
+        self.download_folder.mkdir()
 
         for file in file_list:
             self.knmi_download_file_to_temp(
-                file, file_storage_directory, self.dataset_name, self.dataset_version
+                file, self.download_folder, self.dataset_name, self.dataset_version
             )
 
-        return str(file_storage_directory), file_list
+        return file_list
 
     def knmi_download_file_to_temp(
-        self, file_data, file_storage_dir: Path, dataset_name: str, dataset_version: str
+            self, file_data, file_storage_dir: Path, dataset_name: str, dataset_version: str
     ):
         # A function that downloads the requested files to a temporary folder and
         file_name = file_data.get("filename")
@@ -90,13 +89,13 @@ class KNMIDownloader:
         )
 
         if (
-            Path(file_storage_dir).joinpath(file_name).exists()
-            and Path(file_storage_dir).joinpath(file_name).stat().st_size == file_size
+                Path(file_storage_dir).joinpath(file_name).exists()
+                and Path(file_storage_dir).joinpath(file_name).stat().st_size == file_size
         ):
             # A file with the right size and name already exists. No need to download again
             self.logger.debug(
                 "Usable file" + file_name + " was found in temporary directory. "
-                "Skipping download",
+                                            "Skipping download",
                 datetime=datetime.utcnow(),
             )
             return True
@@ -152,5 +151,3 @@ class KNMIDownloader:
 
         if total > file_size:
             raise EOFError("The downloaded file was larger than expected!")
-
-        return True
