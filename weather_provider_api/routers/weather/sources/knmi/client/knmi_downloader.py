@@ -59,12 +59,11 @@ class KNMIDownloader:
         files_for_dataset = files_for_dataset.json()  # Reformat to JSON
         file_list = files_for_dataset.get("files")
 
-        if not self.download_folder.exists():
-            self.download_folder.mkdir()
-        else:
-            for root, dirs, files in os.walk(self.download_folder):
-                for file in files:
-                    os.remove(os.path.join(root, file))
+        if self.download_folder.exists():
+            self.download_folder.rmdir()  # Remove the folder (immediately cleaning it) if it already existed
+
+        # Create a nice clean folder to use
+        self.download_folder.mkdir()
 
         for file in file_list:
             self.knmi_download_file_to_temp(
