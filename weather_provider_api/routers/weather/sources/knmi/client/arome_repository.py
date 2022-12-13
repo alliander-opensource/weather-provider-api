@@ -66,7 +66,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
     @property
     def first_day_of_repo(self):
-        first_day_of_repo = datetime.utcnow() - relativedelta(years=1)  # A year back
+        first_day_of_repo = datetime.utcnow() - relativedelta(years=3)  # Three years back
         first_day_of_repo = first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)  # Start of day
         return first_day_of_repo
 
