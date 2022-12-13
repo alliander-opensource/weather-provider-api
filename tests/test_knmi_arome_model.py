@@ -13,10 +13,10 @@ from dateutil.relativedelta import relativedelta
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5SLModel
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
-    AromeRepository,
+    HarmonieAromeRepository,
 )
 from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import (
-    AromeModel,
+    HarmonieAromeModel,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
@@ -69,12 +69,12 @@ def test_retrieve_weather(
     one_month_ago = five_days_ago - relativedelta(months=1)
 
     # Instead of returning the regular data
-    def mock_fill_dataset_with_data(self, arome_coordinates, begin, end):
+    def mock_fill_dataset_with_data(self, begin, end, coordinates):
         return mock_dataset_arome
 
-    monkeypatch.setattr(AromeRepository, "gather_period", mock_fill_dataset_with_data)
+    monkeypatch.setattr(HarmonieAromeRepository, "gather_period", mock_fill_dataset_with_data)
 
-    arome_model = AromeModel()
+    arome_model = HarmonieAromeModel()
     # The coordinates requested are those of Amsterdam and Arnhem
     ds = arome_model.get_weather(
         coords=[GeoPosition(52.3667, 4.8945), GeoPosition(51.9851, 5.8987)],

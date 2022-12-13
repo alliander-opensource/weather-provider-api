@@ -5,7 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -71,8 +71,8 @@ def time_unknown(dt: datetime, datetime_string: str):  # pragma: no cover
 def validate_begin_and_end(
         start: datetime,
         end: datetime,
-        data_start: datetime = None,
-        data_end: datetime = None
+        data_start: Union[datetime, None] = None,
+        data_end: Union[datetime, None] = None
 ):
     """
     Checks the given date parameters and replaces them with default values if they aren't valid.

@@ -16,21 +16,21 @@ import pytest
 from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
-    AromeRepository,
+    HarmonieAromeRepository,
 )
 
 
 def _get_mock_prefix(dummy_date: datetime):
-    arome_repo = AromeRepository()
+    arome_repo = HarmonieAromeRepository()
     return (
-        arome_repo.file_prefix
-        + "_"
-        + str(dummy_date.year)
-        + str(dummy_date.month).zfill(2)
-        + str(dummy_date.day).zfill(2)
-        + "_"
-        + str(dummy_date.hour).zfill(2)
-        + "00.nc"
+            arome_repo.file_prefix
+            + "_"
+            + str(dummy_date.year)
+            + str(dummy_date.month).zfill(2)
+            + str(dummy_date.day).zfill(2)
+            + "_"
+            + str(dummy_date.hour).zfill(2)
+            + "00.nc"
     )
 
 
@@ -53,7 +53,7 @@ def _empty_folder(folder: Path):
 
 
 def test_arome_repository_cleanup(_get_mock_repository_dir: Path):
-    arome_repo = AromeRepository()
+    arome_repo = HarmonieAromeRepository()
     arome_repo.repository_folder = _get_mock_repository_dir
 
     # CLEANUP TEST 1:   The entire repository directory doesn't exist.
@@ -101,7 +101,7 @@ def test_arome_repository_cleanup(_get_mock_repository_dir: Path):
 
 
 def test_repo_get_month_filename(_get_mock_repository_dir: Path):
-    arome_repo = AromeRepository()
+    arome_repo = HarmonieAromeRepository()
     arome_repo.repository_folder = _get_mock_repository_dir
 
     # SETUP: Create a clean mock repo-folder with dummy-files for 2 dates
@@ -110,27 +110,24 @@ def test_repo_get_month_filename(_get_mock_repository_dir: Path):
     arome_repo.cleanup()
     existing_dates = _fill_mock_repository(arome_repo.repository_folder)
     assert (
-        len(glob.glob(str(arome_repo.repository_folder.joinpath("AROME")) + "*.*")) == 2
+            len(glob.glob(str(arome_repo.repository_folder.joinpath("AROME")) + "*.*")) == 2
     )  # Confirm file creation
 
-    # FETCHING TEST 1:  All file-types exist, direct period result request
-    # Expected result:  Only the definitive file is returned, the rest is removed from the folder
-    file_prefix = arome_repo.repository_folder.joinpath(
-        _get_mock_prefix(existing_dates[0])
-    )
-
+    # FETCHING TEST 1:  One period outside the
     result = [
         Path(file_name)
         for file_name in arome_repo._get_file_list_for_period(
-            existing_dates[1], existing_dates[0]
+            existing_dates[1] + relativedelta(months=1), existing_dates[0]
         )
     ]
     assert len(result) == 1
-    assert result == [Path(str(file_prefix))]
+    assert result[0] == Path(
+        f'{arome_repo.repository_folder.joinpath("AROME_")}{existing_dates[0].strftime("%Y%m%d_%H00")}.nc'
+    )
 
 
 def test_arome_repository_remove_file(_get_mock_repository_dir):
-    arome_repo = AromeRepository()
+    arome_repo = HarmonieAromeRepository()
     arome_repo.repository_folder = _get_mock_repository_dir
 
     # SETUP: Create a clean mock repo-folder with dummy-files for 2 dates
@@ -145,7 +142,7 @@ def test_arome_repository_remove_file(_get_mock_repository_dir):
     existing_file = files_in_folder[0]
     assert arome_repo._safely_delete_file(existing_file)
 
-    # FILE REMOVAL TEST 2:  Try to remove an non-existing file from the repo
+    # FILE REMOVAL TEST 2:  Try to remove a non-existing file from the repo
     # Expected result:      A FileNotFound Error is raised
     non_existing_file = arome_repo.repository_folder.joinpath("DEF_DOESNT_EXIST.NOPE")
     with pytest.raises(OSError) as e:

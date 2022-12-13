@@ -6,6 +6,7 @@
 
 """"Entry point to the weather provider."""
 import datetime
+import re
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -32,14 +33,14 @@ class WeatherController(object):  # pragma: no cover
         self.sources = {source.id: source for source in source_instances}
 
     def get_weather(
-        self,
-        source_id: str,
-        model_id: str,
-        fetch_async: bool,
-        coords: List[List[Tuple[float, float]]],
-        begin: Optional[datetime.datetime] = None,
-        end: Optional[datetime.datetime] = None,
-        factors: List[str] = None,
+            self,
+            source_id: str,
+            model_id: str,
+            fetch_async: bool,
+            coords: List[List[Tuple[float, float]]],
+            begin: Optional[datetime.datetime] = None,
+            end: Optional[datetime.datetime] = None,
+            factors: List[str] = None,
     ):
         """
             Function to use the requested weather model from the requested source to get specific weather factors for a
@@ -79,12 +80,12 @@ class WeatherController(object):  # pragma: no cover
         return ds
 
     def convert_names_and_units(
-        self,
-        source_id: str,
-        model_id: str,
-        fetch_async: bool,
-        weather_data: xr.Dataset,
-        unit: OutputUnit,
+            self,
+            source_id: str,
+            model_id: str,
+            fetch_async: bool,
+            weather_data: xr.Dataset,
+            unit: OutputUnit,
     ):
         # A function that uses the indicated model's built-in conversion method to alter the values in a given dataset
         # to match the requested output unit format.
@@ -95,6 +96,18 @@ class WeatherController(object):  # pragma: no cover
     @staticmethod
     def lat_lon_to_coords(lat: float, lon: float) -> List[List[Tuple[float, float]]]:
         return [[(lat, lon)]]
+
+    @staticmethod
+    def str_to_coords(locations_string: str):
+        str_coordinates_list = re.findall(r"\(\d{1,3}.?\d*,\s?\d{1,3}.?\d*\)", locations_string)
+        coordinate_list = []
+        for str_coordinate in str_coordinates_list:
+            coordinate = str_coordinate[1: -1].replace(" ", "")
+            coordinate = coordinate.split(',')
+            coordinate = (float(coordinate[0]), float(coordinate[1]))
+            coordinate_list.append([coordinate])
+
+        return coordinate_list
 
     def get_source_keys(self) -> List[str]:
         return list(self.sources.keys())
@@ -107,13 +120,13 @@ class WeatherController(object):  # pragma: no cover
         return self.sources.get(source_id, None)
 
     def get_models(
-        self, source_id: str, fetch_async: bool = False
+            self, source_id: str, fetch_async: bool = False
     ) -> List[WeatherModelBase]:
         source = self.get_source(source_id)
         return source.get_models(fetch_async)
 
     def get_model(
-        self, source_id: str, model_id: str, fetch_async: bool = False
+            self, source_id: str, model_id: str, fetch_async: bool = False
     ) -> Optional[WeatherModelBase]:
         self._validate_source_and_model(source_id, model_id, fetch_async)
         source = self.get_source(source_id)
@@ -124,7 +137,7 @@ class WeatherController(object):  # pragma: no cover
             raise UnknownSourceException
 
     def _validate_source_and_model(
-        self, source_id: str, model_id: str, fetch_async: bool = False
+            self, source_id: str, model_id: str, fetch_async: bool = False
     ):
         self._validate_source(source_id)
         if self.sources[source_id].get_model(model_id, fetch_async) is None:
@@ -132,7 +145,7 @@ class WeatherController(object):  # pragma: no cover
 
     @staticmethod
     def _calculate_polygon_means(
-        coords: List[List[Tuple[float, float]]]
+            coords: List[List[Tuple[float, float]]]
     ) -> List[Tuple[float, float]]:
         # Calculating the mean points of polygons containing locations
         coords = [
@@ -146,7 +159,7 @@ class WeatherController(object):  # pragma: no cover
 
     @staticmethod
     def _tuples_to_geo_positions(
-        coords: List[Tuple[float, float]]
+            coords: List[Tuple[float, float]]
     ) -> List[GeoPosition]:
         # Convert the Tuples in a list to a list of Geo Positions
         coords = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in coords]

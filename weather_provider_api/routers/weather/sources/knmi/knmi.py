@@ -9,7 +9,7 @@ from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarneming
     ActueleWaarnemingenModel,
 )
 from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import DagGegevensModel
-from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import AromeModel
+from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import HarmonieAromeModel
 from weather_provider_api.routers.weather.sources.knmi.models.pluim import PluimModel
 from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import UurgegevensModel
 
@@ -19,7 +19,7 @@ class KNMI(WeatherSourceBase):
         model_instances = [
             UurgegevensModel(),
             DagGegevensModel(),
-            AromeModel(),
+            HarmonieAromeModel(),
             PluimModel(),
             ActueleWaarnemingenModel(),
         ]

@@ -149,14 +149,13 @@ class UurgegevensModel(WeatherModelBase):
     ) -> xr.Dataset:
         """
             The function that gathers and processes the requested Daggegevens weather data from the KNMI site
-            and returns it as an Xarray Dataset.
+            and returns it as a Xarray Dataset.
             (Though this model downloads from a specific download url, the question remains whether this source is also
             listed on the new KNMI Data Platform)
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
-            inseason:           A boolean representing the "inseason" parameter
             weather_factors:    A list of weather factors to request data for (in string format)
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
