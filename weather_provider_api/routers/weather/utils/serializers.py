@@ -105,7 +105,7 @@ def to_csv(unserialized_data: xarray.Dataset, coords):
             cols.remove("lon")
             cols = ["lat", "lon"] + cols
 
-        csv_str = df.to_csv(columns=cols, header=False, float_format="%.2f")
+        csv_str = df.to_csv(columns=cols, header=False, float_format="%.4f")
         csv_strings[serialize_coords(c)] = csv_str
 
     cols = ["time"] + cols
@@ -126,10 +126,10 @@ def get_weather_slice_for_coords(coord, unserialized_data) -> pd.DataFrame:
     # We then switch to a Pandas dataframe
     weather = unserialized_data.sel(lat=coord[0], lon=coord[1])
     if weather.dims["time"] == 1:
-        # Because the singular dimension of time can't be squeezed..
+        # Because a single moment in time can't be squeezed...
         df = weather.to_dataframe()
     else:
-        # .. and multiple times need to be..
+        # ... and multiple times need to be.
         df = weather.squeeze().to_dataframe()
     return df
 
