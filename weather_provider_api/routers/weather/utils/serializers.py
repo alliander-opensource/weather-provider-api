@@ -78,7 +78,7 @@ def generate_filename(
 def to_netcdf4(unserialized_data: xarray.Dataset):
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file_path = temp_file.name
-    unserialized_data.to_netcdf(path=temp_file_path, format="NETCDF4", engine="netcdf4")
+    unserialized_data.to_netcdf(path=temp_file_path, mode='w', format="NETCDF4", engine="netcdf4")
     return temp_file_path
 
 
