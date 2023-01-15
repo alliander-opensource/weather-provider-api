@@ -11,7 +11,7 @@ import pytest
 
 from weather_provider_api.routers.weather.sources.cds.client import downloader
 from weather_provider_api.routers.weather.sources.cds.client.downloader import (
-    Client,
+    CDSDownloadClient,
     bytes_to_string,
 )
 
@@ -41,9 +41,9 @@ def mock_callback(*args, **kwargs):
 
 @pytest.mark.skip(
     reason="Monkeypatch for _request_handler() not working. "
-)  # TODO: FIX
+)  # Won't be fixed for 2.x, and 3.x will not by patching requests in this way.
 def test_client(monkeypatch):
-    mock_client = Client(persist_request_callback=mock_callback(), debug=True)
+    mock_client = CDSDownloadClient(persist_request_callback=mock_callback(), debug=True)
     mock_request = {
         "product_type": "reanalysis",
         "variable": [
