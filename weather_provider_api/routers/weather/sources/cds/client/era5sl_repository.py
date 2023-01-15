@@ -74,6 +74,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         # Always start with a nicely cleaned repository
         self.cleanup()
 
+        self.logger.info(f'ERA5 Single Levels Update - Storage in: {self.repository_folder} ')
         return era5_update(
             self.file_prefix,
             self.repository_folder,
@@ -133,6 +134,8 @@ class ERA5SLRepository(WeatherRepositoryBase):
         len_filename_until_date = (
                 len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
         )
+        self.logger.info(f'Searching for ERA5 Single Levels files in repository folder: '
+                         f'{self.repository_folder.joinpath(self.file_prefix)}')
         full_list_of_files = glob.glob(
             str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
         )
@@ -157,5 +160,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
     def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
         # Rounds a list of GeoPositions to the resolution set through grid_resolution
         return round_coordinates_to_wgs84_grid(
-            coordinates, (self.grid_resolution, self.grid_resolution)
+            coordinates=coordinates,
+            grid_resolution_lat_lon=(self.grid_resolution, self.grid_resolution),
+            starting_points_lat_lon=(50.75, 3.2)  # Used to properly round values
         )

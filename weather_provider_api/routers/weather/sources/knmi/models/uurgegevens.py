@@ -218,6 +218,9 @@ class UurgegevensModel(WeatherModelBase):
                 self.download_url,
                 params,
             )
+        elif r.text == '[]':
+            raise ValueError('No data was returned for this request. Make that the requested data exist for this '
+                             'dataset, and that is was properly requested. In case of doubt, contact support.')
         return r.text
 
     def _create_request_params(self, start, end, stations, weather_factors):

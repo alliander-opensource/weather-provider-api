@@ -25,9 +25,9 @@ _TEMP_SUFFIX = '.TEMP.nc'
 
 
 def _repository_callback(*args, **kwargs):  # pragma: no cover
-    print("Callback Received:")
-    print(" - Args: ", args)
-    print(" - Kwargs: ", kwargs)
+    logger.info("Callback Received:")
+    logger.info(" - Args: ", *args)
+    logger.info(" - Kwargs: ", **kwargs)
 
 
 def era5_update(
@@ -141,46 +141,50 @@ def process_month(
 
 
 def file_requires_update(file_path: Path, current_month: date, verification_date: date):
-    if file_path.joinpath(".nc").exists():
-        # A permanent file already exists, so no further updates required
+    if file_path.with_suffix('.nc').exists():
+        # A regular file exists, no updates required
+        logger.debug('A regular file already exists: NO UPDATE REQUIRED')
         return False
 
-    if not glob.glob(str(file_path.joinpath('*.nc'))) or file_path.joinpath("_INCOMPLETE.nc").exists():
-        return True  # No file matching the mask or incomplete files always mean the update is required!
-
-    if file_path.joinpath("_TEMP.nc").exists():
+    if file_path.with_suffix(_TEMP_SUFFIX).exists():
         # If a file is temporary we only check for a permanent update if more than 3 months have past since the current
         # most recent date with data.
         threshold_date = (verification_date - relativedelta(months=3)).replace(day=1)
         if current_month < threshold_date:
+            logger.debug("A temporary file exists within the update range: UPDATE REQUIRED")
             return True
+        logger.debug("A temporary file exists within the update range: UPDATE REQUIRED")
+        return False
 
     # A file exists but isn't any regular supported type to be updated
-    if file_path.joinpath(_UNFORMATTED_SUFFIX).exists():
-        logger.info(
-            f"An unformatted file existed for [{current_month.year}, {current_month.month}]",
-            datetime=datetime.utcnow()
-        )
+    if file_path.with_suffix(_UNFORMATTED_SUFFIX).exists() or file_path.with_suffix(_FORMATTED_SUFFIX).exists():
+        logger.debug("An unformatted file or formatted file exists: UPDATE REQUIRED")
         return True  # An update should both clean the UNFORMATTED file and generate a proper one
 
-    files_in_folder = glob.glob(str(file_path.joinpath('*.nc')))
+    if not file_path.with_suffix(".nc").exists() or file_path.with_suffix(_INCOMPLETE_SUFFIX).exists():
+        logger.debug('No file exists, or it is still incomplete: UPDATE REQUIRED ')
+        return True  # No file matching the mask or incomplete files always mean the update is required!
+
+    files_in_folder = glob.glob(f'{file_path}*.nc')
     logger.warning(f"Unexpected files existed in the repository folder: {files_in_folder}. These should be dealt with.")
     return False
 
 
 def format_downloaded_file(unformatted_file: Path, allowed_factors: Dict):
+    logger.info(f'Formatting the downloaded file at: {unformatted_file}')
     ds_unformatted = load_file(unformatted_file)
     ds_unformatted.attrs = {}  # Remove unneeded attributes
 
     if 'expver' in ds_unformatted.indexes.keys():
         # We remove the expver index used to denominate temporary data (5) and regular data (1) and add a field for it
-        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop_sel(['expver']).dropna('time', how='all')
-        ds_unformatted_expver5['is_permanent_data'] = False
-        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop_sel(['expver']).dropna('time', how='all')
-        ds_unformatted_expver1['is_permanent_data'] = True
+        # NOTE: We removed the drop_sel version as it didn't quite have the same result as drop yet. Reverting until
+        #  the proper use has been validated...
+        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop('expver').dropna('time', how='all')
+        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop('expver').dropna('time', how='all')
 
         # Recombine the data
         ds_unformatted = ds_unformatted_expver1.merge(ds_unformatted_expver5)
+        ds_unformatted['is_permanent_data'] = False
     else:
         ds_unformatted['is_permanent_data'] = True
 
@@ -198,6 +202,7 @@ def format_downloaded_file(unformatted_file: Path, allowed_factors: Dict):
 
 
 def finalize_formatted_file(file_path: Path, current_month: date, verification_date: date):
+    logger.info(f'Finalizing the formatted file for location: {file_path}')
     formatted_file = file_path.with_suffix(_FORMATTED_SUFFIX)
     incomplete_month = verification_date.replace(day=1)
     permanent_month = (verification_date - relativedelta(months=3)).replace(day=1)
@@ -215,12 +220,15 @@ def finalize_formatted_file(file_path: Path, current_month: date, verification_d
     if current_month == verification_date.replace(day=1):
         # Current month means an incomplete file
         file_path.with_suffix(_FORMATTED_SUFFIX).rename(file_path.with_suffix(_INCOMPLETE_SUFFIX))
+        logger.debug(f'Month [{current_month}] was renamed to: {file_path.with_suffix(_INCOMPLETE_SUFFIX)}')
     elif permanent_month < current_month < incomplete_month:
         # Non-permanent file
         file_path.with_suffix(_FORMATTED_SUFFIX).rename(file_path.with_suffix(_TEMP_SUFFIX))
+        logger.debug(f'Month [{current_month}] was renamed to: {file_path.with_suffix(_TEMP_SUFFIX)}')
     else:
         # Permanent file
         file_path.with_suffix(_FORMATTED_SUFFIX).rename(file_path.with_suffix('.nc'))
+        logger.debug(f'Month [{current_month}] was renamed to: {file_path.with_suffix(".nc")}')
 
 
 def _get_actual_most_recent_data_for_model(
@@ -278,8 +286,8 @@ def download_era5_file(
     Returns:
         Returns nothing, but success means a result file will exist at the given target location.
     """
-    c = downloader.Client(
-        persist_request_callback=_repository_callback(), debug=True, verify=True
+    c = downloader.CDSDownloadClient(
+        persist_request_callback=_repository_callback(), verify=True
     )
     try:
         c.retrieve(

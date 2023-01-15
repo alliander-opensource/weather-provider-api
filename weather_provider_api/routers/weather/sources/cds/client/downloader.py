@@ -12,12 +12,14 @@
 #
 # 2019: Modified version by Alliander to improve scalability.
 
+from datetime import datetime
 import json
-import logging
 import os
 import time
+from pathlib import Path
 
 import requests
+import structlog
 
 
 def bytes_to_string(n):
@@ -29,39 +31,34 @@ def bytes_to_string(n):
     return "%g%s" % (int(n * 10 + 0.5) / 10.0, u[i])
 
 
-def read_config(path):
+def read_rc_file(path: Path):
     config = {}
     with open(path) as f:
         for line in f.readlines():
-            if ":" in line:
-                k, v = line.strip().split(":", 1)
-                if k in ("url", "key", "verify"):
+            if ':' in line:
+                k, v = line.strip().split(':', 1)
+                if k in ('url', 'key', 'verify'):
                     config[k] = v.strip()
     return config
 
 
 class Result(object):
     def __init__(self, client, reply):
-        self.reply = reply
-        self._url = client.url
+        self.logger = structlog.getLogger(__name__)
 
+        self.reply = reply
+        self._url = client.api_url
         self.session = client.session
         self.robust = client.robust
-        self.verify = client.verify
+        self.verify = client.api_verify
         self.cleanup = client.delete
-
-        self.debug = client.debug
-        self.info = client.info
-        self.warning = client.warning
-        self.error = client.error
-
         self._deleted = False
 
-    def _download(self, url, size, target):
-        if target is None:
-            target = url.split("/")[-1]
+    def _download(self, url: str, size, target):
+        if not target:
+            target = url.split('/')[-1]
 
-        self.info("Downloading %s to %s (%s)", url, target, bytes_to_string(size))
+        self.logger.info(f'Downloading [{url}] to [{target}]. ({bytes_to_string(size)})')
         start = time.time()
 
         r = self.robust(requests.get)(url, stream=True, verify=self.verify)
@@ -69,7 +66,7 @@ class Result(object):
             r.raise_for_status()
             total = 0
 
-            with open(target, "wb") as f:
+            with open(target, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
@@ -78,13 +75,11 @@ class Result(object):
             r.close()
 
         if total != size:
-            raise EOFError(
-                "Download failed: downloaded %s byte(s) out of %s" % (total, size)
-            )
+            raise EOFError(f'Download failed due to incorrect file size: Downloaded {total} byte(s) out of {size}')
 
         elapsed = time.time() - start
         if elapsed:
-            self.info("Download rate %s/s", bytes_to_string(size / elapsed))
+            self.logger.info(f'Download rate: {bytes_to_string(size / elapsed)} bytes per second')
         return target
 
     def download(self, target=None):
@@ -92,54 +87,40 @@ class Result(object):
 
     @property
     def content_length(self):
-        return int(self.reply["content_length"])
+        return int(self.reply['content_length'])
 
     @property
     def location(self):
-        return self.reply["location"]
+        return self.reply['location']
 
     @property
     def content_type(self):
-        return self.reply["content_type"]
+        return self.reply['content_type']
 
     def __repr__(self):
-        return "Result(content_length=%s, content_type=%s, location=%s)" % (
-            self.content_length,
-            self.content_type,
-            self.location,
-        )
+        return f'Result(content_length={self.content_length}, content_type={self.content_type}, ' \
+               f'location={self.location})'
 
     def check(self):
-        self.debug("HEAD %s", self.reply["location"])
-        metadata = self.robust(self.session.head)(
-            self.reply["location"], verify=self.verify
-        )
+        self.logger.debug(f'HEAD {self.reply["location"]}')
+        metadata = self.robust(self.session.head)(self.reply['location'], verify=self.verify)
         metadata.raise_for_status()
-
-        self.debug(metadata.headers)
-        return metadata
 
     def delete(self):
         if self._deleted:
             return
-        if "request_id" in self.reply:
-            rid = self.reply["request_id"]
 
-            task_url = "%s/tasks/%s" % (self._url, rid)
-            self.debug("DELETE %s", task_url)
+        if 'request_id' in self.reply:
+            rid = self.reply('request_id')
+            task_url = f'{self._url}/tasks/{rid}'
 
             delete = self.session.delete(task_url, verify=self.verify)
-            self.debug("DELETE returns %s %s", delete.status_code, delete.reason)
+            self.logger.debug(f'DELETE returns: ({delete.status_code}) {delete.reason}')
 
             try:
                 delete.raise_for_status()
             except RuntimeError:
-                self.warning(
-                    "DELETE %s returns %s %s",
-                    task_url,
-                    delete.status_code,
-                    delete.reason,
-                )
+                self.logger.warning(f'DELETE [{task_url}] returns: ({delete.status_code}) {delete.reason}')
 
             self._deleted = True
 
@@ -148,37 +129,30 @@ class Result(object):
             if self.cleanup:
                 self.delete()
         except Exception as e:
-            print(e)
-            raise
+            self.logger.error(e)
+            raise e
 
 
-class Client(object):
-    logger = logging.getLogger("cdsapi")
-
+class CDSDownloadClient(object):
     def __init__(
-        self,
-        url=os.environ.get("CDSAPI_URL"),
-        key=os.environ.get("CDSAPI_KEY"),
-        quiet=False,
-        debug=False,
-        verify=None,
-        timeout=None,
-        full_stack=False,
-        delete=False,
-        retry_max=500,
-        sleep_max=120,
-        info_callback=None,
-        warning_callback=None,
-        error_callback=None,
-        debug_callback=None,
-        persist_request_callback=None,
+            self,
+            url: str = os.environ.get('CDSAPI_URL'),
+            key: str = os.environ.get('CDSAPI_KEY'),
+            verify=None,
+            timeout=None,
+            full_stack: bool = False,
+            delete: bool = False,
+            retry_max: int = 500,
+            sleep_max: int = 120,
+            info_callback=None,
+            warning_callback=None,
+            error_callback=None,
+            debug_callback=None,
+            persist_request_callback=None,
     ):
+        self.logger = structlog.getLogger(__name__)
+        self.api_url, self.api_key, self.api_verify = self._load_cdsapi_config(url, key, verify)
 
-        self._config_logger(quiet, debug)
-
-        self._load_cdsapi_config(url, key, verify)
-
-        self.quiet = quiet
         self.timeout = timeout
         self.sleep_max = sleep_max
         self.retry_max = retry_max
@@ -186,98 +160,84 @@ class Client(object):
         self.delete = delete
         self.last_state = None
 
+        # Callbacks:
+        self.info_callback = info_callback
         self.debug_callback = debug_callback
         self.warning_callback = warning_callback
-        self.info_callback = info_callback
         self.error_callback = error_callback
         self.persist_request_callback = persist_request_callback
 
+        #
         self.persisted_request = False
-
         self.session = requests.Session()
-        self.session.auth = tuple(self.key.split(":", 2))
+        self.session.auth = tuple(self.api_key.split(":", 2))
 
-        self.debug(
-            "CDSAPI %s",
-            dict(
-                url=self.url,
-                key=self.key,
-                quiet=self.quiet,
-                verify=self.verify,
-                timeout=self.timeout,
-                sleep_max=self.sleep_max,
-                retry_max=self.retry_max,
-                full_stack=self.full_stack,
-                delete=self.delete,
-            ),
+        settings_dict = dict(
+            url=self.api_url,
+            key=self.api_key,
+            verify=self.api_verify,
+            timeout=self.timeout,
+            sleep_max=self.sleep_max,
+            retry_max=self.retry_max,
+            full_stack=self.full_stack,
+            delete=self.delete,
         )
 
-    def retrieve(self, name, request, target=None, request_id=None):
-        if request_id:
-            result = self._api(
-                "%s/resources/%s" % (self.url, name), request, request_id
-            )
-        else:
-            result = self._api("%s/resources/%s" % (self.url, name), request)
+        self.logger.debug(f'CDSAPI Downloader Settings: {settings_dict}', datetime=datetime)
 
-        if target is not None:
+    def retrieve(self, name, request, target=None, request_id=None):
+        """ This function retrieves a download-result and stores it at the target location if given. """
+        self.logger.info(f'Starting retrieval of URL:{self.api_url}/resources/{name}')
+        result = self._request_retrieval(f'{self.api_url}/resources/{name}', request,
+                                         request_id if request_id else None)
+        if target:
             result.download(target)
         return result
 
-    def identity(self):
-        return self._api("%s/resouces" % (self.url,), {})
-
-    def _api(self, url, request, request_id=None):
-        session = self.session
-
-        reply = self._request_handler(url, request, request_id, session)
+    def _request_retrieval(self, url, request, request_id=None):
+        reply = self._request_handler(url, request, request_id)
 
         sleep = 1
         start = time.time()
 
         while True:
-            self.debug("REPLY %s", reply)
+            self.logger.debug(f'REPLY: {reply}')
 
-            if reply["state"] != self.last_state:
-                self.info("Request is %s" % (reply["state"],))
-                self.last_state = reply["state"]
+            reply_state = reply['state']
 
-            if reply["state"] == "completed":
-                self.debug("Done")
+            if reply_state != self.last_state:
+                self.logger.info(f'Request is: {reply_state}')
+                self.last_state = reply_state
+
+            if reply_state == 'completed':
+                self.logger.debug('Request completed!')
                 return Result(self, reply)
 
-            if reply["state"] in ("queued", "running", "resuming_download"):
+            if reply_state in ('queued', 'running', 'resuming_download'):
                 sleep, reply = self._active_request_handler(
-                    reply, url, request, request_id, start, session, sleep
+                    reply, url, request, request_id, start, sleep
                 )
                 continue
 
-            if reply["state"] in ("failed",):
-                self.error("Message: %s", reply["error"].get("message"))
-                self.error("Reason: %s", reply["error"].get("reason"))
+            if reply_state == 'failed':
+                self.logger.error(f"An error occurred: {reply['error'].get('message')}")
+                self.logger.error(f"The following reason was given: {reply['error'].get('reason')}")
 
-                for n in (
-                    reply.get("error", {})
-                    .get("context", {})
-                    .get("traceback", "")
-                    .split("\n")
-                ):
-                    if n.strip() == "" and not self.full_stack:
+                for part in reply.get('error', {}).get('context', {}).get('traceback', '').split('\n'):
+                    if part.strip() == '' and not self.full_stack:
                         break
-                    self.error(" %s", n)
-                raise RuntimeError(
-                    "%s. %s."
-                    % (reply["error"].get("message"), reply["error"].get("reason"))
-                )
+                    self.logger.error(f' {part}')
 
-            raise RuntimeError("Unknown API state [%s]" % (reply["state"],))
+                raise RuntimeError(f'{reply["error"].get("message")} | {reply["error"].get("reason")}')
 
-    def _request_handler(self, url, request, request_id, session):
+            raise RuntimeError(f'UNKNOWN API STATE: [{reply_state}]')
+
+    def _request_handler(self, url, request, request_id):
         if request_id is None:
-            self.info("Sending request to %s", url)
-            self.debug("POST %s %s", url, json.dumps(request))
+            self.logger.info(f'Sending request to {url}')
+            self.logger.debug(f'POST {url} {json.dumps(request)}')
 
-            result = self.robust(session.post)(url, json=request, verify=self.verify)
+            result = self.robust(self.session.post)(url, json=request, verify=self.api_verify)
             reply = None
 
             try:
@@ -289,124 +249,92 @@ class Client(object):
                         reply = result.json()
                     except RuntimeError:
                         reply = dict(message=result.text)
+                self.logger.debug(json.dumps(reply))
 
-                self.debug(json.dumps(reply))
+                if 'message' in reply:
+                    error = reply['message']
 
-                if "message" in reply:
-                    error = reply["message"]
-
-                    if "context" in reply and "required_terms" in reply["context"]:
+                    if 'context' in reply and 'required_terms' in reply['context']:
                         e = [error]
-                        for t in reply["context"]["required_terms"]:
+                        for term in reply['context']['required_terms']:
                             e.append(
-                                "To access this resource, you first need to accept the terms"
-                                "of '%s' at %s" % (t["title"], t["url"])
+                                f"To access this resource, you'll first need to accept the terms of {term['title']} "
+                                f"at: {term['url']}"
                             )
-                        error = ". ".join(e)
+                            error = '. '.join(e)
                     raise RuntimeError(error)
                 else:
-                    raise
+                    raise RuntimeError('An unknown error occurred...')
         else:
-            self.info("Resuming download task. Skipping initial request to API.")
-            reply = {"state": "resuming_download", "request_id": request_id}
+            self.logger.info('Resuming the download task and skipping initial request to API.')
+            reply = {'state': 'resuming_download', 'request_id': request_id}
+
         return reply
 
     def _active_request_handler(
-        self, reply, url, request, request_id, start, session, sleep
+            self,
+            reply,
+            url,
+            request,
+            request_id,
+            start,
+            sleep
     ):
-        rid = reply["request_id"]
+        rid = reply['request_id']  # Other Request ID?
 
         if self.persist_request_callback and not self.persisted_request:
-            # TODO: implement function for the persist request callback
-            self.persist_request_callback(
-                url=url, request=request, request_id=request_id, start_timestamp=start
-            )
+            self.persist_request_callback(url=url, request=request, request_id=request_id, start_timestamp=start)
             self.persisted_request = True
 
         if self.timeout and (time.time() - start > self.timeout):
-            raise TimeoutError("TIMEOUT")
+            raise TimeoutError('Request Timed Out!')
 
-        self.debug("Request ID is %s, sleep %s", rid, sleep)
+        self.logger.debug(f'The Request ID is {rid} (sleeping for {sleep} seconds)')
         time.sleep(sleep)
         sleep *= 1.5
-        if sleep > self.sleep_max:
-            sleep = self.sleep_max
 
-        task_url = "%s/tasks/%s" % (self.url, rid)
-        self.debug("GET %s", task_url)
+        sleep = self.sleep_max if sleep > self.sleep_max else sleep
 
-        result = self.robust(session.get)(task_url, verify=self.verify)
+        task_url = f'{self.api_url}/tasks/{rid}'
+        self.logger.debug(f'GET: {task_url}')
+
+        result = self.robust(self.session.get)(task_url, verify=self.api_verify)
         result.raise_for_status()
         reply = result.json()
         return sleep, reply
 
-    @staticmethod
-    def _config_logger(quiet, debug):
-        if not quiet:
-            if debug:
-                level = logging.DEBUG
-            else:
-                level = logging.INFO
-            logging.basicConfig(
-                level=level, format="%(asctime)s %(levelname)s %(message)s"
-            )
-
     def _load_cdsapi_config(self, url, key, verify):
-        dotrc = os.environ.get("CDSAPI_RC", os.path.expanduser("~/.cdsapirc"))
-        env_key = os.environ.get("CDSAPI_KEY")
-        env_url = os.environ.get("CDSAPI_URL")
+        dotrc_file = Path(os.environ.get('CDSAPI_RC', "~/.cdsapirc"))
+        cdsapi_key = os.environ.get('CDSAPI_KEY')
+        cdsapi_url = os.environ.get('CDSAPI_URL')
 
-        # Prefer a cdsapirc file
-        if (url is None or key is None) and os.path.exists(dotrc):
-            config = read_config(dotrc)
+        # Prefer the CDSAPI RC file over CDSAPI_KEY and CDSAPI_URL:
+        if (not url or not key) and dotrc_file.exists():
+            config = read_rc_file(dotrc_file)
 
-            if key is None:
-                key = config.get("key")
-            if url is None:
-                url = config.get("url")
-            if verify is None:
-                verify = int(config.get("verify", 1))
+            if not key:
+                key = config.get('key')
+            if not url:
+                url = config.get('url')
+            if not verify:
+                verify = int(config.get('verify', 1))
 
-        # Use environment variables if those are set and no key or url are known
-        if (url is None or key is None) and env_key is not None and env_url is not None:
-            key = env_key
-            url = env_url
+        # If key or url are still missing try using CDSAPI_KEY and/or CDSAPI_URL:
+        if (not url or not key) and cdsapi_key and cdsapi_url:
+            key = cdsapi_key
+            url = cdsapi_url
 
-        # if the key or url are still missing, or no verify status was passed. Exit with error
-        if url is None or key is None or verify is None:
-            raise AttributeError("Missing or incomplete configuration file: %s" % dotrc)
+        # If key or url are still missing, or no verify status was passed, exit with error:
+        if not url or not key or not verify:
+            raise AttributeError(f'Missing or incomplete configuration. '
+                                 f'Please create or verify the file at [{dotrc_file}], or create/verify '
+                                 f'the CDSAPI_KEY and CDSAPI_URL environment variables.')
+        self.logger.info('Successfully loaded settings for the CDS Downloader!')
 
-        self.url = url
-        self.key = key
-        self.verify = True if verify else False
-
-    def info(self, *args, **kwargs):
-        if self.info_callback:
-            self.info_callback(*args, **kwargs)
-        else:
-            self.logger.info(*args, **kwargs)
-
-    def warning(self, *args, **kwargs):
-        if self.warning_callback:
-            self.warning_callback(*args, **kwargs)
-        else:
-            self.logger.warning(*args, **kwargs)
-
-    def error(self, *args, **kwargs):
-        if self.error_callback:
-            self.error_callback(*args, **kwargs)
-        else:
-            self.logger.error(*args, **kwargs)
-
-    def debug(self, *args, **kwargs):
-        if self.debug_callback:
-            self.debug_callback(*args, **kwargs)
-        else:
-            self.logger.debug(*args, **kwargs)
+        return url, key, True if verify else False
 
     def robust(self, call):
         def retryable(code, reason):
-            self.debug("")
             if code in [
                 requests.codes.internal_server_error,
                 requests.codes.bad_gateway,
@@ -416,37 +344,28 @@ class Client(object):
                 requests.codes.request_timeout,
             ]:
                 return True
-            self.debug("Considered not retryable: (%s) %s", code, reason)
+            self.logger.debug(f'The current response code is considered not retryable: ({code}) {reason}')
             return False
 
         def wrapped(*args, **kwargs):
+
             tries = 0
             while tries < self.retry_max:
+                self.logger.info(f'WRAPPED [Tries: {tries} ({self.retry_max})]')
                 try:
                     r = call(*args, **kwargs)
                 except requests.exceptions.ConnectionError as e:
                     r = None
-                    self.warning(
-                        "Recovering from connection error [%s], attempt %s of %s",
-                        e,
-                        tries,
-                        self.retry_max,
-                    )
-
-                if r is not None:
+                    self.logger.warning(f'Recovering from ConnectionError [{e}]. '
+                                        f'(Attempt #{tries}) of {self.retry_max})')
+                if r:
                     if not retryable(r.status_code, r.reason):
                         return r
-                    self.warning(
-                        "Recovering from HTTP error [%s %s], attempt %s of %s",
-                        r.status_code,
-                        r.reason,
-                        tries,
-                        self.retry_max,
-                    )
+                    self.logger.warning(f'Recovering from HTTPError [{r.status_code, r.reason}]. '
+                                        f'(Attempt #{tries} of {self.retry_max})')
 
                 tries += 1
-
-                self.warning("Retrying in %s seconds", self.sleep_max)
+                self.logger.warning(f'Retrying after {self.sleep_max} seconds..')
                 time.sleep(self.sleep_max)
 
         return wrapped

@@ -18,19 +18,23 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 @pytest.fixture()
 def start():
-    return datetime(2018, 1, 1)
+    today = datetime.today()
+    year_to_use = today.year if today.month != 1 else (today.year - 1)  # This year if not January, else previous year
+    return datetime(year_to_use, 1, 1)  # The start of the current year
 
 
 @pytest.fixture()
 def end():
-    return datetime(2018, 1, 31)
+    today = datetime.today()
+    year_to_use = today.year if today.month != 1 else (today.year - 1)  # This year if not January, else previous year
+    return datetime(year_to_use, 1, 31)  # The end of first month of the current year
 
 
 def test_retrieve_weather(monkeypatch, mock_coordinates, start, end):
     mock_geoposition_coordinates = [
         GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates
     ]
-    # TODO: Monkeypatch the download call to test without connection
+    # Version 3.x will be tested without an actual connection.
     uurgegevens_model = UurgegevensModel()
     ds = uurgegevens_model.get_weather(
         coords=mock_geoposition_coordinates, begin=start, end=end
