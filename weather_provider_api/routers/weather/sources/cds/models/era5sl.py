@@ -11,6 +11,7 @@ import copy
 from datetime import datetime
 from typing import List, Optional
 
+import numpy as np
 import structlog
 import xarray as xr
 
@@ -85,7 +86,7 @@ class ERA5SLModel(WeatherModelBase):
     ) -> xr.Dataset:
         """
             The function that gathers and processes the requested ERA5 Single Levels weather data from the repository
-            and returns it as an Xarray Dataset.
+            and returns it as a Xarray Dataset.
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
@@ -167,7 +168,11 @@ class ERA5SLModel(WeatherModelBase):
         """
         # Gather a dataset with the proper period and coordinates
         ds = self.repository.gather_period(begin, end, era5sl_coordinates)
-        ds = ds.sel(time=slice(begin, end))  # Slice of any overflowing time-range
+        ds = ds.where(
+            np.datetime64(begin) < ds.time
+        ).where(
+            ds.time < np.datetime64(end)
+        )
 
         # Drop excess weather factors
         ds = ds.drop_vars(self._get_list_of_factors_to_drop(validated_factors))
