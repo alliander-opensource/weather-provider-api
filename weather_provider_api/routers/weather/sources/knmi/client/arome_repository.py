@@ -484,6 +484,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         """
         self.logger.debug(f'Finding files for the timeframe: [({start})-({end})]')
+        self.logger.debug(f'Searching folder: [{self.repository_folder}]')
         counter_until_date_in_filename = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
 
         list_of_all_netcdf4_files_in_repo = glob.glob(str(self.repository_folder.joinpath(f'{self.file_prefix}*.nc')))

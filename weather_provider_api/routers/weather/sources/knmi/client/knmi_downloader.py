@@ -6,6 +6,7 @@
 
 import os
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -60,7 +61,7 @@ class KNMIDownloader:
         file_list = files_for_dataset.get("files")
 
         if self.download_folder.exists():
-            self.download_folder.rmdir()  # Remove the folder (immediately cleaning it) if it already existed
+            shutil.rmtree(self.download_folder)  # Remove the folder (immediately cleaning it) if it already existed
 
         # Create a nice clean folder to use
         self.download_folder.mkdir()
