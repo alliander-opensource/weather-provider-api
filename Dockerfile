@@ -45,4 +45,4 @@ WORKDIR /
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-k", "gunicorn.workers.ggevent.GeventWorker", "-b", "0.0.0.0:8000", "weather_provider_api.main:app", "--timeout", "180"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "weather_provider_api.main:app", "--timeout", "180"]
