@@ -5,19 +5,14 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 """
-TODO:
-- Decouple weather factors from the get_weather function
-- Add the async process for e.g. CDS and Harmonie
-- Improve datetime slicing
-- Fix datetime validation in Swagger UI on IE and Safari
-- Improve output / error messages when no data is available
 """
 
 from typing import List
 
 import accept_types
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 
+from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
 from weather_provider_api.routers.weather.api_models import (
     WeatherContentRequestQuery,
     WeatherFormattingRequestQuery,
@@ -45,7 +40,7 @@ def header_accept_type(accept: str = Header(None)) -> str:
 # @weather_provider_api.get("/sources", response_model=List[WeatherSource], tags=["sync", "async"])
 @app.get("/sources", response_model=List[WeatherSource], tags=["sync"])
 async def get_sources():  # pragma: no cover
-    """<B>List all of the Weather Sources available</B>"""
+    """<B>List all the Weather Sources available</B>"""
     """
         An API function that returns all of the Sources available from the WeatherController
     Args:
@@ -59,7 +54,7 @@ async def get_sources():  # pragma: no cover
 # @weather_provider_api.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync", "async"])
 @app.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync"])
 async def get_source(source_id: str):  # pragma: no cover
-    """<B>List all of the Models available  for the Source</B>"""
+    """<B>List all the Models available  for the Source</B>"""
     """
         An API function that returns all of the models available for the given source  
     Args:
@@ -89,13 +84,15 @@ async def get_sync_models(source_id: str):  # pragma: no cover
 
 
 @app.get("/sources/{source_id}/models/{model_id}", tags=["sync"])
+@API_RATE_LIMITER.limit("20/minute")
 async def get_sync_weather(
-    source_id: str,
-    model_id: str,
-    cleanup_tasks: BackgroundTasks,
-    ret_args: WeatherContentRequestQuery = Depends(),
-    fmt_args: WeatherFormattingRequestQuery = Depends(),
-    accept: str = Depends(header_accept_type),
+        request: Request,
+        source_id: str,
+        model_id: str,
+        cleanup_tasks: BackgroundTasks,
+        ret_args: WeatherContentRequestQuery = Depends(),
+        fmt_args: WeatherFormattingRequestQuery = Depends(),
+        accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
     """
     <B>Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.). <BR>
@@ -105,16 +102,16 @@ async def get_sync_weather(
     that sometimes the 'begin' and 'end' values will be altered to match these restrictions.)</I>
     """
     """
-        An API function that retrieves specific weather data for a specific Weather Model and returns it as the 
+        An API function that retrieves specific weather data for a specific Weather Model and returns it as the
         requested output format and units.
     Args:
         source_id:      The Source ID of the Source to request the weather data from.
         model_id:       The Model ID for the Model to request the weather data from.
-        cleanup_tasks:  A BackgroundTasks object to hold any pending cleanup tasks for when the data request is 
+        cleanup_tasks:  A BackgroundTasks object to hold any pending cleanup tasks for when the data request is
                         finished.
         ret_args:       A WeatherContentRequestQuery object holding the parameters for the weather data request to
                         use.
-        fmt_args:       A WeatherFormattingRequestQuery object holding the parameters for the output format and 
+        fmt_args:       A WeatherFormattingRequestQuery object holding the parameters for the output format and
                         units to use.
         accept:         Header type to use for the output file.
                         Rounded to the most likely value using header_accept_type().
@@ -189,12 +186,12 @@ async def get_alarm():  # pragma: no cover
 # Handler for requests with multiple locations:
 @app.get("/sources/{source_id}/models/{model_id}/multiple-locations/", tags=["sync"])
 async def get_sync_weather_multi_loc(
-    source_id: str,
-    model_id: str,
-    cleanup_tasks: BackgroundTasks,
-    ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
-    fmt_args: WeatherFormattingRequestQuery = Depends(),
-    accept: str = Depends(header_accept_type),
+        source_id: str,
+        model_id: str,
+        cleanup_tasks: BackgroundTasks,
+        ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
+        fmt_args: WeatherFormattingRequestQuery = Depends(),
+        accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
     source_id = source_id.lower()
     model_id = model_id.lower()

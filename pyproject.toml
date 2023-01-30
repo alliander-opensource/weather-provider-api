@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weather_provider_api"
-version = "2.34.0"
+version = "2.35.0"
 description = "Weather Provider Libraries and API"
 authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -30,7 +30,7 @@ pandas = "^1.5.2"
 xarray = "^2022.12.0"
 cfgrib = "^0.9.10.3"
 uvicorn = "^0.20.0"
-gevent = "^22.10.2"
+slowapi = "^0.1.7"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
@@ -39,6 +39,7 @@ pytest-cov = "^4.0.0"
 isort = "^5.10.1"
 black = "^22.10.0"
 jupyter = "^1.0.0"
+pylint = "^2.15.10"
 
 
 [tool.poetry.scripts]
@@ -49,6 +50,9 @@ wpla_clear_era5sl = "weather_provider_api.scripts.erase_era5sl_repository:main"
 wpla_clear_era5land = "weather_provider_api.scripts.erase_era5land_repository:main"
 wpla_clear_arome = "weather_provider_api.scripts.erase_arome_repository:main"
 wpla_run_api = "weather_provider_api.main:main"
+
+[tool.pylint]
+max-line-length = 120
 
 [build-system]
 requires = ["poetry-core"]

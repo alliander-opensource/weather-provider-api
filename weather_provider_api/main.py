@@ -15,6 +15,8 @@ from datetime import datetime
 import structlog
 import uvicorn
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from starlette.responses import RedirectResponse
 
 from weather_provider_api.app_config import get_setting
@@ -26,6 +28,7 @@ from weather_provider_api.core.initializers.logging import initialize_logging
 from weather_provider_api.core.initializers.monitoring import \
     initialize_prometheus_middleware
 from weather_provider_api.core.initializers.mounting import mount_api_version
+from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
 from weather_provider_api.core.initializers.validation import \
     initialize_validation_middleware
 from weather_provider_api.versions.v1 import app as v1
@@ -33,12 +36,17 @@ from weather_provider_api.versions.v2 import app as v2
 
 app = FastAPI(version=get_setting("APP_VERSION"), title=get_setting("APP_NAME"))
 
+# Add rate limiter
+app.state.limiter = API_RATE_LIMITER
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
 # Enable logging
 initialize_logging()
 logger = structlog.get_logger(__name__)
-logger.info(f'--------------------------------------', datetime=datetime.utcnow())
-logger.info(f'Booting Weather Provider API Systems..', datetime=datetime.utcnow())
-logger.info(f'--------------------------------------', datetime=datetime.utcnow())
+logger.info('--------------------------------------', datetime=datetime.utcnow())
+logger.info('Booting Weather Provider API Systems..', datetime=datetime.utcnow())
+logger.info('--------------------------------------', datetime=datetime.utcnow())
 
 # Create and configure new application instance
 initialize_error_handling(app)
