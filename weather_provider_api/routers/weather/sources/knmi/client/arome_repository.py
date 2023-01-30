@@ -7,7 +7,7 @@ import tarfile
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 
 import cfgrib
 import numpy as np
@@ -91,6 +91,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         # Cleanup the repository
         self.cleanup()
 
+        self.logger.info(f'KNMI Arome Update - Storage in: {self.repository_folder} ')
+
         # Configure initial settings for the update
         start_of_update = datetime.utcnow()
         no_of_items_processed = 0
@@ -101,6 +103,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         self.logger.info(f'- A forced end time of [{forced_end_of_update}] was set.')
 
         prediction_to_evaluate = self.get_most_recent_prediction_moment
+        download_folder = Path(tempfile.gettempdir()).joinpath(self.dataset_name)
+        knmi_downloader = KNMIDownloader(self.dataset_name, self.dataset_version, str(download_folder), True)
+        files_in_dataset = {item['filename']: item['size'] for item in knmi_downloader.get_all_available_files()}
 
         while prediction_to_evaluate >= self.first_day_of_repo:
             if no_of_items_processed != 0:
@@ -117,17 +122,16 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
                 file_to_download = f'harm40_v1_p1_{prediction_to_evaluate.year}' \
                                    f'{str(prediction_to_evaluate.month).zfill(2)}' \
                                    f'{str(prediction_to_evaluate.day).zfill(2)}' \
-                                   f'{str(prediction_to_evaluate.hour).zfill(2)}'
+                                   f'{str(prediction_to_evaluate.hour).zfill(2)}.tar'
 
-                download_folder = Path(tempfile.gettempdir()).joinpath(self.dataset_name)
-                downloader = KNMIDownloader(
-                    self.dataset_name, self.dataset_version, file_to_download, 1, download_folder
-                )
-                self._clear_temp_folder(download_folder)
-                files_saved = downloader.knmi_download_request()
-
-                self._process_downloaded_files(download_folder, files_saved, prediction_to_evaluate)
-                no_of_items_processed += 1
+                if file_to_download in files_in_dataset.keys():
+                    # File exists
+                    knmi_downloader.download_specific_file(file_to_download, files_in_dataset[file_to_download])
+                    self._process_downloaded_file(download_folder, file_to_download, prediction_to_evaluate)
+                    no_of_items_processed += 1
+                else:
+                    self.logger.info(f'The expected file [{file_to_download}] was not found within the KNMI dataset. '
+                                     f'Moving on to the next file!')
             else:
                 self.logger.debug(f'The prediction for [{prediction_to_evaluate}] is already stored in the repository.')
 
@@ -148,27 +152,25 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         return False
 
-    def _process_downloaded_files(
-            self, download_folder: Path, downloaded_files: List[Dict], predication_time: datetime
+    def _process_downloaded_file(
+            self, download_folder: Path, filename: str, prediction_time: datetime
     ):
         """ The function that processes a number of downloaded files into repository files.
 
         """
-        for downloaded_file in downloaded_files:
-            filename = downloaded_file['filename']
-            stage = 'Started unpacking files..'
-            try:
-                self._unpack_downloaded_file(download_folder, filename)
-                stage = 'Files were unpacked'
-                self._convert_unpacked_data_to_netcdf4_files(download_folder)
-                stage = 'Data was converted to NetCDF4'
-                self._fuse_hourly_netcdf4_files(download_folder, predication_time)
-                stage = 'NetCDF4 files were properly fused together'
-                self._clear_temp_folder(download_folder)
-            except Exception as e:
-                self.logger.warning(f'Processing did not get past stage: {stage}', datetime=datetime.utcnow())
-                self.logger.warning(f'The downloaded data could not be properly downloaded: {e}',
-                                    datetime=datetime.utcnow())
+        stage = 'Started unpacking files..'
+        try:
+            self._unpack_downloaded_file(download_folder, filename)
+            stage = 'Files were unpacked'
+            self._convert_unpacked_data_to_netcdf4_files(download_folder, prediction_time)
+            stage = 'Data was converted to NetCDF4'
+            self._fuse_hourly_netcdf4_files(download_folder, prediction_time)
+            stage = 'NetCDF4 files were properly fused together'
+            self._clear_temp_folder(download_folder)
+        except Exception as e:
+            self.logger.warning(f'Processing did not get past stage: {stage}', datetime=datetime.utcnow())
+            self.logger.warning(f'The downloaded data could not be properly downloaded: {e}',
+                                datetime=datetime.utcnow())
 
     def _clear_temp_folder(self, download_folder: Path):
         """ A function that cleans up the temporary download folder to prevent issues with partially written files.
@@ -197,7 +199,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             self.logger.error(f'The tarfile [{file_name}] could not be unpacked!', datetime=datetime.utcnow())
             raise e
 
-    def _convert_unpacked_data_to_netcdf4_files(self, download_folder: Path):
+    def _convert_unpacked_data_to_netcdf4_files(self, download_folder: Path, prediction_time: datetime):
         """ This function converts any unpacked data files into NetCDF4 files
 
         """
@@ -208,7 +210,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             self.logger.error('CFGRIB was not properly installed. Cannot access GRIB files.')
             raise e
 
-        grib_files_available = glob.glob(str(download_folder.joinpath('HA40_N25_*_GB')))
+        grib_files_available = glob.glob(str(download_folder.joinpath(
+            f'HA40_N25_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'))
+        )
 
         for grib_file in grib_files_available:
             self.logger.debug(f'Processing GRIB file: {grib_file}')
@@ -368,8 +372,6 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         encoding = {v: {'zlib': True, 'complevel': 4} for v in fused_dataset.variables}
         fused_dataset.to_netcdf(filename_to_save_to, format='NETCDF4', engine='netcdf4', encoding=encoding)
-
-        self._safely_delete_file(f'{filename_to_save_to}_UC')
 
     def _build_lat_lon_grid(self, grib_message: cfgrib.Message) -> Tuple[List[float], List[float]]:
         """ This function uses an existing GRIB file to extract the dimensions of the 'regular_ll' grid and format
