@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
 import glob
 import re
 import sys
@@ -23,9 +26,6 @@ from weather_provider_api.routers.weather.sources.knmi.knmi_factors import arome
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.grid_helpers import round_coordinates_to_wgs84_grid
 
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
 
 class HarmonieAromeRepository(WeatherRepositoryBase):
     """ The Weather Repository class for the 'KNMI - Harmonie Arome' dataset

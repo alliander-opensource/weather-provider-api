@@ -5,18 +5,12 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 """
-TODO:
-- Decouple weather factors from the get_weather function
-- Add the async process for e.g. CDS and Harmonie
-- Improve datetime slicing
-- Fix datetime validation in Swagger UI on IE and Safari
-- Improve output / error messages when no data is available
 """
 
 from typing import List
 
 import accept_types
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 
 from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
 from weather_provider_api.routers.weather.api_models import (
@@ -92,6 +86,7 @@ async def get_sync_models(source_id: str):  # pragma: no cover
 @app.get("/sources/{source_id}/models/{model_id}", tags=["sync"])
 @API_RATE_LIMITER.limit("20/minute")
 async def get_sync_weather(
+        request: Request,
         source_id: str,
         model_id: str,
         cleanup_tasks: BackgroundTasks,
