@@ -168,11 +168,8 @@ class ERA5SLModel(WeatherModelBase):
         """
         # Gather a dataset with the proper period and coordinates
         ds = self.repository.gather_period(begin, end, era5sl_coordinates)
-        ds = ds.where(
-            np.datetime64(begin) < ds.time
-        ).where(
-            ds.time < np.datetime64(end)
-        )
+
+        ds = ds.sel(time=slice(np.datetime64(begin),  np.datetime64(end)))
 
         # Drop excess weather factors
         ds = ds.drop_vars(self._get_list_of_factors_to_drop(validated_factors))
