@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weather_provider_api"
-version = "2.37.0"
+version = "2.39.0"
 description = "Weather Provider Libraries and API"
 authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -40,7 +40,6 @@ isort = "^5.10.1"
 black = "^22.10.0"
 jupyter = "^1.0.0"
 pylint = "^2.15.10"
-pre-commit = "^3.0.2"
 
 
 [tool.poetry.scripts]
