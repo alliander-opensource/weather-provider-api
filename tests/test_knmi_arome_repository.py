@@ -15,22 +15,20 @@ from pathlib import Path
 import pytest
 from dateutil.relativedelta import relativedelta
 
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
-    HarmonieAromeRepository,
-)
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import HarmonieAromeRepository
 
 
 def _get_mock_prefix(dummy_date: datetime):
     arome_repo = HarmonieAromeRepository()
     return (
-            arome_repo.file_prefix
-            + "_"
-            + str(dummy_date.year)
-            + str(dummy_date.month).zfill(2)
-            + str(dummy_date.day).zfill(2)
-            + "_"
-            + str(dummy_date.hour).zfill(2)
-            + "00.nc"
+        arome_repo.file_prefix
+        + "_"
+        + str(dummy_date.year)
+        + str(dummy_date.month).zfill(2)
+        + str(dummy_date.day).zfill(2)
+        + "_"
+        + str(dummy_date.hour).zfill(2)
+        + "00.nc"
     )
 
 
@@ -68,8 +66,7 @@ def test_arome_repository_cleanup(_get_mock_repository_dir: Path):
     # CLEANUP TEST 2:   A repository file within the active repository time-scope exists
     # Expected result:  Nothing should change
     regular_file = Path(
-        _get_mock_repository_dir
-        / (_get_mock_prefix(datetime.utcnow() - relativedelta(days=5)))
+        _get_mock_repository_dir / (_get_mock_prefix(datetime.utcnow() - relativedelta(days=5)))
     ).with_suffix(".nc")
     open(regular_file, "a").close()
     arome_repo.cleanup()
@@ -78,9 +75,9 @@ def test_arome_repository_cleanup(_get_mock_repository_dir: Path):
 
     # CLEANUP TEST 3:   A repository file outside the active repository time-scope exists
     # Expected result:  The outdated file has been removed, while the active file remains
-    outside_scope_file = Path(
-        _get_mock_repository_dir / _get_mock_prefix(datetime(2010, 1, 1, 0, 0, 0))
-    ).with_suffix(".nc")
+    outside_scope_file = Path(_get_mock_repository_dir / _get_mock_prefix(datetime(2010, 1, 1, 0, 0, 0))).with_suffix(
+        ".nc"
+    )
     open(outside_scope_file, "a").close()
     arome_repo.cleanup()
 
@@ -90,8 +87,7 @@ def test_arome_repository_cleanup(_get_mock_repository_dir: Path):
     # TEST 4: A "FORMATTED" repository file exists due to an unforeseen error in the repository
     #         The file should be removed, any current files matching the prefix should remain
     regular_formatted_file = Path(
-        str(Path(_get_mock_repository_dir / _get_mock_prefix(datetime.utcnow())))
-        + "_FORMATTED"
+        str(Path(_get_mock_repository_dir / _get_mock_prefix(datetime.utcnow()))) + "_FORMATTED"
     ).with_suffix(".nc")
     open(outside_scope_file, "a").close()
     arome_repo.cleanup()
@@ -109,9 +105,7 @@ def test_repo_get_month_filename(_get_mock_repository_dir: Path):
         shutil.rmtree(arome_repo.repository_folder)
     arome_repo.cleanup()
     existing_dates = _fill_mock_repository(arome_repo.repository_folder)
-    assert (
-            len(glob.glob(str(arome_repo.repository_folder.joinpath("AROME")) + "*.*")) == 2
-    )  # Confirm file creation
+    assert len(glob.glob(str(arome_repo.repository_folder.joinpath("AROME")) + "*.*")) == 2  # Confirm file creation
 
     # FETCHING TEST 1:  One period outside the
     result = [

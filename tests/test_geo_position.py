@@ -20,10 +20,7 @@ def test_location_type_detection():
     # Test 1: Out of bounds 'coordinate' for both WGS84 and RD, using auto-detection
     with pytest.raises(ValueError) as e:
         assert GeoPosition(52.2, 182)
-    assert (
-        str(e.value.args[0])
-        == "No valid coordinate system could be determined from the coordinates given.."
-    )
+    assert str(e.value.args[0]) == "No valid coordinate system could be determined from the coordinates given.."
 
     # Test 2:  Value in bounds as WSG84, but specified as RD and out of bounds for RD.
     with pytest.raises(ValueError) as e:
@@ -51,10 +48,7 @@ def test_location_type_detection():
     # Test 7: Unknown coordinate system is passed for a coordinate. Coordinate does not resolve.
     with pytest.raises(ValueError) as e:
         GeoPosition(-1000, -2000, "MARSHMALLOW")
-    assert (
-        str(e.value.args[0])
-        == "No valid coordinate system could be determined from the coordinates given.."
-    )
+    assert str(e.value.args[0]) == "No valid coordinate system could be determined from the coordinates given.."
 
 
 def test_coordinate_live_locations():

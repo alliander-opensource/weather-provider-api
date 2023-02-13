@@ -20,28 +20,29 @@ from weather_provider_api.routers.weather.utils import serializers
     to request specific output. 
 """
 
-if __name__ == '__main__':
-    coords = [[(51.873419, 5.705929), (51.873419, 5.71), (51.88, 5.71)],
-              [(52.121976, 4.782497)],
-              [(52.424793, 4.776927)]]
+if __name__ == "__main__":
+    coords = [
+        [(51.873419, 5.705929), (51.873419, 5.71), (51.88, 5.71)],
+        [(52.121976, 4.782497)],
+        [(52.424793, 4.776927)],
+    ]
 
     ds_hist_day: xr.Dataset = controller.get_weather(
-        source_id='cds',
-        model_id='era5sl',
+        source_id="cds",
+        model_id="era5sl",
         fetch_async=False,
         coords=coords,
         begin=datetime(2018, 2, 1, 0, 0),
-        end=datetime(2018, 2, 28, 23, 59)
+        end=datetime(2018, 2, 28, 23, 59),
     )
 
     response_format = ResponseFormat.netcdf4
 
-    converted_weather_data = controller.convert_names_and_units(
-        'cds', 'era5sl', False, ds_hist_day, OutputUnit.si
-    )
+    converted_weather_data = controller.convert_names_and_units("cds", "era5sl", False, ds_hist_day, OutputUnit.si)
 
-    ret_args = WeatherContentRequestQuery(begin='2018-01-01 00:00', end='2018-01-31 23:59', lat=52.1, lon=5.18,
-                                          factors=None)
+    ret_args = WeatherContentRequestQuery(
+        begin="2018-01-01 00:00", end="2018-01-31 23:59", lat=52.1, lon=5.18, factors=None
+    )
 
     coords = [
         (
@@ -51,7 +52,7 @@ if __name__ == '__main__':
         for single_polygon in coords
     ]  # means to match the used coordinates for the request
     response, optional_file_path = serializers.file_or_text_response(
-        converted_weather_data, response_format, 'cds', 'era5sl', ret_args, coords
+        converted_weather_data, response_format, "cds", "era5sl", ret_args, coords
     )
 
     print(response, optional_file_path)

@@ -6,13 +6,8 @@
 
 import pytest
 
-from weather_provider_api.routers.weather.utils.geo_position import (
-    CoordinateSystem,
-    GeoPosition,
-)
-from weather_provider_api.routers.weather.utils.grid_helpers import (
-    round_coordinates_to_wgs84_grid,
-)
+from weather_provider_api.routers.weather.utils.geo_position import CoordinateSystem, GeoPosition
+from weather_provider_api.routers.weather.utils.grid_helpers import round_coordinates_to_wgs84_grid
 
 
 @pytest.mark.parametrize(
@@ -50,13 +45,9 @@ from weather_provider_api.routers.weather.utils.grid_helpers import (
         ),  # Negative modifiers and before "starting point of grid"
     ],
 )
-def test_round_to_grid(
-    coordinates, grid_resolution_lat_lon, starting_points_lat_lon, expected_results
-):
+def test_round_to_grid(coordinates, grid_resolution_lat_lon, starting_points_lat_lon, expected_results):
 
-    results = round_coordinates_to_wgs84_grid(
-        coordinates, grid_resolution_lat_lon, starting_points_lat_lon
-    )
+    results = round_coordinates_to_wgs84_grid(coordinates, grid_resolution_lat_lon, starting_points_lat_lon)
 
     for result_coordinate, expected_result_coordinate in zip(results, expected_results):
         assert result_coordinate.get_WGS84() == expected_result_coordinate.get_WGS84()
