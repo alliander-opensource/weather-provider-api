@@ -295,7 +295,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             ds_single_coord = ds.stack(dimensions={"coord": ["lat", "lon"]})
             ds_single_coord = ds_single_coord.where(ds_single_coord.lat == coordinate.get_WGS84()[0], drop=True)
             ds_single_coord = ds_single_coord.where(
-                ds_single_coord.lon.round(3) == coordinate.get_WGS84()[1], drop=True
+                ds_single_coord.lon.round(3) == coordinate.get_WGS84()[1].round(3), drop=True
             )
             ds_single_coord = ds_single_coord.unstack("coord")
             # Then append this to a clean list
