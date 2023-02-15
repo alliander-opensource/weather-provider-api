@@ -97,9 +97,7 @@ class GeoPosition:
             self.system = locformat
 
         if self.system == -1:
-            raise ValueError(
-                "No valid coordinate system could be determined from the coordinates given.."
-            )
+            raise ValueError("No valid coordinate system could be determined from the coordinates given..")
         if self._out_of_bounds():
             raise ValueError("Invalid coordinates for type were used")
 
@@ -115,11 +113,7 @@ class GeoPosition:
 
     def _out_of_bounds(self):
         # Checks for the set system whether the coordinates are within bound.
-        if (
-            self.system == CoordinateSystem.wgs84
-            and (-180 <= self.x <= 180)
-            and (-90 <= self.y <= 90)
-        ):
+        if self.system == CoordinateSystem.wgs84 and (-180 <= self.x <= 180) and (-90 <= self.y <= 90):
             return False
         if (
             self.system == CoordinateSystem.rd

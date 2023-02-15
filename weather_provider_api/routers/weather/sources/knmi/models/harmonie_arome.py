@@ -22,7 +22,7 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 class HarmonieAromeModel(WeatherModelBase):
-    """ A weather model that incorporates the 'KNMI - Harmonie Arome' weather dataset into the Weather Provider
+    """A weather model that incorporates the 'KNMI - Harmonie Arome' weather dataset into the Weather Provider
      Libraries and API.
 
     'KNMI - Harmonie Arome' is a predictive model for the upcoming 48 hours that gets generated every 6 hours.
@@ -31,13 +31,13 @@ class HarmonieAromeModel(WeatherModelBase):
     def __init__(self):
         # Pre-work
         super().__init__()
-        self.id = 'arome'
+        self.id = "arome"
         self.logger = structlog.get_logger(__name__)
-        self.logger.debug(f'Initializing weather model: {self.id}', datetime=datetime.utcnow())
+        self.logger.debug(f"Initializing weather model: {self.id}", datetime=datetime.utcnow())
 
         # Setting the model
         self.repository = HarmonieAromeRepository()
-        self.name = 'harmonie_arome_cy_p1'
+        self.name = "harmonie_arome_cy_p1"
         self.version = "0.3"
         self.url = "ftp://data.knmi.nl/download/harmonie_arome_cy40_p1/0.2/"
         self.predictive = True
@@ -61,19 +61,19 @@ class HarmonieAromeModel(WeatherModelBase):
         self.logger.debug(f'The Weather model "{self.id}" was successfully initialized', datetime=datetime.utcnow())
 
     def get_weather(
-            self,
-            coords: List[GeoPosition],
-            begin: datetime = None,
-            end: datetime = None,
-            weather_factors: List[str] = None,
+        self,
+        coords: List[GeoPosition],
+        begin: datetime = None,
+        end: datetime = None,
+        weather_factors: List[str] = None,
     ) -> xr.Dataset:
-        """ Implementation of the WeatherModelBase get_weather function that fetches weather data and returns it as a
-         Xarray DataSet.
+        """Implementation of the WeatherModelBase get_weather function that fetches weather data and returns it as a
+        Xarray DataSet.
 
         """
         # Handle possibly missing values for this model
-        begin = (begin or datetime.combine(datetime.today(), time.min))  # Fallback: start of today
-        end = (end or datetime.combine(datetime.today() + timedelta(days=1), time.max))  # Fallback: end of tomorrow
+        begin = begin or datetime.combine(datetime.today(), time.min)  # Fallback: start of today
+        end = end or datetime.combine(datetime.today() + timedelta(days=1), time.max)  # Fallback: end of tomorrow
 
         # Validate the given timeframe
         valid_begin, valid_end = validate_begin_and_end(
@@ -93,8 +93,8 @@ class HarmonieAromeModel(WeatherModelBase):
         return self.async_model
 
     def _request_weather_factors(self, factor_list: Union[List[str], None]) -> List[str]:
-        """ Implementation of the Weather Model Base function that returns a list of the known weather factors out of
-         a given list for this model.
+        """Implementation of the Weather Model Base function that returns a list of the known weather factors out of
+        a given list for this model.
 
         """
         if not factor_list:

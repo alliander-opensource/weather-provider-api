@@ -94,16 +94,14 @@ class WeatherAlert:
             # A page was found and loaded
             soup = BeautifulSoup(page_text, features="lxml")
 
-            classes_first_warning_block = soup.find(
-                "div", {"class": "warning-overview"}
-            )
+            classes_first_warning_block = soup.find("div", {"class": "warning-overview"})
             if classes_first_warning_block is not None:
                 classes_first_warning_block = classes_first_warning_block["class"]
 
                 for class_name in classes_first_warning_block:
-                    if len(class_name) > len("warning-overview") and class_name[
-                        len("warning-overview--") :
-                    ] in set(item.value for item in WeatherAlertCode):
+                    if len(class_name) > len("warning-overview") and class_name[len("warning-overview--") :] in set(
+                        item.value for item in WeatherAlertCode
+                    ):
                         return province, class_name[len("warning-overview--") :]
 
             # If no valid code was found return an invalid data message

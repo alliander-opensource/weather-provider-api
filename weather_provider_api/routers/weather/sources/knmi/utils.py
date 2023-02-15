@@ -19,7 +19,7 @@ def find_closest_stn_list(stn_stations: pd.DataFrame, coords: List[GeoPosition])
     """
         A function that finds the closest stations to the locations in the given list of GeoPositions
     Args:
-        stn_stations:   A Pandas Dataframe containing all of the station data for the KNMI stations
+        stn_stations:   A Pandas Dataframe containing all the station data for the KNMI stations
         coords:         A list of GeoPositions with locations to find the nearest stations to.
     Returns:
         A list of coordinates for found stations
@@ -39,8 +39,8 @@ def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition):
     """
         A function that finds the closest station to a single GeoPosition
     Args:
-        stn_stations:   A Pandas Dataframe containing all of the station data for the KNMI stations
-        coord:          A Geoposition to find the nearest station to.
+        stn_stations:   A Pandas Dataframe containing all the station data for the KNMI stations
+        coord:          A GeoPosition to find the nearest station for
     Returns:
         A station number indicating its index in the supplied dataframe.
     """

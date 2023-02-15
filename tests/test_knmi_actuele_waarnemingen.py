@@ -12,9 +12,7 @@ import pytest
 import requests
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import (
-    ActueleWaarnemingenModel,
-)
+from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
@@ -29,9 +27,7 @@ def end():
 
 
 def test_get_weather(mock_coordinates, start, end):
-    mock_geo_coordinates = [
-        GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates
-    ]
+    mock_geo_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     aw_model = ActueleWaarnemingenModel()
 
     # TODO: Monkeypatch the download call to test without connection
@@ -50,9 +46,7 @@ def test__retrieve_observation_date():
 
     current_locale = locale.getlocale(locale.LC_TIME)
     locale.setlocale(locale.LC_TIME, "dutch")
-    assert (
-        aw_model.retrieve_observation_moment(None).date() == datetime.now().date()
-    )  # System now
+    assert aw_model.retrieve_observation_moment(None).date() == datetime.now().date()  # System now
     locale.setlocale(locale.LC_TIME, current_locale)
 
 

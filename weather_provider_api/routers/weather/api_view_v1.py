@@ -57,9 +57,7 @@ async def get_source(source_id: str):  # pragma: no cover
     return controller.get_source(source_id)
 
 
-@app.get(
-    "/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"]
-)
+@app.get("/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"])
 async def get_sync_models(source_id: str):  # pragma: no cover
     # List all the synchronous models supported by the selected source
     source_id = source_id.lower()
@@ -121,9 +119,7 @@ async def get_sync_weather(
         raise HTTPException(status_code=404, detail=e.args[0])
 
     if weather_data is None:
-        raise HTTPException(
-            status_code=404, detail="No data was found for the given period"
-        )
+        raise HTTPException(status_code=404, detail="No data was found for the given period")
 
     response_format = fmt_args.response_format or accept
 

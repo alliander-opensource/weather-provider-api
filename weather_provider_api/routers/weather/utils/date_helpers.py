@@ -41,11 +41,7 @@ def parse_datetime(
 
         dt = None
 
-    if (
-        dt is not None
-        and (round_missing_time_up or round_to_days)
-        and time_unknown(dt, datetime_string)
-    ):
+    if dt is not None and (round_missing_time_up or round_to_days) and time_unknown(dt, datetime_string):
         if round_to_days:
             dt = dt + timedelta(days=1)
         else:
@@ -58,21 +54,13 @@ def parse_datetime(
 
 
 def time_unknown(dt: datetime, datetime_string: str):  # pragma: no cover
-    if (
-        dt.hour == 0
-        and dt.minute == 0
-        and dt.second == 0
-        and ":" not in datetime_string
-    ):
+    if dt.hour == 0 and dt.minute == 0 and dt.second == 0 and ":" not in datetime_string:
         return True
     return False
 
 
 def validate_begin_and_end(
-        start: datetime,
-        end: datetime,
-        data_start: Union[datetime, None] = None,
-        data_end: Union[datetime, None] = None
+    start: datetime, end: datetime, data_start: Union[datetime, None] = None, data_end: Union[datetime, None] = None
 ):
     """
     Checks the given date parameters and replaces them with default values if they aren't valid.
@@ -90,16 +78,19 @@ def validate_begin_and_end(
         end = data_end
 
     if start >= data_end:
-        raise HTTPException(422, f"Invalid [start] value [{start}]: value lies after last available moment for model "
-                                 f"({data_end})")
+        raise HTTPException(
+            422, f"Invalid [start] value [{start}]: value lies after last available moment for model " f"({data_end})"
+        )
     if data_start is not None and end <= data_start:
-        raise HTTPException(422, f"Invalid [end] value [{end}]: value lies before first available moment for model "
-                                 f"({data_start})")
+        raise HTTPException(
+            422, f"Invalid [end] value [{end}]: value lies before first available moment for model " f"({data_start})"
+        )
 
     if end < start:
         raise HTTPException(422, f"Invalid [start] and [end] values: [end]({end}) lies before [start]({start})")
 
     return start, end
+
 
 """
 def validate_begin_and_end(

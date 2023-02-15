@@ -10,10 +10,7 @@ import re
 import pytest
 
 from weather_provider_api.routers.weather.sources.cds.client import downloader
-from weather_provider_api.routers.weather.sources.cds.client.downloader import (
-    CDSDownloadClient,
-    bytes_to_string,
-)
+from weather_provider_api.routers.weather.sources.cds.client.downloader import CDSDownloadClient, bytes_to_string
 
 
 # downloader.py is based on a file by ECMWF. This
@@ -62,9 +59,7 @@ def test_client(monkeypatch):
         "format": "netcdf",
     }
 
-    mock_client.retrieve(
-        "reanalysis-era5-single-levels", mock_request, "C:/Temp/dummyfile.nc"
-    )
+    mock_client.retrieve("reanalysis-era5-single-levels", mock_request, "C:/Temp/dummyfile.nc")
 
     # Regular use: Dummyfile should exist.
     assert os.path.isfile("C:/Temp/dummyfile.nc")
@@ -76,14 +71,10 @@ def test_client(monkeypatch):
 
     # Calls to trigger specific Client._api() states
     era5sl_url = "%s/resources/%s" % (mock_client.url, "reanalysis-era5-single-levels")
-    monkeypatch.setattr(
-        downloader.Client, "_request_handler", {"state": "queued", "request_id": 1}
-    )
+    monkeypatch.setattr(downloader.Client, "_request_handler", {"state": "queued", "request_id": 1})
 
     mock_client._load_cdsapi_config(None, None, None)
     mock_client._api(era5sl_url, mock_request, 1)
 
-    monkeypatch.setattr(
-        downloader.Client, "_request_handler", {"state": "failed", "request_id": 2}
-    )
+    monkeypatch.setattr(downloader.Client, "_request_handler", {"state": "failed", "request_id": 2})
     mock_client._api(era5sl_url, mock_request, 2)

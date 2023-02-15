@@ -33,9 +33,7 @@ class ERA5SLModel(WeatherModelBase):
         super().__init__()
         self.logger = structlog.get_logger(__name__)
         self.id = "era5sl"
-        self.logger.debug(
-            f"Initializing weather model [{self.id}]", datetime=datetime.utcnow()
-        )
+        self.logger.debug(f"Initializing weather model [{self.id}]", datetime=datetime.utcnow())
 
         self.name = "CDS ERA5 - Hourly data on single levels from 1979 to the present"
 
@@ -125,13 +123,9 @@ class ERA5SLModel(WeatherModelBase):
             weather_factors = [era5sl_factors[x] for x in list(era5sl_factors.keys())]
 
         # Lookup using the generic long name
-        weather_factors_long_names = [
-            x for x in weather_factors if x in era5sl_factors.values()
-        ]
+        weather_factors_long_names = [x for x in weather_factors if x in era5sl_factors.values()]
         # Lookup using the CDS' own short name
-        weather_factors_short_names = [
-            era5sl_factors[x] for x in weather_factors if x in era5sl_factors.keys()
-        ]
+        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors.keys()]
 
         # Merge the results
         weather_factors = weather_factors_long_names + weather_factors_short_names
@@ -143,9 +137,7 @@ class ERA5SLModel(WeatherModelBase):
         # A small function that that compares a list of factors to keep with the full list, to make a list of factors
         # to drop from a full set.
         to_drop = [x for x in era5sl_factors.values() if x not in factors]
-        self.logger.debug(
-            "Dropping the following factors for the request: " + str(to_drop)
-        )
+        self.logger.debug("Dropping the following factors for the request: " + str(to_drop))
         return to_drop
 
     def _fill_dataset_with_data(
@@ -169,7 +161,7 @@ class ERA5SLModel(WeatherModelBase):
         # Gather a dataset with the proper period and coordinates
         ds = self.repository.gather_period(begin, end, era5sl_coordinates)
 
-        ds = ds.sel(time=slice(np.datetime64(begin),  np.datetime64(end)))
+        ds = ds.sel(time=slice(np.datetime64(begin), np.datetime64(end)))
 
         # Drop excess weather factors
         ds = ds.drop_vars(self._get_list_of_factors_to_drop(validated_factors))

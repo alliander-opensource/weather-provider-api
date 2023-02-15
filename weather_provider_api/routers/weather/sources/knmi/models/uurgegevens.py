@@ -32,6 +32,7 @@ class UurgegevensModel(WeatherModelBase):
         KNMI Uurgegevens
     dataset into the Weather Provider API
     """
+
     def __init__(self):
         super().__init__()
         self.id = "uurgegevens"
@@ -46,9 +47,7 @@ class UurgegevensModel(WeatherModelBase):
             "The number of measurements returned depends on this period selection."
         )
         self.async_model = False
-        self.download_url = (
-            "https://daggegevens.knmi.nl/klimatologie/uurgegevens"
-        )
+        self.download_url = "https://daggegevens.knmi.nl/klimatologie/uurgegevens"
 
         self.to_si = {
             "DD": {"convert": self.no_conversion},
@@ -161,13 +160,9 @@ class UurgegevensModel(WeatherModelBase):
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
         # Test and account for invalid datetime timeframes or input
-        begin, end = validate_begin_and_end(
-            begin, end, None, datetime.utcnow() - relativedelta(days=1)
-        )
+        begin, end = validate_begin_and_end(begin, end, None, datetime.utcnow() - relativedelta(days=1))
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
-        station_id, stns, coords_stn_ind = find_closest_stn_list(
-            stations_history, coords
-        )
+        station_id, stns, coords_stn_ind = find_closest_stn_list(stations_history, coords)
 
         # Download the weather data for the relevant STNs
         raw_data = self._download_weather(
@@ -218,9 +213,11 @@ class UurgegevensModel(WeatherModelBase):
                 self.download_url,
                 params,
             )
-        elif r.text == '[]':
-            raise ValueError('No data was returned for this request. Make that the requested data exist for this '
-                             'dataset, and that is was properly requested. In case of doubt, contact support.')
+        elif r.text == "[]":
+            raise ValueError(
+                "No data was returned for this request. Make that the requested data exist for this "
+                "dataset, and that is was properly requested. In case of doubt, contact support."
+            )
         return r.text
 
     def _create_request_params(self, start, end, stations, weather_factors):
@@ -251,27 +248,27 @@ class UurgegevensModel(WeatherModelBase):
 
     def _parse_raw_weather_data(self, raw_data: str) -> xr.Dataset:
         json_data = json.loads(raw_data)
-        dataframe_data = pd.DataFrame.from_dict(json_data, orient='columns')
+        dataframe_data = pd.DataFrame.from_dict(json_data, orient="columns")
 
         conversion_dict = {
-            'date': 'datetime64[ns]',
-            'hour': str,
-            'station_code': int,
+            "date": "datetime64[ns]",
+            "hour": str,
+            "station_code": int,
         }
         for weather_factor in self.to_si.keys():
             if weather_factor in dataframe_data.keys():
                 conversion_dict[weather_factor] = np.float64
 
         # KNMI measures the -th hour. (The 24th hour is from 23:00 to 00:00 the next day) We use 23:00 to indicate that.
-        dataframe_data['hour'] = dataframe_data['hour'] - 1
+        dataframe_data["hour"] = dataframe_data["hour"] - 1
         dataframe_data = dataframe_data.astype(conversion_dict)
 
         # Convert hours from time to timestamp
-        dataframe_data['timestamp'] = pd.to_timedelta(dataframe_data['hour'] + ':00:00')
+        dataframe_data["timestamp"] = pd.to_timedelta(dataframe_data["hour"] + ":00:00")
 
         # Merge the hours with the date field and drop the timestamp and hour fields
-        dataframe_data['date'] = dataframe_data['date'] + dataframe_data['timestamp']
-        dataframe_data.drop(['hour', 'timestamp'], axis=1, inplace=True)
+        dataframe_data["date"] = dataframe_data["date"] + dataframe_data["timestamp"]
+        dataframe_data.drop(["hour", "timestamp"], axis=1, inplace=True)
 
         dataframe_data = dataframe_data.set_index(["station_code", "date"])
 
@@ -286,10 +283,7 @@ class UurgegevensModel(WeatherModelBase):
         ds = raw_ds.sel(station_code=station_id)
 
         # dict of data
-        data_dict = {
-            var_name: (["coord", "time"], var.values)
-            for var_name, var in ds.data_vars.items()
-        }
+        data_dict = {var_name: (["coord", "time"], var.values) for var_name, var in ds.data_vars.items()}
         timeline = ds.coords["date"].values
 
         ds = xr.Dataset(

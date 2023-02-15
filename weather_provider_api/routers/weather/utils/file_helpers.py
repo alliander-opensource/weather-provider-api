@@ -11,9 +11,7 @@ from pathlib import Path
 import structlog
 
 
-async def remove_file(
-        file_path, logger=structlog.get_logger(__name__)
-):  # pragma: no cover
+async def remove_file(file_path, logger=structlog.get_logger(__name__)):  # pragma: no cover
     if file_path is not None:
         try:
             file_to_rm = Path(file_path).resolve()
@@ -28,7 +26,7 @@ async def remove_file(
 
 def get_var_map_file_location(filename: str) -> Path:
     logger = structlog.get_logger(__name__)
-    var_map_folder = 'var_maps'
+    var_map_folder = "var_maps"
 
     possible_main_folders = [
         Path(os.getcwd()),  # Running from main folder
@@ -42,5 +40,5 @@ def get_var_map_file_location(filename: str) -> Path:
             logger.info(f'"var_maps" folder was found at: {possible_var_map_folder}')
             return possible_var_map_folder.joinpath(filename)
 
-    logger.exception(f'File was not found: {filename}')
+    logger.exception(f"File was not found: {filename}")
     raise FileNotFoundError

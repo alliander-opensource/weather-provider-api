@@ -10,9 +10,7 @@ import pytest
 import requests
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import (
-    UurgegevensModel,
-)
+from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import UurgegevensModel
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
@@ -31,14 +29,10 @@ def end():
 
 
 def test_retrieve_weather(monkeypatch, mock_coordinates, start, end):
-    mock_geoposition_coordinates = [
-        GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates
-    ]
+    mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     # Version 3.x will be tested without an actual connection.
     uurgegevens_model = UurgegevensModel()
-    ds = uurgegevens_model.get_weather(
-        coords=mock_geoposition_coordinates, begin=start, end=end
-    )
+    ds = uurgegevens_model.get_weather(coords=mock_geoposition_coordinates, begin=start, end=end)
 
     assert ds is not None
     assert "TD" in ds

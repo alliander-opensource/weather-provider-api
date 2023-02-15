@@ -21,25 +21,17 @@ import pytest
 import xarray as xr
 
 from weather_provider_api.routers.weather.api_models import OutputUnit
-from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import (
-    ActueleWaarnemingenModel,
-)
-from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import (
-    DagGegevensModel,
-)
+from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
+from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import DagGegevensModel
 from weather_provider_api.routers.weather.sources.knmi.models.pluim import PluimModel
-from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import (
-    UurgegevensModel,
-)
+from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import UurgegevensModel
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
 
 @pytest.fixture
 def mock_single_value_dataset(mock_coordinates):
-    mock_geoposition_coordinates = [
-        GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates
-    ]
+    mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     mock_factor = ["temperature", "precipitation", "mock_unknown_field"]
     timeline = [datetime.now()]
     coord_indices = coords_to_pd_index(mock_geoposition_coordinates)
@@ -50,9 +42,7 @@ def mock_single_value_dataset(mock_coordinates):
         )
         for weather_factor in mock_factor
     }
-    ds = xr.Dataset(
-        data_vars=data_dict, coords={"time": timeline, "coord": coord_indices}
-    )
+    ds = xr.Dataset(data_vars=data_dict, coords={"time": timeline, "coord": coord_indices})
 
     # Fill the single temperature value with 25 degrees Celsius
     ds["temperature"].data = [[np.float64(25), np.float64(25)]]
@@ -72,70 +62,35 @@ def test_convert_names_and_units(mock_single_value_dataset):
     # Therefore, OutputUnit.original and OutputUnit.human should both be the original value.
     # OutputUnit.si should be Kelvin, however.
     assert (
-        base_model.convert_names_and_units(
-            mock_single_value_dataset, OutputUnit.original
-        )["temperature"][0][0]
-        == 25.0
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["temperature"][0][0] == 25.0
     )
-    assert (
-        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)[
-            "temperature"
-        ][0][0]
-        == 298.15
-    )
-    assert (
-        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)[
-            "temperature"
-        ][0][0]
-        == 25.0
-    )
+    assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["temperature"][0][0] == 298.15
+    assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["temperature"][0][0] == 25.0
 
     # For Pluim the original precipitation format is mm.
     # Therefore, OutputUnit.original and OutputUnit.human should both be the original value.
     # OutputUnit.si should be m, however.
     assert (
-        base_model.convert_names_and_units(
-            mock_single_value_dataset, OutputUnit.original
-        )["precipitation"][0][0]
-        == 32
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["precipitation"][0][0] == 32
     )
-    assert (
-        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)[
-            "precipitation"
-        ][0][0]
-        == 0.032
-    )
-    assert (
-        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)[
-            "precipitation"
-        ][0][0]
-        == 32
-    )
+    assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["precipitation"][0][0] == 0.032
+    assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["precipitation"][0][0] == 32
 
     with pytest.raises(TypeError) as e:
-        assert base_model.convert_names_and_units(
-            mock_single_value_dataset, "MOCK_OUTPUT"
-        )
+        assert base_model.convert_names_and_units(mock_single_value_dataset, "MOCK_OUTPUT")
     assert str(e.value.args[0]) == "Invalid OutputUnit"
 
     # If the field name isn't known in the model, there are no conversion functions and the values
     # are assumed to be as the original for all formats
     assert (
-        base_model.convert_names_and_units(
-            mock_single_value_dataset, OutputUnit.original
-        )["mock_unknown_field"][0][0]
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["mock_unknown_field"][0][0]
         == 66
     )
     assert (
-        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)[
-            "mock_unknown_field"
-        ][0][0]
-        == 66
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["mock_unknown_field"][0][0] == 66
     )
     assert (
-        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)[
-            "mock_unknown_field"
-        ][0][0]
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["mock_unknown_field"][0][0]
         == 66
     )
 
@@ -244,9 +199,7 @@ def test_knmi_visibility_class_to_meter_estimate():
     assert base_model.knmi_visibility_class_to_meter_estimate(49) == 4950
     assert base_model.knmi_visibility_class_to_meter_estimate(50) == 5500
     assert base_model.knmi_visibility_class_to_meter_estimate(51) == 1500
-    assert (
-        base_model.knmi_visibility_class_to_meter_estimate(88) == 72500
-    )  # Odd, but correct?
+    assert base_model.knmi_visibility_class_to_meter_estimate(88) == 72500  # Odd, but correct?
     assert base_model.knmi_visibility_class_to_meter_estimate(89) == 70000
 
 
@@ -274,6 +227,4 @@ def test_knmi_visibility_class_to_meter_estimate():
 )
 def test_dutch_wind_direction_to_degrees(wind_direction, resulting_degrees):
     base_model = PluimModel()
-    assert (
-        base_model.dutch_wind_direction_to_degrees(wind_direction) == resulting_degrees
-    )
+    assert base_model.dutch_wind_direction_to_degrees(wind_direction) == resulting_degrees

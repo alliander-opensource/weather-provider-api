@@ -16,13 +16,9 @@ import xarray
 import xarray as xr
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
-from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import (
-    ERA5LandRepository,
-)
+from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import ERA5LandRepository
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
-from weather_provider_api.routers.weather.utils.date_helpers import (
-    validate_begin_and_end,
-)
+from weather_provider_api.routers.weather.utils.date_helpers import validate_begin_and_end
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
@@ -37,9 +33,7 @@ class ERA5LandModel(WeatherModelBase):
         super().__init__()
         self.logger = structlog.get_logger(__name__)
         self.id = "era5land"
-        self.logger.debug(
-            f"Initializing weather model [{self.id}]", datetime=datetime.utcnow()
-        )
+        self.logger.debug(f"Initializing weather model [{self.id}]", datetime=datetime.utcnow())
 
         self.name = "CDS: ERA5-Land"
 
@@ -133,13 +127,9 @@ class ERA5LandModel(WeatherModelBase):
             weather_factors = [era5sl_factors[x] for x in list(era5sl_factors.keys())]
 
         # Lookup using the generic long name
-        weather_factors_long_names = [
-            x for x in weather_factors if x in era5sl_factors.values()
-        ]
+        weather_factors_long_names = [x for x in weather_factors if x in era5sl_factors.values()]
         # Lookup using the CDS' own short name
-        weather_factors_short_names = [
-            era5sl_factors[x] for x in weather_factors if x in era5sl_factors.keys()
-        ]
+        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors.keys()]
 
         # Merge the results
         weather_factors = weather_factors_long_names + weather_factors_short_names
@@ -147,15 +137,11 @@ class ERA5LandModel(WeatherModelBase):
         # If nothing useful was found, just return everything
         return weather_factors
 
-    def _get_list_of_factors_to_drop(
-        self, factors: List[str], dataset_to_drop_from: xarray.Dataset
-    ) -> List[str]:
+    def _get_list_of_factors_to_drop(self, factors: List[str], dataset_to_drop_from: xarray.Dataset) -> List[str]:
         # A small function that that compares a list of factors to keep with the full list, to make a list of factors
         # to drop from a full set.
         to_drop = [x for x in era5sl_factors.values() if x not in factors]
-        self.logger.debug(
-            "Dropping the following factors for the request: " + str(to_drop)
-        )
+        self.logger.debug("Dropping the following factors for the request: " + str(to_drop))
         not_in_dataset = list(set(to_drop).difference(dataset_to_drop_from.keys()))
         if len(not_in_dataset) > 0:
             self.logger.warning(

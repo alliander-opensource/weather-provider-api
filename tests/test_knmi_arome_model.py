@@ -12,12 +12,8 @@ from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5SLModel
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
-    HarmonieAromeRepository,
-)
-from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import (
-    HarmonieAromeModel,
-)
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import HarmonieAromeRepository
+from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import HarmonieAromeModel
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
@@ -62,9 +58,7 @@ def test__validate_weather_factors():
     assert "mock_factor" not in arome_model._validate_weather_factors(random_list)
 
 
-def test_retrieve_weather(
-    monkeypatch, mock_dataset_arome: xr.Dataset, _get_mock_repository_dir
-):
+def test_retrieve_weather(monkeypatch, mock_dataset_arome: xr.Dataset, _get_mock_repository_dir):
     five_days_ago = datetime.utcnow() - timedelta(days=5)
     one_month_ago = five_days_ago - relativedelta(months=1)
 
@@ -87,8 +81,6 @@ def test_retrieve_weather(
     #       mocking, but needs to be supported by the mock-result as well, to get this to properly work offline..
     assert ds is not None
     assert "fake_factor_1" in ds
-    assert (
-        len(ds["fake_factor_1"]) == 48
-    )  # 49 prediction moments per time in the mock dataset
+    assert len(ds["fake_factor_1"]) == 48  # 49 prediction moments per time in the mock dataset
     assert len(ds["fake_factor_1"][0]) == 95  # 96 periods in the mock dataset
     assert isinstance(ds, xr.Dataset)

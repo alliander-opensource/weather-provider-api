@@ -36,15 +36,10 @@ def round_coordinates_to_wgs84_grid(
     wgs84_coordinate_list = [coordinate.get_WGS84() for coordinate in coordinates]
     rounded_wgs84_coordinate_list = [
         (
-            (np.round((coordinate[0] - start_lat) / grid_res_lat) * grid_res_lat)
-            + start_lat,
-            (np.round((coordinate[1] - start_lon) / grid_res_lon) * grid_res_lon)
-            + start_lon,
+            (np.round((coordinate[0] - start_lat) / grid_res_lat) * grid_res_lat) + start_lat,
+            (np.round((coordinate[1] - start_lon) / grid_res_lon) * grid_res_lon) + start_lon,
         )
         for coordinate in wgs84_coordinate_list
     ]
 
-    return [
-        GeoPosition(coordinate[0], coordinate[1])
-        for coordinate in rounded_wgs84_coordinate_list
-    ]
+    return [GeoPosition(coordinate[0], coordinate[1]) for coordinate in rounded_wgs84_coordinate_list]

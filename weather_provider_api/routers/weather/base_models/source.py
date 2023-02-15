@@ -4,6 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
+
 class WeatherSourceBase(object):  # pragma: no cover
     """
     Base class that contains the basic functionality for all sources. Any new sources should implement this as their
@@ -11,12 +12,8 @@ class WeatherSourceBase(object):  # pragma: no cover
     """
 
     def setup_models(self, model_instances):
-        self._models = {
-            model.id: model for model in model_instances if not model.async_model
-        }
-        self._async_models = {
-            model.id: model for model in model_instances if model.async_model
-        }
+        self._models = {model.id: model for model in model_instances if not model.async_model}
+        self._async_models = {model.id: model for model in model_instances if model.async_model}
 
     def get_model(self, model_id, fetch_async=False):
         if fetch_async:

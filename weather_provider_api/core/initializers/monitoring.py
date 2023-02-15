@@ -5,7 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 import structlog
-from starlette_prometheus import metrics, PrometheusMiddleware
+from starlette_prometheus import PrometheusMiddleware, metrics
 
 from weather_provider_api.app_config import get_setting
 

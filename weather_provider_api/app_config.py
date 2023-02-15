@@ -13,7 +13,7 @@ import tomli
 
 
 class BaseConfig(object):
-    """ Base configuration class
+    """Base configuration class
 
     This class holds and/or gathers all the APIs base settings...
 
@@ -22,24 +22,22 @@ class BaseConfig(object):
     APP_NAME = os.environ.get("APP_NAME", __name__)
     APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION", """Alliander Weather Provider API""")
     APP_MAINTAINER = os.environ.get("APP_MAINTAINER", "DNB/ST Innovatieteam")
-    APP_MAINTAINER_EMAIL = os.environ.get(
-        "APP_MAINTAINER_EMAIL", "weather.provider@alliander.com"
-    )
+    APP_MAINTAINER_EMAIL = os.environ.get("APP_MAINTAINER_EMAIL", "weather.provider@alliander.com")
     SHOW_MAINTAINER = os.environ.get("SHOW_MAINTAINER", False)
 
     default_version = None
     try:
-        if Path('./pyproject.toml').exists():
-            pyproject_file = Path('./pyproject.toml')
-        elif Path('../pyproject.toml').exists():
-            pyproject_file = Path('../pyproject.toml')
-        with open(pyproject_file, mode='rb') as file:
-            default_version = tomli.load(file)['tool']['poetry']['version']
+        if Path("./pyproject.toml").exists():
+            pyproject_file = Path("./pyproject.toml")
+        elif Path("../pyproject.toml").exists():
+            pyproject_file = Path("../pyproject.toml")
+        with open(pyproject_file, mode="rb") as file:
+            default_version = tomli.load(file)["tool"]["poetry"]["version"]
     except Exception:
         default_version = importlib_metadata.version(__package__)
     finally:
         if not default_version:
-            default_version = 'Version Unidentified'
+            default_version = "Version Unidentified"
     APP_VERSION = os.environ.get("APP_VERSION", default_version)
 
     APP_V1_VERSION = os.environ.get("APP_V1_VERSION", f"{APP_VERSION} - v1 API (1.0.3)")

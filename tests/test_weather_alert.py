@@ -7,9 +7,7 @@
 import requests
 from requests.exceptions import ProxyError
 
-from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import (
-    WeatherAlert,
-)
+from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
 
 
 def test_weather_alert_():
@@ -59,29 +57,21 @@ def test_weather_alert_errors(monkeypatch):
     monkeypatch.setattr(WeatherAlert, "_requests_retry_session", ProxyErrorSessionMock)
 
     output = wa.get_alarm()
-    assert (
-        len(output) == 12
-    )  # Still 12 responses, but with proper error description inside..
+    assert len(output) == 12  # Still 12 responses, but with proper error description inside..
     assert output[0][1] == "proxy error on loading page"
 
     # Testing Timeout Response
     monkeypatch.setattr(WeatherAlert, "_requests_retry_session", TimeoutSessionMock)
 
     output = wa.get_alarm()
-    assert (
-        len(output) == 12
-    )  # Still 12 responses, but with proper error description inside..
+    assert len(output) == 12  # Still 12 responses, but with proper error description inside..
     assert output[0][1] == "time out op loading page"
 
     # Testing TooManyRedirects Response
-    monkeypatch.setattr(
-        WeatherAlert, "_requests_retry_session", TooManyRedirectsSessionMock
-    )
+    monkeypatch.setattr(WeatherAlert, "_requests_retry_session", TooManyRedirectsSessionMock)
 
     output = wa.get_alarm()
-    assert (
-        len(output) == 12
-    )  # Still 12 responses, but with proper error description inside..
+    assert len(output) == 12  # Still 12 responses, but with proper error description inside..
     assert output[0][1] == "page proved inaccessible"
 
 
@@ -96,12 +86,8 @@ def test_weather_alert_wrongly_formatted_page(monkeypatch):
 
         return FakeResponse()
 
-    monkeypatch.setattr(
-        requests.Session, "get", mock_request_response
-    )  # Intercepting request response
+    monkeypatch.setattr(requests.Session, "get", mock_request_response)  # Intercepting request response
     output = wa.get_alarm()
 
-    assert (
-        len(output) == 12
-    )  # Still 12 responses, but with proper error description inside..
+    assert len(output) == 12  # Still 12 responses, but with proper error description inside..
     assert output[0][1] == "could not find expected data on page"

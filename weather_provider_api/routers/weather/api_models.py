@@ -49,15 +49,9 @@ class WeatherModel(BaseModel):
     url: Optional[str] = Field(None, description="Model URL")
     description: Optional[str] = Field(None, description="Model description")
     predictive: bool = Field(..., description="Predictions or measurements")
-    async_model: bool = Field(
-        ..., description="Whether the model should be called asynchronously"
-    )
-    time_step_size_minutes: int = Field(
-        ..., description="Time between each measurement or prediction"
-    )
-    num_time_steps: int = Field(
-        ..., description="Number of data points in the result set"
-    )
+    async_model: bool = Field(..., description="Whether the model should be called asynchronously")
+    time_step_size_minutes: int = Field(..., description="Time between each measurement or prediction")
+    num_time_steps: int = Field(..., description="Number of data points in the result set")
 
 
 class WeatherSource(BaseModel):
@@ -80,50 +74,31 @@ class WeatherFormattingRequestQuery:
 # Note: I'd love to combine the (almost) duplicate entries below, but the hybrid solutions don't work in FastAPI 0.30.
 @dataclass
 class WeatherContentRequestQuery:
-    begin: str = Query(
-        None, description="From date and time", example="2019-01-01 00:00"
-    )
+    begin: str = Query(None, description="From date and time", example="2019-01-01 00:00")
     end: str = Query(None, description="To date and time", example="2019-01-31 23:59")
-    lat: float = Query(
-        ..., description="GPS Latitude or RD x-coordinate", example=52.10
-    )
-    lon: float = Query(
-        ..., description="GPS Longitude or RD y-coordinate", example=5.18
-    )
-    factors: List[str] = Query(
-        None, description="Only return these weather factors (default: all factors)"
-    )
+    lat: float = Query(..., description="GPS Latitude or RD x-coordinate", example=52.10)
+    lon: float = Query(..., description="GPS Longitude or RD y-coordinate", example=5.18)
+    factors: List[str] = Query(None, description="Only return these weather factors (default: all factors)")
 
 
 @dataclass
 class WeatherContentRequestMultiLocationQuery:
-    begin: str = Query(
-        None, description="From date and time", example="2019-01-01 00:00"
-    )
+    begin: str = Query(None, description="From date and time", example="2019-01-01 00:00")
     end: str = Query(None, description="To date and time", example="2019-01-31 23:59")
     locations: str = Query(
-        None, description="Locations in either WGS84 (lat,lon) or RD (x,y) format, "
-                          "in parentheses, separated by a comma", example='(52.1, 5.18), (52.2, 5.22)'
+        None,
+        description="Locations in either WGS84 (lat,lon) or RD (x,y) format, " "in parentheses, separated by a comma",
+        example="(52.1, 5.18), (52.2, 5.22)",
     )
-    factors: List[str] = Query(
-        None, description="Only return these weather factors (default: all factors)"
-    )
+    factors: List[str] = Query(None, description="Only return these weather factors (default: all factors)")
 
 
 class WeatherContentRequestBody(BaseModel):
-    begin: str = Field(
-        None, description="From date and time", example="2019-01-01 00:00"
-    )
+    begin: str = Field(None, description="From date and time", example="2019-01-01 00:00")
     end: str = Field(None, description="To date and time", example="2019-01-31 23:59")
-    lat: float = Field(
-        ..., description="GPS Latitude or RD x-coordinate", example=52.10
-    )
-    lon: float = Field(
-        ..., description="GPS Longitude or RD y-coordinate", example=5.18
-    )
-    factors: List[str] = Field(
-        None, description="Only return these weather factors (default: all factors)"
-    )
+    lat: float = Field(..., description="GPS Latitude or RD x-coordinate", example=52.10)
+    lon: float = Field(..., description="GPS Longitude or RD y-coordinate", example=5.18)
+    factors: List[str] = Field(None, description="Only return these weather factors (default: all factors)")
 
 
 class ScientificJSONResponse(StarletteResponse):

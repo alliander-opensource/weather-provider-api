@@ -228,10 +228,14 @@ class ActueleWaarnemingenModel(WeatherModelBase):
                 dt = datetime.strptime(dt_str, "%d %B %Y %H:%M")
                 locale.setlocale(locale.LC_TIME, current_locale)
                 return dt
+        except locale.Error as e:
+            logger.warning('No locale could be determined for KNMI Waarnemingen datetime transformation. '
+                           'Using local datetime instead.', datetime=datetime.utcnow())
+            return datetime.now()
         except Exception as e:
             logger.exception(
-                "An exception occurred while retrieving the KNMI Waarnemingen timestamp. Using current datetime.",
-                error=e,
+                'An unknown exception occurred while retrieving the KNMI Waarnemingen datetime for use in the response. '
+                f'Using local datetime instead. Error: {e}', datetime=datetime.utcnow()
             )
             return datetime.now()
 

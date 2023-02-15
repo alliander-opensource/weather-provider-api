@@ -14,7 +14,8 @@ from starlette.responses import FileResponse
 from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
     ScientificJSONResponse,
-    WeatherContentRequestQuery, WeatherContentRequestMultiLocationQuery,
+    WeatherContentRequestMultiLocationQuery,
+    WeatherContentRequestQuery,
 )
 
 
@@ -31,9 +32,7 @@ def file_or_text_response(
     elif response_format == ResponseFormat.json_dataset:
         return json_dataset_response(unserialized_data)
     else:
-        return file_response(
-            unserialized_data, response_format, source_id, model_id, request, coords
-        )
+        return file_response(unserialized_data, response_format, source_id, model_id, request, coords)
 
 
 def file_response(
@@ -57,28 +56,22 @@ def file_response(
         mime = "text/csv"
         extension = ".csv"
     else:
-        raise NotImplementedError(
-            f"Cannot create file response for the {response_format.name} response format"
-        )
+        raise NotImplementedError(f"Cannot create file response for the {response_format.name} response format")
 
     file_name = generate_filename(source_id, model_id, request, extension)
     response = FileResponse(file_path, media_type=mime, filename=file_name)
     return response, file_path
 
 
-def generate_filename(
-    source_id: str, model_id: str, request: WeatherContentRequestQuery, extension: str
-):
-    file_name = f"weather_{source_id}_{model_id}_{request.begin}-{request.end}{extension}".replace(
-        " ", "T"
-    )
+def generate_filename(source_id: str, model_id: str, request: WeatherContentRequestQuery, extension: str):
+    file_name = f"weather_{source_id}_{model_id}_{request.begin}-{request.end}{extension}".replace(" ", "T")
     return file_name
 
 
 def to_netcdf4(unserialized_data: xarray.Dataset):
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file_path = temp_file.name
-    unserialized_data.to_netcdf(path=temp_file_path, mode='w', format="NETCDF4", engine="netcdf4")
+    unserialized_data.to_netcdf(path=temp_file_path, mode="w", format="NETCDF4", engine="netcdf4")
     return temp_file_path
 
 
@@ -86,9 +79,7 @@ def to_netcdf3(unserialized_data: xarray.Dataset):
     # SciPy handler used by Xarray for direct serialization to binary doesn't support v3. File-based one does.
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file_path = temp_file.name
-    unserialized_data.to_netcdf(
-        path=temp_file_path, format="NETCDF3_64BIT", engine="netcdf4"
-    )
+    unserialized_data.to_netcdf(path=temp_file_path, format="NETCDF3_64BIT", engine="netcdf4")
     return temp_file_path
 
 

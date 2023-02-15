@@ -49,9 +49,7 @@ class DagGegevensModel(WeatherModelBase):
             "The number of measurements returned depends on this period selection."
         )
         self.async_model = False
-        self.download_url = (
-            "https://daggegevens.knmi.nl/klimatologie/daggegevens"
-        )
+        self.download_url = "https://daggegevens.knmi.nl/klimatologie/daggegevens"
 
         self.to_si = {
             "DDVEC": {"name": "wind_direction", "convert": self.no_conversion},
@@ -203,13 +201,9 @@ class DagGegevensModel(WeatherModelBase):
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
         # Test and account for invalid datetime timeframes or input
-        begin, end = validate_begin_and_end(
-            begin, end, None, datetime.utcnow() - relativedelta(days=1)
-        )
+        begin, end = validate_begin_and_end(begin, end, None, datetime.utcnow() - relativedelta(days=1))
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
-        station_id, stns, coords_stn_ind = find_closest_stn_list(
-            stations_history, coords
-        )
+        station_id, stns, coords_stn_ind = find_closest_stn_list(stations_history, coords)
 
         # Download the weather data for the relevant STNs
         raw_data = self._download_weather(
@@ -296,11 +290,11 @@ class DagGegevensModel(WeatherModelBase):
 
     def _parse_raw_weather_data(self, raw_data: str) -> xr.Dataset:
         json_data = json.loads(raw_data)
-        dataframe_data = pd.DataFrame.from_dict(json_data, orient='columns')
+        dataframe_data = pd.DataFrame.from_dict(json_data, orient="columns")
 
         conversion_dict = {
-            'date': 'datetime64[ns]',
-            'station_code': int,
+            "date": "datetime64[ns]",
+            "station_code": int,
         }
         for weather_factor in self.to_si.keys():
             if weather_factor in dataframe_data.keys():
@@ -320,10 +314,7 @@ class DagGegevensModel(WeatherModelBase):
         ds = raw_ds.sel(station_code=station_id)
 
         # dict of data
-        data_dict = {
-            var_name: (["coord", "time"], var.values)
-            for var_name, var in ds.data_vars.items()
-        }
+        data_dict = {var_name: (["coord", "time"], var.values) for var_name, var in ds.data_vars.items()}
         timeline = ds.coords["date"].values
 
         ds = xr.Dataset(
@@ -356,6 +347,5 @@ class DagGegevensModel(WeatherModelBase):
                         new_factors.append(f_up)
                 except AttributeError:
                     continue
-
 
         return list(set(new_factors))  # Cleanup any duplicate values and return

@@ -12,6 +12,4 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 def coords_to_pd_index(coords: List[GeoPosition]) -> pd.MultiIndex:
-    return pd.MultiIndex.from_tuples(
-        [coord.get_WGS84() for coord in coords], names=("lat", "lon")
-    )
+    return pd.MultiIndex.from_tuples([coord.get_WGS84() for coord in coords], names=("lat", "lon"))

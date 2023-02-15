@@ -35,9 +35,7 @@ class PluimModel(WeatherModelBase):
         super().__init__()
         self.id = "pluim"
         self.logger = structlog.get_logger(__name__)
-        self.logger.debug(
-            f"Initializing weather model [{self.id}]", datetime=datetime.utcnow()
-        )
+        self.logger.debug(f"Initializing weather model [{self.id}]", datetime=datetime.utcnow())
 
         self.name = "ECMWF pluim"
         self.version = None
@@ -46,8 +44,7 @@ class PluimModel(WeatherModelBase):
         self.time_step_size_minutes = 720
         self.num_time_steps = 30
         self.description = (
-            "Predictions for the coming 15 days, current included, with two predictions made for "
-            "each day."
+            "Predictions for the coming 15 days, current included, with two predictions made for " "each day."
         )
         self.async_model = False
 
@@ -125,14 +122,10 @@ class PluimModel(WeatherModelBase):
         """
 
         # Test and account for invalid datetime timeframes or input
-        begin, end = validate_begin_and_end(
-            begin, end, datetime.utcnow(), datetime.utcnow() + relativedelta(days=15)
-        )
+        begin, end = validate_begin_and_end(begin, end, datetime.utcnow(), datetime.utcnow() + relativedelta(days=15))
 
         # get list of relevant STNs, choose closest STN
-        coords_stn, stns, coords_stn_ind = find_closest_stn_list(
-            stations_prediction, coords
-        )
+        coords_stn, stns, coords_stn_ind = find_closest_stn_list(stations_prediction, coords)
 
         # load default weather factors if unspecified
         if weather_factors is None:
@@ -147,9 +140,7 @@ class PluimModel(WeatherModelBase):
         return ds
 
     @staticmethod
-    def _select_weather_from_given_period(
-        ds: xr.Dataset, begin: datetime, end: datetime
-    ):
+    def _select_weather_from_given_period(ds: xr.Dataset, begin: datetime, end: datetime):
         """
             A function that filters the given Xarray Dataset to only the requested period.
         Args:
@@ -163,8 +154,7 @@ class PluimModel(WeatherModelBase):
             begin,
             end,
             datetime.today().replace(hour=0, minute=0, second=0),
-            datetime.today().replace(hour=0, minute=0, second=0)
-            + relativedelta(days=15),
+            datetime.today().replace(hour=0, minute=0, second=0) + relativedelta(days=15),
         )
         ds = ds.sel(time=slice(begin, end))
         return ds
@@ -224,7 +214,9 @@ class PluimModel(WeatherModelBase):
             A list of datetime64 items holding the times for the factors, and a matching list of values holding
             values belonging to the requested factor during those times.
         """
-        base_url = f"https://cdn.knmi.nl/knmi/json/page/weer/waarschuwingen_verwachtingen/ensemble/iPluim/{stn}_{factor}.json"
+        base_url = (
+            f"https://cdn.knmi.nl/knmi/json/page/weer/waarschuwingen_verwachtingen/ensemble/iPluim/{stn}_{factor}.json"
+        )
 
         response = requests.get(base_url)
         if response.status_code != 200:
@@ -239,16 +231,12 @@ class PluimModel(WeatherModelBase):
         prediction_data = [x for x in series if "Verwacht" in x["name"]][0]["data"]
         if isinstance(prediction_data[0], dict):
             # get timeline
-            timeline = np.array([x["x"] for x in prediction_data]).astype(
-                "datetime64[ms]"
-            )
+            timeline = np.array([x["x"] for x in prediction_data]).astype("datetime64[ms]")
             # get value
             value = np.array([x["y"] for x in prediction_data], dtype=np.float64)
         else:
             # get timeline
-            timeline = np.array([x[0] for x in prediction_data]).astype(
-                "datetime64[ms]"
-            )
+            timeline = np.array([x[0] for x in prediction_data]).astype("datetime64[ms]")
             # get value
             value = np.array([x[1] for x in prediction_data], dtype=np.float64)
 
