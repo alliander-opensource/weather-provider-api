@@ -115,7 +115,9 @@ def to_csv(unserialized_data: xarray.Dataset, coords):
 def get_weather_slice_for_coords(coord, unserialized_data) -> pd.DataFrame:
     # We use .sel to create slices from the unserialized dataset
     # We then switch to a Pandas dataframe
-    weather = unserialized_data.sel(lat=coord[0], lon=coord[1])
+    if isinstance(coord, list):
+        coord = coord[0]
+    weather = unserialized_data.sel(lat=coord[0], lon=coord[1], method='nearest')
     if weather.dims["time"] == 1:
         # Because a single moment in time can't be squeezed...
         df = weather.to_dataframe()
@@ -127,8 +129,8 @@ def get_weather_slice_for_coords(coord, unserialized_data) -> pd.DataFrame:
 
 def json_response(unserialized_data: xarray.Dataset, coords):
     serialized_data = []
-    for i, c in enumerate(coords):
-        df = get_weather_slice_for_coords(c, unserialized_data)
+    for coordinate in coords:
+        df = get_weather_slice_for_coords(coordinate, unserialized_data)
         serialized_data.append(df.reset_index().to_dict(orient="records"))
     return ScientificJSONResponse(serialized_data), None
 
