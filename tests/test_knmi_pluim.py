@@ -26,9 +26,7 @@ def end():
 
 
 def test_retrieve_weather(monkeypatch, mock_coordinates, start, end):
-    mock_geoposition_coordinates = [
-        GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates
-    ]
+    mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     # TODO: Monkeypatch the download call to test without connection
 
     # TEST 1: Regular usage, with a non-existing factor

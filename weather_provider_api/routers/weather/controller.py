@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""""Entry point to the weather provider."""
+"""Entry point to the weather provider."""
 import datetime
 import re
 from typing import List, Optional, Tuple
@@ -33,14 +33,14 @@ class WeatherController(object):  # pragma: no cover
         self.sources = {source.id: source for source in source_instances}
 
     def get_weather(
-            self,
-            source_id: str,
-            model_id: str,
-            fetch_async: bool,
-            coords: List[List[Tuple[float, float]]],
-            begin: Optional[datetime.datetime] = None,
-            end: Optional[datetime.datetime] = None,
-            factors: List[str] = None,
+        self,
+        source_id: str,
+        model_id: str,
+        fetch_async: bool,
+        coords: List[List[Tuple[float, float]]],
+        begin: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
+        factors: List[str] = None,
     ):
         """
             Function to use the requested weather model from the requested source to get specific weather factors for a
@@ -63,29 +63,23 @@ class WeatherController(object):  # pragma: no cover
             A Xarray Dataset containing the weather data for the selected model, period(s), location(s) and factor(s)
         """
         model = self.get_model(source_id, model_id, fetch_async)
-        coords = self._calculate_polygon_means(
-            coords
-        )  # polygonal areas to mean calculation
-        coords = self._tuples_to_geo_positions(
-            coords
-        )  # conversion of Tuples with floats to GeoPosition items
+        coords = self._calculate_polygon_means(coords)  # polygonal areas to mean calculation
+        coords = self._tuples_to_geo_positions(coords)  # conversion of Tuples with floats to GeoPosition items
 
         if model.is_async():
             return None
 
         # call relevant routine data
-        ds = model.get_weather(
-            coords=coords, begin=begin, end=end, weather_factors=factors
-        )
+        ds = model.get_weather(coords=coords, begin=begin, end=end, weather_factors=factors)
         return ds
 
     def convert_names_and_units(
-            self,
-            source_id: str,
-            model_id: str,
-            fetch_async: bool,
-            weather_data: xr.Dataset,
-            unit: OutputUnit,
+        self,
+        source_id: str,
+        model_id: str,
+        fetch_async: bool,
+        weather_data: xr.Dataset,
+        unit: OutputUnit,
     ):
         # A function that uses the indicated model's built-in conversion method to alter the values in a given dataset
         # to match the requested output unit format.
@@ -102,8 +96,8 @@ class WeatherController(object):  # pragma: no cover
         str_coordinates_list = re.findall(r"\(\d{1,3}.?\d*,\s?\d{1,3}.?\d*\)", locations_string)
         coordinate_list = []
         for str_coordinate in str_coordinates_list:
-            coordinate = str_coordinate[1: -1].replace(" ", "")
-            coordinate = coordinate.split(',')
+            coordinate = str_coordinate[1:-1].replace(" ", "")
+            coordinate = coordinate.split(",")
             coordinate = (float(coordinate[0]), float(coordinate[1]))
             coordinate_list.append([coordinate])
 
@@ -119,15 +113,11 @@ class WeatherController(object):  # pragma: no cover
         self._validate_source(source_id)
         return self.sources.get(source_id, None)
 
-    def get_models(
-            self, source_id: str, fetch_async: bool = False
-    ) -> List[WeatherModelBase]:
+    def get_models(self, source_id: str, fetch_async: bool = False) -> List[WeatherModelBase]:
         source = self.get_source(source_id)
         return source.get_models(fetch_async)
 
-    def get_model(
-            self, source_id: str, model_id: str, fetch_async: bool = False
-    ) -> Optional[WeatherModelBase]:
+    def get_model(self, source_id: str, model_id: str, fetch_async: bool = False) -> Optional[WeatherModelBase]:
         self._validate_source_and_model(source_id, model_id, fetch_async)
         source = self.get_source(source_id)
         return source.get_model(model_id, fetch_async)
@@ -136,17 +126,13 @@ class WeatherController(object):  # pragma: no cover
         if source_id not in self.sources:
             raise UnknownSourceException
 
-    def _validate_source_and_model(
-            self, source_id: str, model_id: str, fetch_async: bool = False
-    ):
+    def _validate_source_and_model(self, source_id: str, model_id: str, fetch_async: bool = False):
         self._validate_source(source_id)
         if self.sources[source_id].get_model(model_id, fetch_async) is None:
             raise UnknownModelException
 
     @staticmethod
-    def _calculate_polygon_means(
-            coords: List[List[Tuple[float, float]]]
-    ) -> List[Tuple[float, float]]:
+    def _calculate_polygon_means(coords: List[List[Tuple[float, float]]]) -> List[Tuple[float, float]]:
         # Calculating the mean points of polygons containing locations
         coords = [
             (
@@ -158,9 +144,7 @@ class WeatherController(object):  # pragma: no cover
         return coords
 
     @staticmethod
-    def _tuples_to_geo_positions(
-            coords: List[Tuple[float, float]]
-    ) -> List[GeoPosition]:
+    def _tuples_to_geo_positions(coords: List[Tuple[float, float]]) -> List[GeoPosition]:
         # Convert the Tuples in a list to a list of Geo Positions
         coords = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in coords]
         return coords

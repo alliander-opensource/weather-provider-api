@@ -6,19 +6,21 @@
 
 """
 """
-
+from datetime import datetime
 from typing import List
 
 import accept_types
+import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 
 from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
 from weather_provider_api.routers.weather.api_models import (
+    WeatherContentRequestMultiLocationQuery,
     WeatherContentRequestQuery,
     WeatherFormattingRequestQuery,
     WeatherModel,
     WeatherSource,
-    result_mime_types, WeatherContentRequestMultiLocationQuery,
+    result_mime_types,
 )
 from weather_provider_api.routers.weather.controller import WeatherController
 from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
@@ -29,6 +31,8 @@ from weather_provider_api.routers.weather.utils.file_helpers import remove_file
 app = APIRouter()
 
 controller = WeatherController()
+
+logger = structlog.get_logger(__name__)
 
 
 def header_accept_type(accept: str = Header(None)) -> str:
@@ -66,9 +70,7 @@ async def get_source(source_id: str):  # pragma: no cover
     return controller.get_source(source_id)
 
 
-@app.get(
-    "/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"]
-)
+@app.get("/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"])
 async def get_sync_models(source_id: str):  # pragma: no cover
     """<B>List all the synchronous Models available for the selected Source</B>"""
     """
@@ -86,13 +88,13 @@ async def get_sync_models(source_id: str):  # pragma: no cover
 @app.get("/sources/{source_id}/models/{model_id}", tags=["sync"])
 @API_RATE_LIMITER.limit("20/minute")
 async def get_sync_weather(
-        request: Request,
-        source_id: str,
-        model_id: str,
-        cleanup_tasks: BackgroundTasks,
-        ret_args: WeatherContentRequestQuery = Depends(),
-        fmt_args: WeatherFormattingRequestQuery = Depends(),
-        accept: str = Depends(header_accept_type),
+    request: Request,
+    source_id: str,
+    model_id: str,
+    cleanup_tasks: BackgroundTasks,
+    ret_args: WeatherContentRequestQuery = Depends(),
+    fmt_args: WeatherFormattingRequestQuery = Depends(),
+    accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
     """
     <B>Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.). <BR>
@@ -118,6 +120,8 @@ async def get_sync_weather(
     Returns:
         The weather data in the requested format for the requested parameters.
     """
+    starting_time = datetime.utcnow()
+    logger.info(f"WeatherRequest({starting_time}): {request.url}", datetime=datetime.utcnow())
     source_id = source_id.lower()
     model_id = model_id.lower()
     coords = controller.lat_lon_to_coords(ret_args.lat, ret_args.lon)
@@ -144,9 +148,7 @@ async def get_sync_weather(
         raise HTTPException(status_code=404, detail=e.args[0])
 
     if weather_data is None:
-        raise HTTPException(
-            status_code=404, detail="No data was found for the given period"
-        )
+        raise HTTPException(status_code=404, detail="No data was found for the given period")
 
     response_format = fmt_args.response_format or accept
 
@@ -166,7 +168,7 @@ async def get_sync_weather(
         converted_weather_data, response_format, source_id, model_id, ret_args, coords
     )
     cleanup_tasks.add_task(remove_file, optional_file_path)
-
+    logger.info(f"WeatherRequest({starting_time}) data preparation finished.", datetime=datetime.utcnow())
     return response
 
 
@@ -186,12 +188,12 @@ async def get_alarm():  # pragma: no cover
 # Handler for requests with multiple locations:
 @app.get("/sources/{source_id}/models/{model_id}/multiple-locations/", tags=["sync"])
 async def get_sync_weather_multi_loc(
-        source_id: str,
-        model_id: str,
-        cleanup_tasks: BackgroundTasks,
-        ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
-        fmt_args: WeatherFormattingRequestQuery = Depends(),
-        accept: str = Depends(header_accept_type),
+    source_id: str,
+    model_id: str,
+    cleanup_tasks: BackgroundTasks,
+    ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
+    fmt_args: WeatherFormattingRequestQuery = Depends(),
+    accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
     source_id = source_id.lower()
     model_id = model_id.lower()
@@ -220,9 +222,7 @@ async def get_sync_weather_multi_loc(
         raise HTTPException(status_code=404, detail=e.args[0])
 
     if weather_data is None:
-        raise HTTPException(
-            status_code=404, detail="No data was found for the given period"
-        )
+        raise HTTPException(status_code=404, detail="No data was found for the given period")
 
     response_format = fmt_args.response_format or accept
 
@@ -230,13 +230,9 @@ async def get_sync_weather_multi_loc(
         source_id, model_id, False, weather_data, fmt_args.units
     )
 
-    coords = [
-        (lat_val, lon_val)
-        for (lat_val, lon_val) in zip(
-            converted_weather_data.coords["lat"].values,
-            converted_weather_data.coords["lon"].values,
-        )
-    ]
+    new_coords = []
+    for coord in coords:
+        new_coords.append(coord[0])
 
     response, optional_file_path = serializers.file_or_text_response(
         converted_weather_data, response_format, source_id, model_id, ret_args, coords

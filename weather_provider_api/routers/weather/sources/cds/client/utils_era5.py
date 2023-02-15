@@ -6,9 +6,9 @@
 
 import glob
 import tempfile
-from datetime import datetime, date
+from datetime import date, datetime
 from pathlib import Path
-from typing import Tuple, List, Dict
+from typing import Dict, List, Tuple
 
 import structlog
 import xarray as xr
@@ -18,10 +18,10 @@ from weather_provider_api.routers.weather.repository.repository import Repositor
 from weather_provider_api.routers.weather.sources.cds.client import downloader
 
 logger = structlog.get_logger(__name__)
-_FORMATTED_SUFFIX = '.FORMATTED.nc'
-_UNFORMATTED_SUFFIX = '.UNFORMATTED.nc'
-_INCOMPLETE_SUFFIX = '.INCOMPLETE.nc'
-_TEMP_SUFFIX = '.TEMP.nc'
+_FORMATTED_SUFFIX = ".FORMATTED.nc"
+_UNFORMATTED_SUFFIX = ".UNFORMATTED.nc"
+_INCOMPLETE_SUFFIX = ".INCOMPLETE.nc"
+_TEMP_SUFFIX = ".TEMP.nc"
 
 
 def _repository_callback(*args, **kwargs):  # pragma: no cover
@@ -31,16 +31,16 @@ def _repository_callback(*args, **kwargs):  # pragma: no cover
 
 
 def era5_update(
-        file_prefix: str,
-        repository_folder: str,
-        repository_scope: Tuple[datetime, datetime],
-        era5_dataset_name: str,
-        era5_product_type: str,
-        selected_factors: List[str],
-        dataset_grid_resolution: Tuple[float, float],
-        allowed_factors: Dict,
-        maximum_allowed_runtime_in_minutes: int = (2 * 60),
-        verify_last_available_date: bool = True
+    file_prefix: str,
+    repository_folder: str,
+    repository_scope: Tuple[datetime, datetime],
+    era5_dataset_name: str,
+    era5_product_type: str,
+    selected_factors: List[str],
+    dataset_grid_resolution: Tuple[float, float],
+    allowed_factors: Dict,
+    maximum_allowed_runtime_in_minutes: int = (2 * 60),
+    verify_last_available_date: bool = True,
 ):
     # Determine when to start and when to end
     start_of_update = datetime.utcnow()
@@ -66,8 +66,9 @@ def era5_update(
             average_time_per_month = (datetime.utcnow() - start_of_update).total_seconds() / current_months_processed
 
         if datetime.utcnow() + relativedelta(seconds=average_time_per_month) > forced_end_of_update:
-            logger.info(f"There was not enough time left to process another file. Finishing up..",
-                        datetime=datetime.utcnow())
+            logger.info(
+                f"There was not enough time left to process another file. Finishing up..", datetime=datetime.utcnow()
+            )
             return RepositoryUpdateResult.timed_out
 
         try:
@@ -80,12 +81,12 @@ def era5_update(
                 dataset_grid_resolution,
                 selected_factors,
                 newest_date_in_repo,
-                allowed_factors
+                allowed_factors,
             )
         except Exception as e:
             logger.warning(
                 f"Could not process month [{current_month_to_process.year}, {current_month_to_process.month}]: {e}",
-                datetime=datetime.utcnow()
+                datetime=datetime.utcnow(),
             )
             current_months_not_processable += 1
 
@@ -95,8 +96,7 @@ def era5_update(
     if current_months_processed > 1 and current_months_not_processable / current_months_processed > 0.3:
         # if over 30% of all requested months did not work and more than a month was requested return a failure value
         logger.error(
-            "The margin of months that could not be processed exceeded set margins."
-            "Please contact an administrator.",
+            "The margin of months that could not be processed exceeded set margins." "Please contact an administrator.",
             datetime=datetime.utcnow(),
         )
         return RepositoryUpdateResult.failure
@@ -105,23 +105,22 @@ def era5_update(
 
 
 def process_month(
-        file_name_prefix: str,
-        repository_folder: str,
-        month_to_process: date,
-        dataset_name: str,
-        product_name: str,
-        grid_resolution: Tuple[float, float],
-        factors: List[str],
-        most_recent_data_date: date,
-        allowed_factors: Dict
+    file_name_prefix: str,
+    repository_folder: str,
+    month_to_process: date,
+    dataset_name: str,
+    product_name: str,
+    grid_resolution: Tuple[float, float],
+    factors: List[str],
+    most_recent_data_date: date,
+    allowed_factors: Dict,
 ):
     file_name = f"{file_name_prefix}_{month_to_process.year}_{str(month_to_process.month).zfill(2)}"
     file_path = Path(repository_folder).joinpath(file_name)
 
     if file_requires_update(file_path, month_to_process, most_recent_data_date):
         logger.debug(
-            f"File update required for [{month_to_process.year}, {month_to_process.month}]",
-            datetime=datetime.utcnow()
+            f"File update required for [{month_to_process.year}, {month_to_process.month}]", datetime=datetime.utcnow()
         )
         download_file = file_path.with_suffix(_UNFORMATTED_SUFFIX)
         download_era5_file(
@@ -132,7 +131,7 @@ def process_month(
             years=[month_to_process.year],
             months=[month_to_process.month],
             days=list(range(1, 32)),
-            target_location=download_file
+            target_location=download_file,
         )
 
         format_downloaded_file(download_file, allowed_factors)
@@ -141,9 +140,9 @@ def process_month(
 
 
 def file_requires_update(file_path: Path, current_month: date, verification_date: date):
-    if file_path.with_suffix('.nc').exists():
+    if file_path.with_suffix(".nc").exists():
         # A regular file exists, no updates required
-        logger.debug('A regular file already exists: NO UPDATE REQUIRED')
+        logger.debug("A regular file already exists: NO UPDATE REQUIRED")
         return False
 
     if file_path.with_suffix(_TEMP_SUFFIX).exists():
@@ -162,31 +161,31 @@ def file_requires_update(file_path: Path, current_month: date, verification_date
         return True  # An update should both clean the UNFORMATTED file and generate a proper one
 
     if not file_path.with_suffix(".nc").exists() or file_path.with_suffix(_INCOMPLETE_SUFFIX).exists():
-        logger.debug('No file exists, or it is still incomplete: UPDATE REQUIRED ')
+        logger.debug("No file exists, or it is still incomplete: UPDATE REQUIRED ")
         return True  # No file matching the mask or incomplete files always mean the update is required!
 
-    files_in_folder = glob.glob(f'{file_path}*.nc')
+    files_in_folder = glob.glob(f"{file_path}*.nc")
     logger.warning(f"Unexpected files existed in the repository folder: {files_in_folder}. These should be dealt with.")
     return False
 
 
 def format_downloaded_file(unformatted_file: Path, allowed_factors: Dict):
-    logger.info(f'Formatting the downloaded file at: {unformatted_file}')
+    logger.info(f"Formatting the downloaded file at: {unformatted_file}")
     ds_unformatted = load_file(unformatted_file)
     ds_unformatted.attrs = {}  # Remove unneeded attributes
 
-    if 'expver' in ds_unformatted.indexes.keys():
+    if "expver" in ds_unformatted.indexes.keys():
         # We remove the expver index used to denominate temporary data (5) and regular data (1) and add a field for it
         # NOTE: We removed the drop_sel version as it didn't quite have the same result as drop yet. Reverting until
         #  the proper use has been validated...
-        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop('expver').dropna('time', how='all')
-        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop('expver').dropna('time', how='all')
+        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop("expver").dropna("time", how="all")
+        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop("expver").dropna("time", how="all")
 
         # Recombine the data
         ds_unformatted = ds_unformatted_expver1.merge(ds_unformatted_expver5)
-        ds_unformatted['is_permanent_data'] = False
+        ds_unformatted["is_permanent_data"] = False
     else:
-        ds_unformatted['is_permanent_data'] = True
+        ds_unformatted["is_permanent_data"] = True
 
     # Rename the factors to their longer names:
     for factor in ds_unformatted.variables.keys():
@@ -194,22 +193,22 @@ def format_downloaded_file(unformatted_file: Path, allowed_factors: Dict):
             ds_unformatted = ds_unformatted.rename_vars({factor: allowed_factors[factor]})
 
     # Rename and encode data where needed:
-    ds_unformatted.time.encoding['units'] = 'hours since 2016-01-01'
-    ds_unformatted = ds_unformatted.rename(name_dict={'latitude': 'lat', 'longitude': 'lon'})
+    ds_unformatted.time.encoding["units"] = "hours since 2016-01-01"
+    ds_unformatted = ds_unformatted.rename(name_dict={"latitude": "lat", "longitude": "lon"})
 
     # Store the data
-    ds_unformatted.to_netcdf(path=unformatted_file, format='NETCDF4', engine='netcdf4')
+    ds_unformatted.to_netcdf(path=unformatted_file, format="NETCDF4", engine="netcdf4")
 
 
 def finalize_formatted_file(file_path: Path, current_month: date, verification_date: date):
-    logger.info(f'Finalizing the formatted file for location: {file_path}')
+    logger.info(f"Finalizing the formatted file for location: {file_path}")
     formatted_file = file_path.with_suffix(_FORMATTED_SUFFIX)
     incomplete_month = verification_date.replace(day=1)
     permanent_month = (verification_date - relativedelta(months=3)).replace(day=1)
 
     if not formatted_file.exists():
-        logger.error(f'Unexpected error: Expected file [{formatted_file}] did not exist!')
-        raise FileNotFoundError(f'The pre-formatted month file [{formatted_file}] was not found!')
+        logger.error(f"Unexpected error: Expected file [{formatted_file}] did not exist!")
+        raise FileNotFoundError(f"The pre-formatted month file [{formatted_file}] was not found!")
 
     # Cleanup old files:
     for file_suffix in [_TEMP_SUFFIX, _INCOMPLETE_SUFFIX]:
@@ -220,22 +219,19 @@ def finalize_formatted_file(file_path: Path, current_month: date, verification_d
     if current_month == verification_date.replace(day=1):
         # Current month means an incomplete file
         file_path.with_suffix(_FORMATTED_SUFFIX).rename(file_path.with_suffix(_INCOMPLETE_SUFFIX))
-        logger.debug(f'Month [{current_month}] was renamed to: {file_path.with_suffix(_INCOMPLETE_SUFFIX)}')
+        logger.debug(f"Month [{current_month}] was renamed to: {file_path.with_suffix(_INCOMPLETE_SUFFIX)}")
     elif permanent_month < current_month < incomplete_month:
         # Non-permanent file
         file_path.with_suffix(_FORMATTED_SUFFIX).rename(file_path.with_suffix(_TEMP_SUFFIX))
-        logger.debug(f'Month [{current_month}] was renamed to: {file_path.with_suffix(_TEMP_SUFFIX)}')
+        logger.debug(f"Month [{current_month}] was renamed to: {file_path.with_suffix(_TEMP_SUFFIX)}")
     else:
         # Permanent file
-        file_path.with_suffix(_FORMATTED_SUFFIX).rename(file_path.with_suffix('.nc'))
+        file_path.with_suffix(_FORMATTED_SUFFIX).rename(file_path.with_suffix(".nc"))
         logger.debug(f'Month [{current_month}] was renamed to: {file_path.with_suffix(".nc")}')
 
 
 def _get_actual_most_recent_data_for_model(
-        date_to_start_from: date,
-        era5_dataset_name: str,
-        era5_product_type: str,
-        grid_resolution: Tuple[float, float]
+    date_to_start_from: date, era5_dataset_name: str, era5_product_type: str, grid_resolution: Tuple[float, float]
 ):
     got_proper_response = False
     date_to_check = date_to_start_from
@@ -245,11 +241,13 @@ def _get_actual_most_recent_data_for_model(
                 dataset=era5_dataset_name,
                 product_type=era5_product_type,
                 grid_resolution=grid_resolution,
-                weather_factors=['stl1', ],  # Only one factor that exists in both datasets
+                weather_factors=[
+                    "stl1",
+                ],  # Only one factor that exists in both datasets
                 years=[date_to_check.year],
                 months=[date_to_check.month],
                 days=[date_to_check.day],
-                target_location=tempfile.NamedTemporaryFile().name
+                target_location=tempfile.NamedTemporaryFile().name,
             )
             got_proper_response = True
         finally:
@@ -262,14 +260,14 @@ def _get_actual_most_recent_data_for_model(
 
 
 def download_era5_file(
-        dataset,
-        product_type,
-        grid_resolution,
-        weather_factors,
-        years,
-        months,
-        days,
-        target_location,
+    dataset,
+    product_type,
+    grid_resolution,
+    weather_factors,
+    years,
+    months,
+    days,
+    target_location,
 ):
     """
         A function that download a NetCDF file to the target location, containing the requested factors for an
@@ -286,9 +284,7 @@ def download_era5_file(
     Returns:
         Returns nothing, but success means a result file will exist at the given target location.
     """
-    c = downloader.CDSDownloadClient(
-        persist_request_callback=_repository_callback(), verify=True
-    )
+    c = downloader.CDSDownloadClient(persist_request_callback=_repository_callback(), verify=True)
     try:
         c.retrieve(
             dataset,
@@ -331,7 +327,7 @@ def download_era5_file(
             target_location,
         )
     except Exception as e:
-        logger.warning(f'Could not download the requested file: {e}')
+        logger.warning(f"Could not download the requested file: {e}")
         return False
 
 

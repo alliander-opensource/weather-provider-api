@@ -14,9 +14,7 @@ from weather_provider_api.app_config import get_setting
 logger = structlog.get_logger(__name__)
 
 
-async def handle_http_exception(
-    request: Request, exc: StarletteHTTPException
-) -> JSONResponse:
+async def handle_http_exception(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     headers = getattr(exc, "headers", None)
 
     body = {"detail": exc.detail}

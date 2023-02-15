@@ -57,9 +57,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             - file_identifier_length:   This is the length in characters that the unique identifier part of the
                                         filename takes up. Usually this is based on a datetime.
         """
-        self.repository_folder = Path(get_setting("REPO_FOLDER")).joinpath(
-            self._get_repo_sub_folder()
-        )
+        self.repository_folder = Path(get_setting("REPO_FOLDER")).joinpath(self._get_repo_sub_folder())
         self.logger = structlog.get_logger(__name__)
         self.repository_name = None
         self.file_prefix = None
@@ -85,9 +83,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         This function checks whether the repository folder already exists (starting from its parent folder)
         and creates it, if it (or its parent folder) don't exist yet.
         """
-        if not Path(
-                self.repository_folder
-        ).exists():  # If the folder doesn't exist yet, create it
+        if not Path(self.repository_folder).exists():  # If the folder doesn't exist yet, create it
             self.logger.debug(
                 f"Attempting to create folder[{self.repository_folder}]",
                 datetime=datetime.utcnow(),
@@ -125,9 +121,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     def update(self):
         print("This method is abstract and should be overridden.")
 
-    def gather_period(
-            self, begin: datetime, end: datetime, coordinates: List[GeoPosition]
-    ) -> xr.Dataset:
+    def gather_period(self, begin: datetime, end: datetime, coordinates: List[GeoPosition]) -> xr.Dataset:
         """
             A function that gathers the repository files associated with a requested period, and then returns the full
             weather data that matches both that period as the requested locations from those files, as a Xarray Dataset
@@ -153,16 +147,19 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
                 f"No files were found for the period of {begin} to {end}",
                 datetime=datetime.utcnow(),
             )
-            raise HTTPException(404, f"No data was found for the period of [{begin.date()}] to [{end.date()}] in "
-                                     f"repository [{self.repository_name}]. As this range lies within the repository's "
-                                     f"storage timeframe of [{self.first_day_of_repo}] to [{self.last_day_of_repo}], "
-                                     f"we suggest retrying in a couple of days. If still no data is found at that time,"
-                                     f"please contact us at [weather.provider@alliander.com].")
+            raise HTTPException(
+                404,
+                f"No data was found for the period of [{begin.date()}] to [{end.date()}] in "
+                f"repository [{self.repository_name}]. As this range lies within the repository's "
+                f"storage timeframe of [{self.first_day_of_repo}] to [{self.last_day_of_repo}], "
+                f"we suggest retrying in a couple of days. If still no data is found at that time,"
+                f"please contact us at [weather.provider@alliander.com].",
+            )
 
         # Load files into datasets, select the requested data and aggregate that into a single dataset
         ds = xr.Dataset()
         for file in file_list:
-            self.logger.debug(f'Processing file: {file}', datetime=datetime.utcnow())
+            self.logger.debug(f"Processing file: {file}", datetime=datetime.utcnow())
             ds_temp = xr.open_dataset(file).load()
 
             ds_temp = self._filter_dataset_by_coordinates(coordinates, ds_temp)
@@ -186,9 +183,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             return ds
 
         # Raise a FileNotFoundError if the file doesn't exist
-        self.logger.error(
-            f"File [{str(file)} does not exist]", datetime=datetime.utcnow()
-        )
+        self.logger.error(f"File [{str(file)} does not exist]", datetime=datetime.utcnow())
         raise FileNotFoundError
 
     def purge_repository(self):
@@ -212,18 +207,13 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         # TODO: Enhance the detection of files that do not belong in the folder.
         #       A repository folder should only have repository files..
         len_filename_until_after_date = (
-                len(str(self.repository_folder.joinpath(self.file_prefix)))
-                + self.file_identifier_length
-                + 2
+            len(str(self.repository_folder.joinpath(self.file_prefix))) + self.file_identifier_length + 2
         )
-        for file_name in glob.glob(
-                str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"
-        ):
+        for file_name in glob.glob(str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"):
             file_suffix = file_name[len_filename_until_after_date:-3]
             if len(file_suffix) != 0 and file_suffix not in self.permanent_suffixes:
                 self.logger.debug(
-                    f"File [{file_name}] is not a permanent file for {self.repository_name} "
-                    f"and needs to be deleted"
+                    f"File [{file_name}] is not a permanent file for {self.repository_name} " f"and needs to be deleted"
                 )
                 self._safely_delete_file(file_name)
 
@@ -236,18 +226,12 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         A function that selects the proper file to keep when more than one permanent file exists for a given
         identifier. The other files are deleted.
         """
-        len_filename_until_date = (
-                len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
-        )
-        file_list = glob.glob(
-            str(self.repository_folder.joinpath(self.file_prefix)) + "*.*"
-        )
+        len_filename_until_date = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+        file_list = glob.glob(str(self.repository_folder.joinpath(self.file_prefix)) + "*.*")
         identifier_list = list(
             set(
                 [
-                    file[
-                        len_filename_until_date: len_filename_until_date + self.file_identifier_length
-                    ]
+                    file[len_filename_until_date : len_filename_until_date + self.file_identifier_length]
                     for file in file_list
                 ]
             )
@@ -255,23 +239,16 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
 
         for identifier in identifier_list:
             files_with_specific_identifier = glob.glob(
-                str(self.repository_folder.joinpath(self.file_prefix))
-                + "_"
-                + identifier
-                + "*.nc"
+                str(self.repository_folder.joinpath(self.file_prefix)) + "_" + identifier + "*.nc"
             )
 
             if len(files_with_specific_identifier) > 1:
-                self.logger.debug(
-                    f"More than one file was found for identifier [{identifier}]"
-                )
+                self.logger.debug(f"More than one file was found for identifier [{identifier}]")
                 file_to_retain = None
                 highest_ranking_suffix = None
 
                 for file in files_with_specific_identifier:
-                    suffix = file[
-                             len_filename_until_date + self.file_identifier_length + 1: -3
-                             ]
+                    suffix = file[len_filename_until_date + self.file_identifier_length + 1 : -3]
 
                     if highest_ranking_suffix is None or suffix == "":
                         highest_ranking_suffix = suffix
@@ -288,11 +265,9 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
                         self._safely_delete_file(str(Path(file)))
 
     def _safely_delete_file(self, file: str):
-        """ Basic function to safely remove files from the repository if possible, and supply errors if not """
+        """Basic function to safely remove files from the repository if possible, and supply errors if not"""
         try:
-            self.logger.debug(
-                f"Safely deleting file [{file}]", datetime=datetime.utcnow()
-            )
+            self.logger.debug(f"Safely deleting file [{file}]", datetime=datetime.utcnow())
             Path(file).unlink()
         except OSError as e:
             self.logger.error(f"Could not safely delete file: {e}")
@@ -303,9 +278,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     def _get_file_list_for_period(self, start: datetime, end: datetime):
         print("This method is abstract and should be overridden.")
 
-    def _filter_dataset_by_coordinates(
-            self, coordinates: List[GeoPosition], ds: xr.Dataset
-    ) -> xr.Dataset:
+    def _filter_dataset_by_coordinates(self, coordinates: List[GeoPosition], ds: xr.Dataset) -> xr.Dataset:
         """
             A function that filters a given Xarray Dataset down to the values matching a given list of locations.
         Args:
@@ -320,11 +293,9 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         for coordinate in coordinate_list:
             # First filter a single coordinate in the list
             ds_single_coord = ds.stack(dimensions={"coord": ["lat", "lon"]})
+            ds_single_coord = ds_single_coord.where(ds_single_coord.lat == coordinate.get_WGS84()[0], drop=True)
             ds_single_coord = ds_single_coord.where(
-                ds_single_coord.lat == coordinate.get_WGS84()[0], drop=True
-            )
-            ds_single_coord = ds_single_coord.where(
-                ds_single_coord.lon.round(3) == coordinate.get_WGS84()[1], drop=True
+                ds_single_coord.lon.round(3) == coordinate.get_WGS84()[1].round(3), drop=True
             )
             ds_single_coord = ds_single_coord.unstack("coord")
             # Then append this to a clean list

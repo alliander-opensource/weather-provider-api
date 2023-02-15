@@ -20,17 +20,13 @@ from slowapi.errors import RateLimitExceeded
 from starlette.responses import RedirectResponse
 
 from weather_provider_api.app_config import get_setting
-from weather_provider_api.core.initializers.error_handling import \
-    initialize_error_handling
-from weather_provider_api.core.initializers.headers import \
-    initialize_metadata_header_middleware
+from weather_provider_api.core.initializers.error_handling import initialize_error_handling
+from weather_provider_api.core.initializers.headers import initialize_metadata_header_middleware
 from weather_provider_api.core.initializers.logging import initialize_logging
-from weather_provider_api.core.initializers.monitoring import \
-    initialize_prometheus_middleware
+from weather_provider_api.core.initializers.monitoring import initialize_prometheus_middleware
 from weather_provider_api.core.initializers.mounting import mount_api_version
 from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
-from weather_provider_api.core.initializers.validation import \
-    initialize_validation_middleware
+from weather_provider_api.core.initializers.validation import initialize_validation_middleware
 from weather_provider_api.versions.v1 import app as v1
 from weather_provider_api.versions.v2 import app as v2
 
@@ -44,9 +40,9 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Enable logging
 initialize_logging()
 logger = structlog.get_logger(__name__)
-logger.info('--------------------------------------', datetime=datetime.utcnow())
-logger.info('Booting Weather Provider API Systems..', datetime=datetime.utcnow())
-logger.info('--------------------------------------', datetime=datetime.utcnow())
+logger.info("--------------------------------------", datetime=datetime.utcnow())
+logger.info("Booting Weather Provider API Systems..", datetime=datetime.utcnow())
+logger.info("--------------------------------------", datetime=datetime.utcnow())
 
 # Create and configure new application instance
 initialize_error_handling(app)
@@ -66,9 +62,9 @@ def redirect_to_docs():
     return RedirectResponse(url=redirect_url)
 
 
-logger.info(f'--------------------------------------', datetime=datetime.utcnow())
-logger.info(f'Finished booting; starting uvicorn...', datetime=datetime.utcnow())
-logger.info(f'--------------------------------------', datetime=datetime.utcnow())
+logger.info(f"--------------------------------------", datetime=datetime.utcnow())
+logger.info(f"Finished booting; starting uvicorn...", datetime=datetime.utcnow())
+logger.info(f"--------------------------------------", datetime=datetime.utcnow())
 
 
 def main():
