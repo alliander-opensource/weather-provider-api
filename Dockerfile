@@ -11,7 +11,7 @@ WORKDIR $PYSETUP_PATH
 COPY pyproject.toml ./
 
     # Install the runtime environment dependencies (The $POETRY_VIRTUALENVS_IN_PROJECT value ensures an environment)
-RUN poetry install --without dev
+RUN poetry install --no-interaction --no-ansi -vvv --without dev
 
 WORKDIR /
 COPY ./weather_provider_api ./weather_provider_api

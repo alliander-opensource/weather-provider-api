@@ -74,6 +74,7 @@ class WeatherFormattingRequestQuery:
 # Note: I'd love to combine the (almost) duplicate entries below, but the hybrid solutions don't work in FastAPI 0.30.
 @dataclass
 class WeatherContentRequestQuery:
+    # TODO: Change Example value to current date base values
     begin: str = Query(None, description="From date and time", example="2019-01-01 00:00")
     end: str = Query(None, description="To date and time", example="2019-01-31 23:59")
     lat: float = Query(..., description="GPS Latitude or RD x-coordinate", example=52.10)
