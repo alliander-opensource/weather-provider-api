@@ -12,11 +12,11 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-fastapi = "^0.88.0"
+fastapi = "^0.95.1"
 requests = "^2.28.1"
 geopy = "^2.3.0"
 numpy = "^1.23.5"
-structlog = "^22.3.0"
+structlog = "^23.1.0"
 gunicorn = "^20.1.0"
 eccodes = "^1.5.0"
 accept-types = "^0.4.1"
@@ -24,13 +24,14 @@ lxml = "^4.9.1"
 starlette-prometheus = "^0.9.0"
 beautifulsoup4 = "^4.11.1"
 netcdf4 = "^1.6.2"
-ecmwflibs = "^0.5.0"
 tomli = "^2.0.1"
-pandas = "^1.5.2"
+pandas = "1.5.3"
 xarray = "^2022.12.0"
 cfgrib = "^0.9.10.3"
-uvicorn = "^0.20.0"
+uvicorn = "^0.21.1"
 slowapi = "^0.1.7"
+ecmwflibs = "0.5.1"
+starlette = "^0.26.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
@@ -57,3 +58,4 @@ max-line-length = 120
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
