@@ -195,6 +195,9 @@ async def get_sync_weather_multi_loc(
     fmt_args: WeatherFormattingRequestQuery = Depends(),
     accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
+    starting_time = datetime.utcnow()
+    logger.info(f"WeatherRequest({starting_time}): {request.url}", datetime=datetime.utcnow())
+
     source_id = source_id.lower()
     model_id = model_id.lower()
 
@@ -238,5 +241,5 @@ async def get_sync_weather_multi_loc(
         converted_weather_data, response_format, source_id, model_id, ret_args, coords
     )
     cleanup_tasks.add_task(remove_file, optional_file_path)
-
+    logger.info(f"WeatherRequest({starting_time}) data preparation finished.", datetime=datetime.utcnow())
     return response
