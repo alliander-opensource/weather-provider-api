@@ -187,13 +187,15 @@ async def get_alarm():  # pragma: no cover
 
 # Handler for requests with multiple locations:
 @app.get("/sources/{source_id}/models/{model_id}/multiple-locations/", tags=["sync"])
+@API_RATE_LIMITER.limit("5/minute")
 async def get_sync_weather_multi_loc(
-    source_id: str,
-    model_id: str,
-    cleanup_tasks: BackgroundTasks,
-    ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
-    fmt_args: WeatherFormattingRequestQuery = Depends(),
-    accept: str = Depends(header_accept_type),
+        request: Request,
+        source_id: str,
+        model_id: str,
+        cleanup_tasks: BackgroundTasks,
+        ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
+        fmt_args: WeatherFormattingRequestQuery = Depends(),
+        accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
     starting_time = datetime.utcnow()
     logger.info(f"WeatherRequest({starting_time}): {request.url}", datetime=datetime.utcnow())
