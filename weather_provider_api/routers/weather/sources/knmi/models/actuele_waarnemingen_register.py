@@ -1,25 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" KNMI current weather data fetcher.
+""" KNMI current weather data aggregate fetcher.
 """
 import copy
+from datetime import datetime
 from typing import List, Optional
 
 import numpy as np
 import structlog
 import xarray as xr
+from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
-from weather_provider_api.routers.weather.sources.knmi.stations import (
-    stations_actual,
+from weather_provider_api.routers.weather.sources.knmi.client.actuele_waarnemingen_register_repository import (
+    ActueleWaarnemingenRegisterRepository,
 )
+from weather_provider_api.routers.weather.sources.knmi.stations import stations_actual
 from weather_provider_api.routers.weather.sources.knmi.utils import (
     find_closest_stn_list,
-    download_actuele_waarnemingen_weather,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
@@ -27,23 +29,26 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 logger = structlog.get_logger(__name__)
 
 
-class ActueleWaarnemingenModel(WeatherModelBase):
+class ActueleWaarnemingenRegisterModel(WeatherModelBase):
     """
-    A Weather Model that incorporates the:
-    "KNMI Actuele Waarnemingen" dataset into the Weather Provider API
+    A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset.
     """
+
+    def is_async(self):
+        return self.async_model
 
     def __init__(self):
         super().__init__()
-        self.id = "waarnemingen"
-        self.name = "KNMI Actuele Waarnemingen"
+        self.id = "waarnemingen_register"
+        self.name = "KNMI Actuele Waarnemingen - 48 uur register"
         self.version = None
         self.url = "https://www.knmi.nl/nederland-nu/weer/waarnemingen"
         self.predictive = False
         self.time_step_size_minutes = 10
-        self.num_time_steps = 1
-        self.description = "Current weather observations. Updated every 10 minutes."
+        self.num_time_steps = 12
+        self.description = "48 Hour register for current weather observations. Updated every 10 minutes."
         self.async_model = False
+        self.repository = ActueleWaarnemingenRegisterRepository()
 
         self.to_si = {
             "weather_description": {
@@ -70,10 +75,10 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         weather_factors: List[str] = None,
     ) -> xr.Dataset:
         """
-        The function that gathers and processes the requested Actuele Waarnemingen weather data from the KNMI site
-        and returns it as a Xarray Dataset.
-        (This model interprets directly from an HTML page, but the information is also available from the data
-        platform. Due to it being rather impractically handled, we stick to the site for now.)
+        The function that gathers and processes the requested Actuele Waarnemingen Register weather data from the
+        48-hour register and returns it as a Xarray Dataset.
+        (The register for this model interprets directly from an HTML page, but the information is also available from
+        the data platform. Due to it being rather impractically handled, we stick to the site for now.)
 
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
@@ -88,36 +93,32 @@ class ActueleWaarnemingenModel(WeatherModelBase):
             As this model only return the current weather data the 'begin' and 'end' values are not actually used.
         """
         updated_weather_factors = self._request_weather_factors(weather_factors)
+        coords_stn, _, _ = find_closest_stn_list(stations_actual, coords)
 
-        # Download the current weather data
-        raw_ds = download_actuele_waarnemingen_weather()
-        print(raw_ds)
+        now = datetime.utcnow()
+        if now - relativedelta(days=1) > begin:
+            raw_ds = self.repository.get_48_hour_registry_for_station(
+                station=coords_stn
+            )
+        else:
+            raw_ds = self.repository.get_24_hour_registry_for_station(
+                station=coords_stn
+            )
 
-        # Get a list of the relevant STNs and choose the closest STN for each coordinate
-        coords_stn, _, _ = find_closest_stn_list(
-            stations_actual, coords
-        )
-
-        # Select the data for the found closest STNs
-        ds = raw_ds.sel(STN=coords_stn)
-
-        data_dict = {
+        data_dictionary = {
             var_name: (["time", "coord"], var.values)
-            for var_name, var in ds.data_vars.items()
+            for var_name, var in raw_ds.data_vars.items()
             if var_name in updated_weather_factors and var_name not in ["lat", "lon"]
         }
 
-        timeline = ds.coords["time"].values
+        timeline = raw_ds.coords["time"].values
 
-        ds = xr.Dataset(
-            data_vars=data_dict,
+        output_ds = xr.Dataset(
+            data_vars=data_dictionary,
             coords={"time": timeline, "coord": coords_to_pd_index(coords)},
         )
-        ds = ds.unstack("coord")
-        return ds
-
-    def is_async(self):  # pragma: no cover
-        return self.async_model
+        output_ds = output_ds.unstack("coord")
+        return output_ds
 
     def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
         # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
