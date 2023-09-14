@@ -94,9 +94,7 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         print(raw_ds)
 
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
-        coords_stn, _, _ = find_closest_stn_list(
-            stations_actual, coords
-        )
+        coords_stn, _, _ = find_closest_stn_list(stations_actual, coords)
 
         # Select the data for the found closest STNs
         ds = raw_ds.sel(STN=coords_stn)
