@@ -328,7 +328,7 @@ class DagGegevensModel(WeatherModelBase):
             var_name: (["coord", "time"], var.values)
             for var_name, var in ds.data_vars.items()
         }
-        timeline = ds.coords["date"].values
+        timeline = pd.DatetimeIndex(ds.coords["date"].values)
 
         ds = xr.Dataset(
             data_vars=data_dict,

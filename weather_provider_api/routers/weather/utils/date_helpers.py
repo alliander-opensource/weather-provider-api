@@ -25,7 +25,7 @@ def parse_datetime(
     if datetime_string is None:
         return None
 
-    dt = pd.to_datetime(datetime_string, dayfirst=True, errors="coerce")
+    dt = pd.to_datetime(datetime_string, dayfirst=False, errors="coerce")
 
     if pd.isnull(dt):
         logger.exception("Error while parsing datetime string", input=datetime_string)
