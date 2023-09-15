@@ -13,6 +13,8 @@ import requests
 import xarray as xr
 
 from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
+from weather_provider_api.routers.weather.sources.knmi.utils import download_actuele_waarnemingen_weather, \
+    _retrieve_observation_moment
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
@@ -42,20 +44,16 @@ def test_get_weather(mock_coordinates, start, end):
 @pytest.mark.skip(reason="Test currently not working via Tox on GitHub Actions")
 def test__retrieve_observation_date():
     # Test to verify error handling
-    aw_model = ActueleWaarnemingenModel()
-
     current_locale = locale.getlocale(locale.LC_TIME)
     locale.setlocale(locale.LC_TIME, "dutch")
-    assert aw_model.retrieve_observation_moment(None).date() == datetime.now().date()  # System now
+    assert _retrieve_observation_moment(None).date() == datetime.now().date()  # System now
     locale.setlocale(locale.LC_TIME, current_locale)
 
 
 def test__download_weather(monkeypatch):
     # Test to verify error handling
-    aw_model = ActueleWaarnemingenModel()
-
     def mock_request_get(_, *args, **kwargs):
         raise requests.exceptions.BaseHTTPError("Fake BaseHTTP Error!")
 
     monkeypatch.setattr(requests, "get", mock_request_get)
-    assert aw_model._download_weather() is None
+    assert download_actuele_waarnemingen_weather() is None
