@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weather_provider_api"
-version = "2.41.0"
+version = "2.43"
 description = "Weather Provider Libraries and API"
 authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -11,13 +11,13 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
-fastapi = "^0.95.1"
+python = ">=3.8,<3.12"
+fastapi = "^0.103.1"
 requests = "^2.28.1"
 geopy = "^2.3.0"
-numpy = "^1.23.5"
+numpy = "^1.24.4"
 structlog = "^23.1.0"
-gunicorn = "^20.1.0"
+gunicorn = "^21.2.0"
 eccodes = "^1.5.0"
 accept-types = "^0.4.1"
 lxml = "^4.9.1"
@@ -25,13 +25,13 @@ starlette-prometheus = "^0.9.0"
 beautifulsoup4 = "^4.11.1"
 netcdf4 = "^1.6.2"
 tomli = "^2.0.1"
-pandas = "1.5.3"
-xarray = "^2022.12.0"
+pandas = "2.0.3"
+xarray = "^2022.8.0"
 cfgrib = "^0.9.10.3"
 uvicorn = "^0.21.1"
 slowapi = "^0.1.7"
 ecmwflibs = "0.5.1"
-starlette = "^0.26.1"
+starlette = "^0.27.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
@@ -47,9 +47,11 @@ pylint = "^2.15.10"
 wpla_update_era5sl = "weather_provider_api.scripts.update_era5sl_repository:main"
 wpla_update_era5land = "weather_provider_api.scripts.update_era5land_repository:main"
 wpla_update_arome = "weather_provider_api.scripts.update_arome_repository:main"
+wpla_update_waarnemingen = "weather_provider_api.scripts.update_waarnemingen_register:main"
 wpla_clear_era5sl = "weather_provider_api.scripts.erase_era5sl_repository:main"
 wpla_clear_era5land = "weather_provider_api.scripts.erase_era5land_repository:main"
 wpla_clear_arome = "weather_provider_api.scripts.erase_arome_repository:main"
+wpla_clear_waarnemingen = "weather_provider_api.scripts.erase_waarnemingen_register:main"
 wpla_run_api = "weather_provider_api.main:main"
 
 [tool.pylint]

@@ -20,9 +20,13 @@ class BaseConfig(object):
     """
 
     APP_NAME = os.environ.get("APP_NAME", __name__)
-    APP_DESCRIPTION = os.environ.get("APP_DESCRIPTION", """Alliander Weather Provider API""")
+    APP_DESCRIPTION = os.environ.get(
+        "APP_DESCRIPTION", """Alliander Weather Provider API"""
+    )
     APP_MAINTAINER = os.environ.get("APP_MAINTAINER", "DNB/ST Innovatieteam")
-    APP_MAINTAINER_EMAIL = os.environ.get("APP_MAINTAINER_EMAIL", "weather.provider@alliander.com")
+    APP_MAINTAINER_EMAIL = os.environ.get(
+        "APP_MAINTAINER_EMAIL", "weather.provider@alliander.com"
+    )
     SHOW_MAINTAINER = os.environ.get("SHOW_MAINTAINER", False)
 
     default_version = None
@@ -51,7 +55,9 @@ class BaseConfig(object):
     DEPLOYED = os.environ.get("DEPLOYED", False)
     DEBUG = os.environ.get("DEBUG", True)
 
-    REPO_FOLDER = os.environ.get("REPO_FOLDER", f"{tempfile.gettempdir()}/Weather_Repository")
+    REPO_FOLDER = os.environ.get(
+        "REPO_FOLDER", f"{tempfile.gettempdir()}/Weather_Repository"
+    )
 
 
 class LocalConfig(BaseConfig):
