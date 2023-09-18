@@ -251,7 +251,6 @@ class UurgegevensModel(WeatherModelBase):
         dataframe_data = pd.DataFrame.from_dict(json_data, orient="columns")
 
         conversion_dict = {
-            "date": "datetime64[ns]",
             "hour": str,
             "station_code": int,
         }
@@ -262,6 +261,7 @@ class UurgegevensModel(WeatherModelBase):
         # KNMI measures the -th hour. (The 24th hour is from 23:00 to 00:00 the next day) We use 23:00 to indicate that.
         dataframe_data["hour"] = dataframe_data["hour"] - 1
         dataframe_data = dataframe_data.astype(conversion_dict)
+        dataframe_data["date"] = pd.to_datetime(dataframe_data["date"])
 
         # Convert hours from time to timestamp
         dataframe_data["timestamp"] = pd.to_timedelta(dataframe_data["hour"] + ":00:00")
@@ -284,7 +284,7 @@ class UurgegevensModel(WeatherModelBase):
 
         # dict of data
         data_dict = {var_name: (["coord", "time"], var.values) for var_name, var in ds.data_vars.items()}
-        timeline = ds.coords["date"].values
+        timeline = pd.DatetimeIndex(ds.coords["date"].values)
 
         ds = xr.Dataset(
             data_vars=data_dict,

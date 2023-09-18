@@ -62,9 +62,9 @@ def redirect_to_docs():
     return RedirectResponse(url=redirect_url)
 
 
-logger.info(f"--------------------------------------", datetime=datetime.utcnow())
-logger.info(f"Finished booting; starting uvicorn...", datetime=datetime.utcnow())
-logger.info(f"--------------------------------------", datetime=datetime.utcnow())
+logger.info("--------------------------------------", datetime=datetime.utcnow())
+logger.info("Finished booting; starting uvicorn...", datetime=datetime.utcnow())
+logger.info("--------------------------------------", datetime=datetime.utcnow())
 
 
 def main():

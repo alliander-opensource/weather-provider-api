@@ -5,11 +5,22 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 from weather_provider_api.routers.weather.base_models.source import WeatherSourceBase
-from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
-from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import DagGegevensModel
-from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import HarmonieAromeModel
+from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import (
+    ActueleWaarnemingenModel,
+)
+from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen_register import (
+    ActueleWaarnemingenRegisterModel,
+)
+from weather_provider_api.routers.weather.sources.knmi.models.daggegevens import (
+    DagGegevensModel,
+)
+from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import (
+    HarmonieAromeModel,
+)
 from weather_provider_api.routers.weather.sources.knmi.models.pluim import PluimModel
-from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import UurgegevensModel
+from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import (
+    UurgegevensModel,
+)
 
 
 class KNMI(WeatherSourceBase):
@@ -20,6 +31,7 @@ class KNMI(WeatherSourceBase):
             HarmonieAromeModel(),
             PluimModel(),
             ActueleWaarnemingenModel(),
+            ActueleWaarnemingenRegisterModel(),
         ]
 
         self.id = "knmi"
