@@ -47,9 +47,11 @@ pylint = "^2.15.10"
 wpla_update_era5sl = "weather_provider_api.scripts.update_era5sl_repository:main"
 wpla_update_era5land = "weather_provider_api.scripts.update_era5land_repository:main"
 wpla_update_arome = "weather_provider_api.scripts.update_arome_repository:main"
+wpla_update_waarnemingen = "weather_provider_api.scripts.update_waarnemingen_register:main"
 wpla_clear_era5sl = "weather_provider_api.scripts.erase_era5sl_repository:main"
 wpla_clear_era5land = "weather_provider_api.scripts.erase_era5land_repository:main"
 wpla_clear_arome = "weather_provider_api.scripts.erase_arome_repository:main"
+wpla_clear_waarnemingen = "weather_provider_api.scripts.erase_waarnemingen_register:main"
 wpla_run_api = "weather_provider_api.main:main"
 
 [tool.pylint]

@@ -51,6 +51,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         self.runtime_limit = 3 * 60  # Three minutes maximum runtime
         self.permanent_suffixes = []
         self.filename = self.repository_folder / f"{self.file_prefix}_register.nc"
+        self.file_identifier_length = 0
 
         self.logger.debug(
             f"Initialized the [{self.repository_name}] repository",
