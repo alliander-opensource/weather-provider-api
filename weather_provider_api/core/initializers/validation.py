@@ -10,8 +10,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from weather_provider_api.app_config import get_setting
-from weather_provider_api.core.errors.exceptions import APIExpiredException
-from weather_provider_api.core.initializers.error_handling import handle_http_exception
+from weather_provider_api.core.exceptions.exceptions import APIExpiredException
+from weather_provider_api.core.initializers.exception_handling import handle_http_exception
 
 
 def initialize_validation_middleware(app):
