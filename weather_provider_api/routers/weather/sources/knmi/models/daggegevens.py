@@ -205,13 +205,9 @@ class DagGegevensModel(WeatherModelBase):
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
         # Test and account for invalid datetime timeframes or input
-        begin, end = validate_begin_and_end(
-            begin, end, None, datetime.utcnow() - relativedelta(days=1)
-        )
+        begin, end = validate_begin_and_end(begin, end, None, datetime.utcnow() - relativedelta(days=1))
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
-        station_id, stns, coords_stn_ind = find_closest_stn_list(
-            stations_history, coords
-        )
+        station_id, stns, coords_stn_ind = find_closest_stn_list(stations_history, coords)
 
         # Download the weather data for the relevant STNs
         raw_data = self._download_weather(
@@ -255,9 +251,7 @@ class DagGegevensModel(WeatherModelBase):
             A field containing the full response of the made download-request (text-based)
         """
         # fetch data
-        params = self._create_request_params(
-            start, end, inseason, stations, weather_factors
-        )
+        params = self._create_request_params(start, end, inseason, stations, weather_factors)
         r = requests.post(url=self.download_url, data=params)
 
         if r.status_code != 200:
@@ -324,10 +318,7 @@ class DagGegevensModel(WeatherModelBase):
         ds = raw_ds.sel(station_code=station_id)
 
         # dict of data
-        data_dict = {
-            var_name: (["coord", "time"], var.values)
-            for var_name, var in ds.data_vars.items()
-        }
+        data_dict = {var_name: (["coord", "time"], var.values) for var_name, var in ds.data_vars.items()}
         timeline = pd.DatetimeIndex(ds.coords["date"].values)
 
         ds = xr.Dataset(

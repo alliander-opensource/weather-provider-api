@@ -22,6 +22,8 @@ from weather_provider_api.routers.weather.utils.date_helpers import validate_beg
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 logger = structlog.get_logger(__name__)
+
+
 class ERA5SLModel(WeatherModelBase):
     """
     A Weather Model that incorporates the:
