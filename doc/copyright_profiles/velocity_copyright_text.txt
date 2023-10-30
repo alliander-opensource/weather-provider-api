@@ -1,0 +1,2 @@
+SPDX-FileCopyrightText: 2019-$today.year Alliander N.V.
+SPDX-License-Identifier: MPL-2.0

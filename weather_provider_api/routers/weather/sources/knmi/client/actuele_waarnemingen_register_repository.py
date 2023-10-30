@@ -31,9 +31,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
     def _delete_files_outside_of_scope(self):
         if self.filename.exists():
             current_data = xr.load_dataset(self.filename, engine="netcdf4")
-            current_data = current_data.sel(
-                time=slice(self.first_day_of_repo, self.last_day_of_repo)
-            )
+            current_data = current_data.sel(time=slice(self.first_day_of_repo, self.last_day_of_repo))
             current_data.to_netcdf(self.filename, format="NETCDF4")
 
     def _get_file_list_for_period(self, start: datetime, end: datetime):
@@ -107,9 +105,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         # Update the file
         self._update_file_with_new_data(new_data_ds=raw_weather_ds, update_moment=time)
 
-    def _update_file_with_new_data(
-        self, new_data_ds: xr.Dataset, update_moment: datetime
-    ):
+    def _update_file_with_new_data(self, new_data_ds: xr.Dataset, update_moment: datetime):
         """This method updates any existing data file with new data or creates a new from scratch if needed, using the
          given dataset.
 
@@ -156,9 +152,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         stored_data_ds = xr.load_dataset(self.filename, engine="netcdf4")
         return stored_data_ds.sel(
             STN=station,
-            time=slice(
-                self.first_day_of_repo + relativedelta(days=1), self.last_day_of_repo
-            ),
+            time=slice(self.first_day_of_repo + relativedelta(days=1), self.last_day_of_repo),
         )
 
     def get_48_hour_registry_for_station(self, station: int) -> xr.Dataset:

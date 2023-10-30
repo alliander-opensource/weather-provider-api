@@ -97,13 +97,9 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
 
         now = datetime.utcnow()
         if now - relativedelta(days=1) > begin:
-            raw_ds = self.repository.get_48_hour_registry_for_station(
-                station=coords_stn
-            )
+            raw_ds = self.repository.get_48_hour_registry_for_station(station=coords_stn)
         else:
-            raw_ds = self.repository.get_24_hour_registry_for_station(
-                station=coords_stn
-            )
+            raw_ds = self.repository.get_24_hour_registry_for_station(station=coords_stn)
 
         data_dictionary = {
             var_name: (["time", "coord"], var.values)

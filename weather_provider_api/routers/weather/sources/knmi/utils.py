@@ -71,9 +71,7 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
     raw_ds = None
 
     try:
-        knmi_site_response = requests.get(
-            "https://www.knmi.nl/nederland-nu/weer/waarnemingen"
-        )
+        knmi_site_response = requests.get("https://www.knmi.nl/nederland-nu/weer/waarnemingen")
 
         if knmi_site_response.ok:
             knmi_site_df = pd.read_html(knmi_site_response.text)[0]
@@ -94,34 +92,22 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
             # Rename to the conventional naming system used for the Weather Provider API
             for dictionary_item in knmi_site_df.columns.copy(deep=True):
                 if dictionary_item in column_translations.keys():
-                    knmi_site_df = knmi_site_df.rename(
-                        columns={dictionary_item: column_translations[dictionary_item]}
-                    )
+                    knmi_site_df = knmi_site_df.rename(columns={dictionary_item: column_translations[dictionary_item]})
                 else:
                     knmi_site_df = knmi_site_df.drop(dictionary_item, axis="columns")
 
-            current_observation_moment = _retrieve_observation_moment(
-                knmi_site_response.text
-            )
+            current_observation_moment = _retrieve_observation_moment(knmi_site_response.text)
             knmi_site_df["time"] = current_observation_moment
             if "wind_direction" in knmi_site_df:
-                knmi_site_df["wind_direction"] = knmi_site_df[
-                    "wind_direction"
-                ].str.strip("\n")
+                knmi_site_df["wind_direction"] = knmi_site_df["wind_direction"].str.strip("\n")
 
             # Add a field for the station with its (lat, lon)-coordinates and remove the original station code
-            knmi_site_df["STN"] = knmi_site_df["station"].apply(
-                lambda x: stations_actual_reversed[x.upper()]
-            )
+            knmi_site_df["STN"] = knmi_site_df["station"].apply(lambda x: stations_actual_reversed[x.upper()])
 
             stations_actual_indexed = stations_actual.set_index("STN")
 
-            knmi_site_df["lat"] = knmi_site_df["STN"].apply(
-                lambda x: stations_actual_indexed.loc[x, "lat"]
-            )
-            knmi_site_df["lon"] = knmi_site_df["STN"].apply(
-                lambda x: stations_actual_indexed.loc[x, "lon"]
-            )
+            knmi_site_df["lat"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lat"])
+            knmi_site_df["lon"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lon"])
             knmi_site_df = knmi_site_df.drop("station", axis="columns")
 
             # Rebuild the index

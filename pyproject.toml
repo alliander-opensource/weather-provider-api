@@ -32,14 +32,13 @@ slowapi = "^0.1.7"
 ecmwflibs = "0.5.1"
 starlette = "^0.27.0"
 loguru = "^0.7.2"
+black = "^23.10.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
 coverage = "^6.5.0"
 pytest-cov = "^4.0.0"
 isort = "^5.10.1"
-black = "^22.10.0"
-jupyter = "^1.0.0"
 pylint = "^2.15.10"
 
 
@@ -56,6 +55,9 @@ wpla_run_api = "weather_provider_api.main:main"
 
 [tool.pylint]
 max-line-length = 120
+
+[tool.black]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]

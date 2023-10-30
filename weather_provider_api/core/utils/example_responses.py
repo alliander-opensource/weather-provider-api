@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 def prepare_example_response(example_response, content_type: str = "application/json") -> dict:
-    """ A method to translate simple output example lists and dictionaries into FastAPI response dictionaries fit for
+    """A method to translate simple output example lists and dictionaries into FastAPI response dictionaries fit for
      use within the OpenAPI specifications and Swagger UI.
 
     Args:
