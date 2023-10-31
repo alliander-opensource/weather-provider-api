@@ -16,4 +16,4 @@ class BaseModel(PydanticBaseModel):
     """Minimal PydanticBaseMode expansion used in all base classes"""
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -6,7 +6,7 @@
 
 """ Exception Handling
 
-This module holds the
+This module holds the API's exception handler.
 """
 
 from fastapi import FastAPI
@@ -48,3 +48,6 @@ def initialize_exception_handler(application: FastAPI):
     """
     application.add_exception_handler(StarletteHTTPException, handler=handle_http_exception)
     logger.info(f"Attached the Exception Handler to the application ({application.title})...")
+
+
+NOT_IMPLEMENTED_ERROR = "This method is abstract and should be overridden."

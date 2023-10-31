@@ -54,7 +54,7 @@ def initialize_api_validation(application: FastAPI):
             return await call_next(request)  # No API call, no problem
 
         # Validate the base application
-        base_expiration_date = datetime.strptime(APP_CONFIG["base"]["expiry_date"], "YYYYMMDD").date()
+        base_expiration_date = datetime.strptime(APP_CONFIG["base"]["expiration_date"], "%Y-%m-%d").date()
         if today > base_expiration_date:
             response = await handle_http_exception(
                 request,
@@ -75,7 +75,7 @@ def initialize_api_validation(application: FastAPI):
 
         # Validate the expiry date of the specific API version used
         version_expiration_date = datetime.strptime(
-            APP_CONFIG[f"api_v{api_version_used}"]["expiry_date"], "YYYYMMDD"
+            APP_CONFIG[f"api_v{api_version_used}"]["expiration_date"], "%Y-%m-%d"
         ).date()
         if today > version_expiration_date:
             if not response:

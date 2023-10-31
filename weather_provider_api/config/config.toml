@@ -1,6 +1,6 @@
 [base]
 title = "WPLA"
-full_tile = "Weather Provider Libraries and API"
+full_title = "Weather Provider Libraries and API"
 description = """
     The Weather Provider Libraries and API (WPLA) is an Open Source Project intended to present an easy
     and uniform way to request meteorological data from a extensive numer of sources in a plethora of formats and

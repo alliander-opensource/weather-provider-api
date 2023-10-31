@@ -21,10 +21,10 @@ from weather_provider_api.config import APP_DEBUGGING, APP_CONFIG
 
 
 class LoggingInterceptHandler(logging.Handler):
-    """A class with the purpose of intercepting all project logging and forwarding it to our own custom logging system.
+    """A class with the purpose of intercepting all log messages, and forwarding it to our own custom logging system.
 
     Notes:
-        For our custom logging we use Loguru.
+        For our custom logging, we use Loguru.
 
     """
 
@@ -42,7 +42,7 @@ class LoggingInterceptHandler(logging.Handler):
          re-formats it (if needed) to match Loguru systems.
 
         Args:
-            record: The original logging LogRecord that holds a record to be converted.
+            record: The original logging LogRecord object that holds a record to be converted.
 
         Returns:
             Nothing. We bind the converted message directly to de Loguru logger for processing.
@@ -133,12 +133,12 @@ def initialize_logging():
             format=log_format,
         )
 
-    # Because Uvicorn already uses its own logger we'll also need to replace those:
+    # Because Uvicorn already uses its own logger, we'll also need to replace those:
     existing_uvicorn_loggers = (
         logging.getLogger(name) for name in logging.root.manager.loggerDict if name.startswith("uvicorn.")
     )
     for uvicorn_logger in existing_uvicorn_loggers:
         uvicorn_logger.handlers = [LoggingInterceptHandler()]
 
-    # Finally we hook up the LoggingInterceptHandler as the default handler
+    # Finally, we hook up the LoggingInterceptHandler as the default handler
     logging.basicConfig(handlers=[LoggingInterceptHandler()], level=0)

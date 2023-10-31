@@ -9,7 +9,7 @@ import math
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any, List
 
 from fastapi import Query
 from pydantic import Field
@@ -45,9 +45,9 @@ class ResponseFormat(str, Enum):
 class WeatherModel(BaseModel):
     id: str = Field(..., description="Model id")
     name: str = Field(..., description="Model name")
-    version: Optional[str] = Field(None, description="Model version")
-    url: Optional[str] = Field(None, description="Model URL")
-    description: Optional[str] = Field(None, description="Model description")
+    version: str = Field("", description="Model version")
+    url: str = Field("", description="Model URL")
+    description: str = Field("", description="Model description")
     predictive: bool = Field(..., description="Predictions or measurements")
     async_model: bool = Field(..., description="Whether the model should be called asynchronously")
     time_step_size_minutes: int = Field(..., description="Time between each measurement or prediction")

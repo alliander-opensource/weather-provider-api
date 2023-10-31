@@ -14,17 +14,15 @@ from typing import List
 import numpy as np
 import pandas as pd
 import requests
-import structlog
 import xarray as xr
 from geopy.distance import great_circle
+from loguru import logger
 
 from weather_provider_api.routers.weather.sources.knmi.stations import (
     stations_actual,
     stations_actual_reversed,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-
-logger = structlog.get_logger(__name__)
 
 
 def find_closest_stn_list(stn_stations: pd.DataFrame, coords: List[GeoPosition]):
@@ -153,15 +151,13 @@ def _retrieve_observation_moment(html_body: str):
     except locale.Error:
         logger.warning(
             "No locale could be determined for KNMI Waarnemingen datetime transformation. "
-            "Using local datetime instead.",
-            datetime=datetime.utcnow(),
+            "Using local datetime instead."
         )
         return datetime.now()
     except Exception as e:
         logger.exception(
             "An unknown exception occurred while retrieving the KNMI Waarnemingen datetime for use in the response."
-            f" Using local datetime instead. Error: {e}",
-            datetime=datetime.utcnow(),
+            f" Using local datetime instead. Error: {e}"
         )
         return datetime.now()
 
