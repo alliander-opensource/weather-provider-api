@@ -7,6 +7,7 @@
 """ Configuration folder """
 
 import os
+import tempfile
 from pathlib import Path
 
 from tomli import load
@@ -18,3 +19,4 @@ with config_file_path.open(mode="rb") as file_processor:
 
 APP_DEBUGGING = os.environ.get("WPLA_DEBUG", "False").lower() in ("true", "1", "y", "yes")
 APP_DEPLOYED = os.environ.get("WPLA_DEPLOYED", "False").lower() in ("true", "1", "y", "yes")
+APP_STORAGE_FOLDER = os.environ.get("WPLA_STORAGE_FOLDER", f"{tempfile.gettempdir()}/Weather_Repository")

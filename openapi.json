@@ -1,0 +1,639 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Weather API (v2)",
+    "description": "The v2 endpoint interface for the Weather Provider API",
+    "contact": {
+      "name": "Verbindingsteam",
+      "email": "weather.provider@alliander.com"
+    },
+    "version": "2.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://weather.appx.cloud/"
+    }
+  ],
+  "paths": {
+    "/weather/sources": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Get Sources",
+        "description": "<B>List all the Weather Sources available</B>",
+        "operationId": "get_sources_weather_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherSource"
+                  },
+                  "type": "array",
+                  "title": "Response Get Sources Weather Sources Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather/sources/{source_id}": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Get Source",
+        "description": "<B>List all the Models available  for the Source</B>",
+        "operationId": "get_source_weather_sources__source_id__get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherSource"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather/sources/{source_id}/models": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Get Sync Models",
+        "description": "<B>List all the synchronous Models available for the selected Source</B>",
+        "operationId": "get_sync_models_weather_sources__source_id__models_get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherModel"
+                  },
+                  "title": "Response Get Sync Models Weather Sources  Source Id  Models Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather/sources/{source_id}/models/{model_id}": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Get Sync Weather",
+        "description": "<B>Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.). <BR>\nThis data is then formatted as the requested output format (output unit system and file format) before returning the requested data.</B>\n\n<I>(Please note that as some models are predictive or otherwise restricted in the periods available for requests,\nthat sometimes the 'begin' and 'end' values will be altered to match these restrictions.)</I>",
+        "operationId": "get_sync_weather_weather_sources__source_id__models__model_id__get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "model_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Model Id"
+            }
+          },
+          {
+            "name": "begin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "From date and time",
+              "title": "Begin"
+            },
+            "description": "From date and time",
+            "example": "2019-01-01 00:00"
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "To date and time",
+              "title": "End"
+            },
+            "description": "To date and time",
+            "example": "2019-01-31 23:59"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "description": "GPS Latitude or RD x-coordinate",
+              "title": "Lat"
+            },
+            "description": "GPS Latitude or RD x-coordinate",
+            "example": 52.1
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "description": "GPS Longitude or RD y-coordinate",
+              "title": "Lon"
+            },
+            "description": "GPS Longitude or RD y-coordinate",
+            "example": 5.18
+          },
+          {
+            "name": "factors",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Only return these weather factors (default: all factors)",
+              "title": "Factors"
+            },
+            "description": "Only return these weather factors (default: all factors)"
+          },
+          {
+            "name": "units",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/OutputUnit"
+                }
+              ],
+              "description": "Unit of weather factors",
+              "default": "si",
+              "title": "Units"
+            },
+            "description": "Unit of weather factors"
+          },
+          {
+            "name": "response_format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ResponseFormat"
+                }
+              ],
+              "description": "Response format (overrides mime-types from Accept HTTP header)",
+              "default": "netcdf4",
+              "title": "Response Format"
+            },
+            "description": "Response format (overrides mime-types from Accept HTTP header)"
+          },
+          {
+            "name": "accept",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Accept"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather/alarms/knmi": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Get Alarm",
+        "description": "<B>Fetches the WeatherAlarm status for all the provinces from KNMI Weer Alarm and returns the results</B>",
+        "operationId": "get_alarm_weather_alarms_knmi_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather/sources/{source_id}/models/{model_id}/multiple-locations/": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Get Sync Weather Multi Loc",
+        "operationId": "get_sync_weather_multi_loc_weather_sources__source_id__models__model_id__multiple_locations__get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "model_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Model Id"
+            }
+          },
+          {
+            "name": "begin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "From date and time",
+              "title": "Begin"
+            },
+            "description": "From date and time",
+            "example": "2019-01-01 00:00"
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "To date and time",
+              "title": "End"
+            },
+            "description": "To date and time",
+            "example": "2019-01-31 23:59"
+          },
+          {
+            "name": "locations",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Locations in either WGS84 (lat,lon) or RD (x,y) format, in parentheses, separated by a comma",
+              "title": "Locations"
+            },
+            "description": "Locations in either WGS84 (lat,lon) or RD (x,y) format, in parentheses, separated by a comma",
+            "example": "(52.1, 5.18), (52.2, 5.22)"
+          },
+          {
+            "name": "factors",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Only return these weather factors (default: all factors)",
+              "title": "Factors"
+            },
+            "description": "Only return these weather factors (default: all factors)"
+          },
+          {
+            "name": "units",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/OutputUnit"
+                }
+              ],
+              "description": "Unit of weather factors",
+              "default": "si",
+              "title": "Units"
+            },
+            "description": "Unit of weather factors"
+          },
+          {
+            "name": "response_format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ResponseFormat"
+                }
+              ],
+              "description": "Response format (overrides mime-types from Accept HTTP header)",
+              "default": "netcdf4",
+              "title": "Response Format"
+            },
+            "description": "Response format (overrides mime-types from Accept HTTP header)"
+          },
+          {
+            "name": "accept",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Accept"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "OutputUnit": {
+        "type": "string",
+        "enum": [
+          "si",
+          "human",
+          "original"
+        ],
+        "title": "OutputUnit"
+      },
+      "ResponseFormat": {
+        "type": "string",
+        "enum": [
+          "netcdf4",
+          "netcdf3",
+          "json",
+          "json_dataset",
+          "csv"
+        ],
+        "title": "ResponseFormat"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WeatherModel": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Model id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Model name"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "Model version"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Model URL"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Model description"
+          },
+          "predictive": {
+            "type": "boolean",
+            "title": "Predictive",
+            "description": "Predictions or measurements"
+          },
+          "async_model": {
+            "type": "boolean",
+            "title": "Async Model",
+            "description": "Whether the model should be called asynchronously"
+          },
+          "time_step_size_minutes": {
+            "type": "integer",
+            "title": "Time Step Size Minutes",
+            "description": "Time between each measurement or prediction"
+          },
+          "num_time_steps": {
+            "type": "integer",
+            "title": "Num Time Steps",
+            "description": "Number of data points in the result set"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "predictive",
+          "async_model",
+          "time_step_size_minutes",
+          "num_time_steps"
+        ],
+        "title": "WeatherModel"
+      },
+      "WeatherSource": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Source id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Source name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Source URL"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherModel"
+            },
+            "type": "array",
+            "title": "Models",
+            "description": "Synchronous models"
+          },
+          "async_models": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherModel"
+            },
+            "type": "array",
+            "title": "Async Models",
+            "description": "Asynchronous models"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "WeatherSource"
+      }
+    }
+  }
+}

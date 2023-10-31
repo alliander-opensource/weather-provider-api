@@ -5,7 +5,6 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 """ Main executable module """
-import os
 
 import uvicorn
 from loguru import logger
@@ -44,13 +43,6 @@ def launch_api(run_mode: str = "uvicorn", host: str = "127.0.0.1", port: int = 8
     logger.info("-" * len(launch_string))
     logger.info(launch_string)
     logger.info("-" * len(launch_string))
-
-    logger.info(f"The launch_api() function received a request to start [{run_mode.capitalize()}] at: [{host}:{port}]")
-    if os.environ.get("HANA_USERNAME") is None or os.environ.get("HANA_PASSWORD") is None:
-        raise EnvironmentError(
-            "To run this API, the proper access to HANA (PRD) is required. Please supply these "
-            'credentials through "HANA_USERNAME" and "HANA_PASSWORD" environment variables'
-        )
 
     from weather_provider_api.core.application import WPLA_APPLICATION
 

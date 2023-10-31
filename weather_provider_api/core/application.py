@@ -38,7 +38,13 @@ def _build_api_application() -> FastAPI:
     app_description = APP_CONFIG["base"]["description"]
 
     # Setting up the base application
-    application = FastAPI(version=APP_VERSION, title=app_title, description=app_description)
+    application = FastAPI(
+        version=APP_VERSION,
+        title=app_title,
+        description=app_description,
+        contact={"name": APP_CONFIG["maintainer"]["name"], "email": APP_CONFIG["maintainer"]["email_address"]},
+    )
+    application.openapi_version = "3.0.2"
 
     # Attach logging
     application.add_event_handler("startup", initialize_logging)
@@ -61,13 +67,9 @@ def _build_api_application() -> FastAPI:
     @application.get("/")
     def redirect_to_docs():
         """This function redirects the visitors to the default view from the application's base URL"""
-        return RedirectResponse(url="/api/v1/docs")
+        return RedirectResponse(url="/api/v2/docs")
 
-    # Create the OpenAPI schema if it doesn't exist already
-    if not application.openapi_schema:
-        application.open_api_schema = get_openapi(
-            title=app_title, version=APP_VERSION, description=app_description, routes=application.routes
-        )
+    application.openapi()
 
     return application
 

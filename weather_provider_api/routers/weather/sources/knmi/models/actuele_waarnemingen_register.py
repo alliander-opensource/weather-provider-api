@@ -11,7 +11,6 @@ from datetime import datetime
 from typing import List, Optional
 
 import numpy as np
-import structlog
 import xarray as xr
 from dateutil.relativedelta import relativedelta
 
@@ -26,8 +25,6 @@ from weather_provider_api.routers.weather.sources.knmi.utils import (
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
-logger = structlog.get_logger(__name__)
-
 
 class ActueleWaarnemingenRegisterModel(WeatherModelBase):
     """
@@ -41,7 +38,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         super().__init__()
         self.id = "waarnemingen_register"
         self.name = "KNMI Actuele Waarnemingen - 48 uur register"
-        self.version = None
+        self.version = ""
         self.url = "https://www.knmi.nl/nederland-nu/weer/waarnemingen"
         self.predictive = False
         self.time_step_size_minutes = 10

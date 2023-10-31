@@ -13,4 +13,4 @@ from weather_provider_api.routers.weather.utils.file_helpers import get_var_map_
 file_to_use = get_var_map_file_location("arome_var_map.json")
 
 with open(file_to_use, "r") as _f:
-    arome_factors = json.load(_f)
+    arome_factors: dict = json.load(_f)

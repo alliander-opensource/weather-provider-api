@@ -18,7 +18,7 @@ def initialize_header_metadata(application: FastAPI):
     """Method that attaches the customized Metadata Header method that adds extra metadata.
 
     Args:
-        application:    The FastAPI application to attach the custom method to.
+        application: The FastAPI application to attach the custom method to.
     Returns:
         Nothing. The FastAPI application itself is updated.
     """
@@ -26,7 +26,7 @@ def initialize_header_metadata(application: FastAPI):
     async def add_metadata_headers(request: Request, call_next):
         response = await call_next(request)
         response.headers["X-App-Version"] = APP_VERSION
-        response.headers["X-App-Valid-Till"] = APP_CONFIG["expiration_date"]
+        response.headers["X-App-Valid-Till"] = APP_CONFIG["base"]["expiration_date"]
 
         if APP_CONFIG["maintainer"]["show_info"]:
             response.headers["X-Maintainer"] = APP_CONFIG["maintainer"]["name"]

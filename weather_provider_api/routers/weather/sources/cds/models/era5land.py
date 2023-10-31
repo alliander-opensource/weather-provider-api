@@ -11,9 +11,9 @@ import copy
 from datetime import datetime
 from typing import List, Optional
 
-import structlog
 import xarray
 import xarray as xr
+from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import ERA5LandRepository
@@ -31,13 +31,12 @@ class ERA5LandModel(WeatherModelBase):
 
     def __init__(self):
         super().__init__()
-        self.logger = structlog.get_logger(__name__)
         self.id = "era5land"
-        self.logger.debug(f"Initializing weather model [{self.id}]", datetime=datetime.utcnow())
+        logger.debug(f"Initializing weather model [{self.id}]")
 
         self.name = "CDS: ERA5-Land"
 
-        self.version = 0.3
+        self.version = "0.3"
         self.url = "https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview"
         self.predictive = False
         self.description = (
@@ -70,10 +69,7 @@ class ERA5LandModel(WeatherModelBase):
         self.to_human["soil_temperature_level_4"]["convert"] = self.kelvin_to_celsius
         self.to_human["2m_temperature"]["convert"] = self.kelvin_to_celsius
 
-        self.logger.debug(
-            f"Weather model [{self.id}] initialized successfully",
-            datetime=datetime.utcnow(),
-        )
+        logger.debug(f"Weather model [{self.id}] initialized successfully")
 
     def is_async(self):
         """Returns the async model status"""
@@ -137,14 +133,15 @@ class ERA5LandModel(WeatherModelBase):
         # If nothing useful was found, just return everything
         return weather_factors
 
-    def _get_list_of_factors_to_drop(self, factors: List[str], dataset_to_drop_from: xarray.Dataset) -> List[str]:
+    @staticmethod
+    def _get_list_of_factors_to_drop(factors: List[str], dataset_to_drop_from: xarray.Dataset) -> List[str]:
         # A small function that that compares a list of factors to keep with the full list, to make a list of factors
         # to drop from a full set.
         to_drop = [x for x in era5sl_factors.values() if x not in factors]
-        self.logger.debug("Dropping the following factors for the request: " + str(to_drop))
+        logger.debug("Dropping the following factors for the request: " + str(to_drop))
         not_in_dataset = list(set(to_drop).difference(dataset_to_drop_from.keys()))
         if len(not_in_dataset) > 0:
-            self.logger.warning(
+            logger.warning(
                 f"The following fields passed the factor validation, but weren't in the ERA5SL data: "
                 f"{not_in_dataset}"
             )

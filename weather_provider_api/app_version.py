@@ -20,15 +20,7 @@ def _get_app_version() -> str:
                  instead.
 
     """
-    # First attempt: Get the version number from the package that was used to install this component, if applicable.
-    try:
-        version = metadata.version(__package__)
-        logger.info(f"Retrieved the project version from package data: {version}")
-        return version
-    except metadata.PackageNotFoundError as pnf_error:
-        logger.debug(f"Could not retrieve the active version from package data: {pnf_error}")
-
-    # Second attempt: Get the version number by looking for a pyproject.toml file in the working directory.
+    # First attempt: Get the version number by looking for a pyproject.toml file in the working directory.
     # Please note that this assumes that this function was called from a context that has the Project's main folder as
     #  the working directory.
     try:
@@ -38,6 +30,14 @@ def _get_app_version() -> str:
         return version
     except FileNotFoundError as fnf_error:
         logger.debug(f"Could not retrieve the active version from the pyproject.toml file: {fnf_error}")
+
+    # Second attempt: Get the version number from the package that was used to install this component, if applicable.
+    try:
+        version = metadata.version(__package__)
+        logger.info(f"Retrieved the project version from package data: {version}")
+        return version
+    except metadata.PackageNotFoundError as pnf_error:
+        logger.debug(f"Could not retrieve the active version from package data: {pnf_error}")
 
     # No version could be determined
     logger.warning("No version could be found for the project!")

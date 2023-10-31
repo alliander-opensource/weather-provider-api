@@ -12,9 +12,9 @@ from typing import List, Optional
 
 import numpy as np
 import requests
-import structlog
 import xarray as xr
 from dateutil.relativedelta import relativedelta
+from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.stations import stations_prediction
@@ -34,17 +34,16 @@ class PluimModel(WeatherModelBase):
     def __init__(self):
         super().__init__()
         self.id = "pluim"
-        self.logger = structlog.get_logger(__name__)
-        self.logger.debug(f"Initializing weather model [{self.id}]", datetime=datetime.utcnow())
+        logger.debug(f"Initializing weather model [{self.id}]")
 
         self.name = "ECMWF pluim"
-        self.version = None
+        self.version = ""
         self.url = "https://www.knmi.nl/nederland-nu/weer/waarschuwingen-en-verwachtingen/weer-en-klimaatpluim"
         self.predictive = True
         self.time_step_size_minutes = 720
         self.num_time_steps = 30
         self.description = (
-            "Predictions for the coming 15 days, current included, with two predictions made for " "each day."
+            "Predictions for the coming 15 days, current included, with two predictions made for each day."
         )
         self.async_model = False
 
@@ -93,10 +92,7 @@ class PluimModel(WeatherModelBase):
 
         self.human_to_model_specific = self._create_reverse_lookup(self.to_si)
 
-        self.logger.debug(
-            f"Weather model [{self.id}] initialized successfully",
-            datetime=datetime.utcnow(),
-        )
+        logger.debug(f"Weather model [{self.id}] initialized successfully")
 
     def get_weather(
         self,
@@ -108,14 +104,13 @@ class PluimModel(WeatherModelBase):
     ) -> xr.Dataset:
         """
             The function that gathers and processes the requested Daggegevens weather data from the KNMI site
-            and returns it as an Xarray Dataset.
+            and returns it as a Xarray Dataset.
             (Though this model downloads from a specific download url, the question remains whether this source is also
             listed on the new KNMI Data Platform)
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
-            inseason:           A boolean representing the "inseason" parameter
             weather_factors:    A list of weather factors to request data for (in string format)
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
@@ -125,7 +120,7 @@ class PluimModel(WeatherModelBase):
         begin, end = validate_begin_and_end(begin, end, datetime.utcnow(), datetime.utcnow() + relativedelta(days=15))
 
         # get list of relevant STNs, choose closest STN
-        coords_stn, stns, coords_stn_ind = find_closest_stn_list(stations_prediction, coords)
+        _, stns, coords_stn_ind = find_closest_stn_list(stations_prediction, coords)
 
         # load default weather factors if unspecified
         if weather_factors is None:
@@ -148,7 +143,7 @@ class PluimModel(WeatherModelBase):
             begin:  A datetime containing the start of the period to filter.
             end:    A datetime containing the end of the period to filter.
         Returns:
-            An Xarray Dataset containing all of the data from the original dataset that matches the given period.
+            An Xarray Dataset containing all the data from the original dataset that matches the given period.
         """
         begin, end = validate_begin_and_end(
             begin,
@@ -244,13 +239,13 @@ class PluimModel(WeatherModelBase):
 
     def _download_single_factor(self, stns: list, factor: int):
         """
-            A function that downloads a single factor for all of the given stations
+            A function that downloads a single factor for all the given stations
         Args:
             stns:   A list of stations to download the factor for.
             factor: The weather factor to download.
         Returns:
             A list holding a timeline in datetime64 items as returned from the download requests, matching the request,
-            and a list holding the values for the requested factor for all of the stations in the order:
+            and a list holding the values for the requested factor for all the stations in the order:
                 Station, Timeline
         """
         values = []
