@@ -15,7 +15,7 @@ from weather_provider_api.core.initializers.logging_handler import initialize_lo
 initialize_logging()
 
 # Import application configuration settings
-from config import APP_CONFIG
+from weather_provider_api.config import APP_CONFIG
 
 
 def launch_api(run_mode: str = "uvicorn", host: str = "127.0.0.1", port: int = 8080):
