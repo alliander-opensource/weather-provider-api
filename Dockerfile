@@ -4,14 +4,14 @@
 #
 
 # *** BASE IMAGE ***
-FROM rflinnenbank/wpla-eccodes-ubuntu:latest as base-image
+FROM rflinnenbank/wpla-eccodes-ubuntu:1.0.0 AS base-image
 
     # Copy the project requirements file to the proper location
 WORKDIR $PYSETUP_PATH
 COPY pyproject.toml ./
 
     # Install the runtime environment dependencies (The $POETRY_VIRTUALENVS_IN_PROJECT value ensures an environment)
-RUN poetry install --no-interaction --no-ansi -vvv --without dev
+RUN poetry install --no-interaction --no-ansi -v --without dev
 
 WORKDIR /
 COPY ./weather_provider_api ./weather_provider_api
@@ -20,16 +20,14 @@ COPY ./pyproject.toml ./pyproject.toml
 
 # *** DEV IMAGE ***
 # The purpose of this image is to supply the project as an interpreter / testing ground
-FROM base-image as dev-image
+FROM base-image AS dev-image
 
     # Set working directory
 WORKDIR /
 
-# TODO: Add SSL interpreter interface
-
 # *** GUNICORN IMAGE ***
 # The purpose of this image is to supply the project with a gunicorn-run API
-FROM base-image as uvicorn-image
+FROM base-image AS uvicorn-image
 
 WORKDIR /
 
@@ -39,7 +37,7 @@ CMD ["uvicorn", "--reload", "--host", "0.0.0.0", "--port", "8000", "weather_prov
 
 # *** UVICORN IMAGE ***
 # The purpose of this image is to supply the project with a uvicorn-run API
-FROM base-image as gunicorn-image
+FROM base-image AS gunicorn-image
 
 WORKDIR /
 
