@@ -33,7 +33,7 @@ WORKDIR /
 
 EXPOSE 8000
 
-CMD ["uvicorn", "--reload", "--host", "0.0.0.0", "--port", "8000", "weather_provider_api.__main__:app" ]
+CMD ["uvicorn", "--reload", "--host", "0.0.0.0", "--port", "8000", "weather_provider_api.core.application:WPLA_APPLICATION" ]
 
 # *** UVICORN IMAGE ***
 # The purpose of this image is to supply the project with a uvicorn-run API
@@ -43,4 +43,4 @@ WORKDIR /
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "weather_provider_api.__main__:app", "--timeout", "180"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "weather_provider_api.core.application:WPLA_APPLICATION", "--timeout", "180"]
