@@ -17,7 +17,7 @@ from tempfile import gettempdir
 
 from loguru import logger
 
-from weather_provider_api.config import APP_DEBUGGING, APP_CONFIG
+from weather_provider_api.config import APP_DEBUGGING, APP_CONFIG, APP_LOG_LEVEL
 
 
 class LoggingInterceptHandler(logging.Handler):
@@ -91,7 +91,7 @@ def initialize_logging():
             sys.stdout,
             enqueue=False,
             backtrace=False,
-            level=APP_CONFIG["logging"]["log_level"],
+            level=APP_LOG_LEVEL,
             format=log_format,
             diagnose=False,
         )
@@ -129,7 +129,7 @@ def initialize_logging():
         # Regular log
         logger.add(
             log_folder.joinpath("memo.log"),
-            level=APP_CONFIG["logging"]["log_level"],
+            level=APP_LOG_LEVEL,
             format=log_format,
         )
 
