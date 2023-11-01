@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weather_provider_api"
-version = "2.43"
+version = "2.45.0"
 description = "Weather Provider Libraries and API"
 authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -16,7 +16,6 @@ fastapi = "^0.103.1"
 requests = "^2.28.1"
 geopy = "^2.3.0"
 numpy = "^1.24.4"
-structlog = "^23.1.0"
 gunicorn = "^21.2.0"
 eccodes = "^1.5.0"
 accept-types = "^0.4.1"
@@ -32,14 +31,14 @@ uvicorn = "^0.21.1"
 slowapi = "^0.1.7"
 ecmwflibs = "0.5.1"
 starlette = "^0.27.0"
+loguru = "^0.7.2"
+black = "^23.10.1"
+email-validator = "^2.1.0.post1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.0"
 coverage = "^6.5.0"
 pytest-cov = "^4.0.0"
 isort = "^5.10.1"
-black = "^22.10.0"
-jupyter = "^1.0.0"
 pylint = "^2.15.10"
 
 
@@ -56,6 +55,9 @@ wpla_run_api = "weather_provider_api.main:main"
 
 [tool.pylint]
 max-line-length = 120
+
+[tool.black]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]
