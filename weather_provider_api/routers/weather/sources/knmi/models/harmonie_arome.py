@@ -11,8 +11,8 @@ import copy
 from datetime import datetime, time, timedelta
 from typing import List, Union
 
-import structlog
 import xarray as xr
+from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import HarmonieAromeRepository
@@ -32,8 +32,7 @@ class HarmonieAromeModel(WeatherModelBase):
         # Pre-work
         super().__init__()
         self.id = "arome"
-        self.logger = structlog.get_logger(__name__)
-        self.logger.debug(f"Initializing weather model: {self.id}", datetime=datetime.utcnow())
+        logger.debug(f"Initializing weather model: {self.id}")
 
         # Setting the model
         self.repository = HarmonieAromeRepository()
@@ -58,7 +57,7 @@ class HarmonieAromeModel(WeatherModelBase):
         self.to_human["temperature"]["convert"] = self.kelvin_to_celsius
 
         # Initialization complete
-        self.logger.debug(f'The Weather model "{self.id}" was successfully initialized', datetime=datetime.utcnow())
+        logger.debug(f'The Weather model "{self.id}" was successfully initialized')
 
     def get_weather(
         self,
@@ -84,8 +83,22 @@ class HarmonieAromeModel(WeatherModelBase):
         weather_dataset = self.repository.gather_period(begin=valid_begin, end=valid_end, coordinates=coords)
 
         # Filter the requested factors
-        # TODO: Implement
-        # weather_dataset = ...
+        translated_factors = []
+        if weather_factors is not None:
+            for factor in weather_factors:
+                if factor in arome_factors.keys():
+                    new_factor = arome_factors[factor]
+                elif factor in arome_factors.values():
+                    new_factor = factor
+                else:
+                    new_factor = None
+
+                if new_factor is not None:
+                    translated_factors.append(new_factor)
+
+            for factor in weather_dataset.keys():
+                if not any(item in factor for item in translated_factors):
+                    weather_dataset = weather_dataset.drop(factor)
 
         return weather_dataset
 

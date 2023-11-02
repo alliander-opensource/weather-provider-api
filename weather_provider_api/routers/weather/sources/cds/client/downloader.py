@@ -15,11 +15,10 @@
 import json
 import os
 import time
-from datetime import datetime
 from pathlib import Path
 
 import requests
-import structlog
+from loguru import logger
 
 
 def bytes_to_string(n):
@@ -44,8 +43,6 @@ def read_rc_file(path: Path):
 
 class Result(object):
     def __init__(self, client, reply):
-        self.logger = structlog.getLogger(__name__)
-
         self.reply = reply
         self._url = client.api_url
         self.session = client.session
@@ -58,7 +55,7 @@ class Result(object):
         if not target:
             target = url.split("/")[-1]
 
-        self.logger.info(f"Downloading [{url}] to [{target}]. ({bytes_to_string(size)})")
+        logger.info(f"Downloading [{url}] to [{target}]. ({bytes_to_string(size)})")
         start = time.time()
 
         r = self.robust(requests.get)(url, stream=True, verify=self.verify)
@@ -79,7 +76,7 @@ class Result(object):
 
         elapsed = time.time() - start
         if elapsed:
-            self.logger.info(f"Download rate: {bytes_to_string(size / elapsed)} bytes per second")
+            logger.info(f"Download rate: {bytes_to_string(size / elapsed)} bytes per second")
         return target
 
     def download(self, target=None):
@@ -104,7 +101,7 @@ class Result(object):
         )
 
     def check(self):
-        self.logger.debug(f'HEAD {self.reply["location"]}')
+        logger.debug(f'HEAD {self.reply["location"]}')
         metadata = self.robust(self.session.head)(self.reply["location"], verify=self.verify)
         metadata.raise_for_status()
 
@@ -117,12 +114,12 @@ class Result(object):
             task_url = f"{self._url}/tasks/{rid}"
 
             delete = self.session.delete(task_url, verify=self.verify)
-            self.logger.debug(f"DELETE returns: ({delete.status_code}) {delete.reason}")
+            logger.debug(f"DELETE returns: ({delete.status_code}) {delete.reason}")
 
             try:
                 delete.raise_for_status()
             except RuntimeError:
-                self.logger.warning(f"DELETE [{task_url}] returns: ({delete.status_code}) {delete.reason}")
+                logger.warning(f"DELETE [{task_url}] returns: ({delete.status_code}) {delete.reason}")
 
             self._deleted = True
 
@@ -131,7 +128,7 @@ class Result(object):
             if self.cleanup:
                 self.delete()
         except Exception as e:
-            self.logger.error(e)
+            logger.error(e)
             raise e
 
 
@@ -152,7 +149,6 @@ class CDSDownloadClient(object):
         debug_callback=None,
         persist_request_callback=None,
     ):
-        self.logger = structlog.getLogger(__name__)
         self.api_url, self.api_key, self.api_verify = self._load_cdsapi_config(url, key, verify)
 
         self.timeout = timeout
@@ -185,11 +181,11 @@ class CDSDownloadClient(object):
             delete=self.delete,
         )
 
-        self.logger.debug(f"CDSAPI Downloader Settings: {settings_dict}", datetime=datetime)
+        logger.debug(f"CDSAPI Downloader Settings: {settings_dict}")
 
     def retrieve(self, name, request, target=None, request_id=None):
         """This function retrieves a download-result and stores it at the target location if given."""
-        self.logger.info(f"Starting retrieval of URL:{self.api_url}/resources/{name}")
+        logger.info(f"Starting retrieval of URL:{self.api_url}/resources/{name}")
         result = self._request_retrieval(
             f"{self.api_url}/resources/{name}", request, request_id if request_id else None
         )
@@ -204,16 +200,16 @@ class CDSDownloadClient(object):
         start = time.time()
 
         while True:
-            self.logger.debug(f"REPLY: {reply}")
+            logger.debug(f"REPLY: {reply}")
 
             reply_state = reply["state"]
 
             if reply_state != self.last_state:
-                self.logger.info(f"Request is: {reply_state}")
+                logger.info(f"Request is: {reply_state}")
                 self.last_state = reply_state
 
             if reply_state == "completed":
-                self.logger.debug("Request completed!")
+                logger.debug("Request completed!")
                 return Result(self, reply)
 
             if reply_state in ("queued", "running", "resuming_download"):
@@ -221,13 +217,13 @@ class CDSDownloadClient(object):
                 continue
 
             if reply_state == "failed":
-                self.logger.error(f"An error occurred: {reply['error'].get('message')}")
-                self.logger.error(f"The following reason was given: {reply['error'].get('reason')}")
+                logger.error(f"An error occurred: {reply['error'].get('message')}")
+                logger.error(f"The following reason was given: {reply['error'].get('reason')}")
 
                 for part in reply.get("error", {}).get("context", {}).get("traceback", "").split("\n"):
                     if part.strip() == "" and not self.full_stack:
                         break
-                    self.logger.error(f" {part}")
+                    logger.error(f" {part}")
 
                 raise RuntimeError(f'{reply["error"].get("message")} | {reply["error"].get("reason")}')
 
@@ -235,8 +231,8 @@ class CDSDownloadClient(object):
 
     def _request_handler(self, url, request, request_id):
         if request_id is None:
-            self.logger.info(f"Sending request to {url}")
-            self.logger.debug(f"POST {url} {json.dumps(request)}")
+            logger.info(f"Sending request to {url}")
+            logger.debug(f"POST {url} {json.dumps(request)}")
 
             result = self.robust(self.session.post)(url, json=request, verify=self.api_verify)
             reply = None
@@ -250,7 +246,7 @@ class CDSDownloadClient(object):
                         reply = result.json()
                     except RuntimeError:
                         reply = dict(message=result.text)
-                self.logger.debug(json.dumps(reply))
+                logger.debug(json.dumps(reply))
 
                 if "message" in reply:
                     error = reply["message"]
@@ -267,7 +263,7 @@ class CDSDownloadClient(object):
                 else:
                     raise RuntimeError("An unknown error occurred...")
         else:
-            self.logger.info("Resuming the download task and skipping initial request to API.")
+            logger.info("Resuming the download task and skipping initial request to API.")
             reply = {"state": "resuming_download", "request_id": request_id}
 
         return reply
@@ -282,29 +278,29 @@ class CDSDownloadClient(object):
         if self.timeout and (time.time() - start > self.timeout):
             raise TimeoutError("Request Timed Out!")
 
-        self.logger.debug(f"The Request ID is {rid} (sleeping for {sleep} seconds)")
+        logger.debug(f"The Request ID is {rid} (sleeping for {sleep} seconds)")
         time.sleep(sleep)
         sleep *= 1.5
 
         sleep = self.sleep_max if sleep > self.sleep_max else sleep
 
         task_url = f"{self.api_url}/tasks/{rid}"
-        self.logger.debug(f"GET: {task_url}")
+        logger.debug(f"GET: {task_url}")
 
         result = self.robust(self.session.get)(task_url, verify=self.api_verify)
         result.raise_for_status()
         reply = result.json()
         return sleep, reply
 
-    def _load_cdsapi_config(self, url, key, verify):
+    @staticmethod
+    def _load_cdsapi_config(url, key, verify):
         dotrc_file = Path(os.environ.get("CDSAPI_RC", str(Path.home().joinpath(".cdsapirc"))))
         cdsapi_key = os.environ.get("CDSAPI_KEY", None)
         cdsapi_url = os.environ.get("CDSAPI_URL", None)
 
-        print(dotrc_file, cdsapi_url, cdsapi_key)
         # Prefer the CDSAPI RC file over CDSAPI_KEY and CDSAPI_URL:
         if (not url or not key) and dotrc_file.exists():
-            print("EXISTS")
+            logger.debug("CDS API [.rc]-file exists. ")
             config = read_rc_file(dotrc_file)
 
             if not key:
@@ -326,7 +322,7 @@ class CDSDownloadClient(object):
                 f"Please create or verify the file at [{dotrc_file}], or create/verify "
                 f"the CDSAPI_KEY and CDSAPI_URL environment variables."
             )
-        self.logger.info("Successfully loaded settings for the CDS Downloader!")
+        logger.info("Successfully loaded settings for the CDS Downloader!")
 
         return url, key, True if verify else False
 
@@ -341,31 +337,29 @@ class CDSDownloadClient(object):
                 requests.codes.request_timeout,
             ]:
                 return True
-            self.logger.debug(f"The current response code is considered not retryable: ({code}) {reason}")
+            logger.debug(f"The current response code is considered not retryable: ({code}) {reason}")
             return False
 
         def wrapped(*args, **kwargs):
 
             tries = 0
             while tries < self.retry_max:
-                self.logger.info(f"WRAPPED [Tries: {tries} ({self.retry_max})]")
+                logger.info(f"WRAPPED [Tries: {tries} ({self.retry_max})]")
                 try:
                     r = call(*args, **kwargs)
                 except requests.exceptions.ConnectionError as e:
                     r = None
-                    self.logger.warning(
-                        f"Recovering from ConnectionError [{e}]. " f"(Attempt #{tries}) of {self.retry_max})"
-                    )
+                    logger.warning(f"Recovering from ConnectionError [{e}]. (Attempt #{tries}) of {self.retry_max})")
                 if r:
                     if not retryable(r.status_code, r.reason):
                         return r
-                    self.logger.warning(
+                    logger.warning(
                         f"Recovering from HTTPError [{r.status_code, r.reason}]. "
                         f"(Attempt #{tries} of {self.retry_max})"
                     )
 
                 tries += 1
-                self.logger.warning(f"Retrying after {self.sleep_max} seconds..")
+                logger.warning(f"Retrying after {self.sleep_max} seconds..")
                 time.sleep(self.sleep_max)
 
         return wrapped

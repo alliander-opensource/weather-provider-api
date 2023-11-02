@@ -10,7 +10,9 @@ from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5S
 
 class CDS(WeatherSourceBase):
     def __init__(self):
-        model_instances = [ERA5SLModel()]
+        model_instances = [
+            ERA5SLModel(),
+        ]
 
         self.id = "cds"
         self.name = "Climate Data Store"

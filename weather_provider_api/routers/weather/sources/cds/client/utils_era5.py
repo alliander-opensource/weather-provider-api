@@ -10,14 +10,13 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-import structlog
 import xarray as xr
 from dateutil.relativedelta import relativedelta
+from loguru import logger
 
 from weather_provider_api.routers.weather.repository.repository import RepositoryUpdateResult
 from weather_provider_api.routers.weather.sources.cds.client import downloader
 
-logger = structlog.get_logger(__name__)
 _FORMATTED_SUFFIX = ".FORMATTED.nc"
 _UNFORMATTED_SUFFIX = ".UNFORMATTED.nc"
 _INCOMPLETE_SUFFIX = ".INCOMPLETE.nc"
@@ -66,9 +65,7 @@ def era5_update(
             average_time_per_month = (datetime.utcnow() - start_of_update).total_seconds() / current_months_processed
 
         if datetime.utcnow() + relativedelta(seconds=average_time_per_month) > forced_end_of_update:
-            logger.info(
-                f"There was not enough time left to process another file. Finishing up..", datetime=datetime.utcnow()
-            )
+            logger.info("There was not enough time left to process another file. Finishing up..")
             return RepositoryUpdateResult.timed_out
 
         try:
@@ -85,8 +82,7 @@ def era5_update(
             )
         except Exception as e:
             logger.warning(
-                f"Could not process month [{current_month_to_process.year}, {current_month_to_process.month}]: {e}",
-                datetime=datetime.utcnow(),
+                f"Could not process month [{current_month_to_process.year}, {current_month_to_process.month}]: {e}"
             )
             current_months_not_processable += 1
 
@@ -96,8 +92,7 @@ def era5_update(
     if current_months_processed > 1 and current_months_not_processable / current_months_processed > 0.3:
         # if over 30% of all requested months did not work and more than a month was requested return a failure value
         logger.error(
-            "The margin of months that could not be processed exceeded set margins." "Please contact an administrator.",
-            datetime=datetime.utcnow(),
+            "The margin of months that could not be processed exceeded set margins. Please contact an administrator."
         )
         return RepositoryUpdateResult.failure
 
@@ -119,9 +114,7 @@ def process_month(
     file_path = Path(repository_folder).joinpath(file_name)
 
     if file_requires_update(file_path, month_to_process, most_recent_data_date):
-        logger.debug(
-            f"File update required for [{month_to_process.year}, {month_to_process.month}]", datetime=datetime.utcnow()
-        )
+        logger.debug(f"File update required for [{month_to_process.year}, {month_to_process.month}]")
         download_file = file_path.with_suffix(_UNFORMATTED_SUFFIX)
         download_era5_file(
             dataset=dataset_name,
@@ -346,14 +339,14 @@ def load_file(file: Path) -> xr.Dataset:
         return ds
 
     # Raise a FileNotFoundError if the file doesn't exist
-    logger.error(f"File [{str(file)}] does not exist", datetime=datetime.utcnow())
+    logger.error(f"File [{str(file)}] does not exist")
     raise FileNotFoundError
 
 
 def _safely_delete_file(file: Path):
     """Basic function to safely remove files from the repository if possible, and supply errors if not"""
     try:
-        logger.debug(f"Safely deleting file [{file}]", datetime=datetime.utcnow())
+        logger.debug(f"Safely deleting file [{file}]")
         file.unlink()
     except OSError as e:
         logger.error(f"Could not safely delete file: {e}")

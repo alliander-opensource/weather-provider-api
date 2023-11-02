@@ -11,10 +11,10 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Union
+from typing import Union
 
 import requests
-import structlog
+from loguru import logger
 
 
 class KNMIDownloader:
@@ -34,27 +34,27 @@ class KNMIDownloader:
         temporary_download_folder: str = None,
         clear_files_from_folder: bool = False,
     ):
-        self.logger = structlog.getLogger(__name__)
         self.dataset_name = dataset_name
         self.dataset_version = dataset_version
 
         self.temporary_download_folder = self._get_valid_temporary_folder(
             temporary_download_folder, clear_files_from_folder
         )
-        self.logger.info("KNMIDownloader initialized.")
-        self.logger.info(f"Dataset: [{self.dataset_name}] | Version: [{self.dataset_version}]")
-        self.logger.info(f"Storing files in: [{self.temporary_download_folder}]")
+        logger.info("KNMIDownloader initialized.")
+        logger.info(f"Dataset: [{self.dataset_name}] | Version: [{self.dataset_version}]")
+        logger.info(f"Storing files in: [{self.temporary_download_folder}]")
 
     def validate_knmi_download_settings(self):
         if self.API_URL is None:
             raise ValueError("The KNMI Downloader is missing a KNMI API url!")
         if self.API_KEY is None:
-            raise ValueError("The KMNI Downloader is missing an access key!")
-        self.logger.info("KNMI download settings validation access test:")
+            raise ValueError("The KNMI Downloader is missing an access key!")
+        logger.info("KNMI download settings validation access test:")
         self.get_all_available_files()
-        self.logger.info("KNMI download settings validated")
+        logger.info("KNMI download settings validated")
 
-    def _get_valid_temporary_folder(self, temporary_download_folder: Union[str, None], clear_files_from_folder: bool):
+    @staticmethod
+    def _get_valid_temporary_folder(temporary_download_folder: Union[str, None], clear_files_from_folder: bool):
         """A function that selects the folder for the KNMIDownloader to use to download files.
 
         Note that this is a temporary folder, and that
@@ -90,7 +90,7 @@ class KNMIDownloader:
                     f"[{possible_download_folder}]"
                 ) from fnf_error
             except FileExistsError as unknown_exception:
-                # File didn't exist before, but does now.. (shouldn't happen)
+                # File didn't exist before, but does now (shouldn't happen)
                 raise FileExistsError(
                     f"Inconsistency error when creating the download folder for KNMIDownloader: "
                     f"Initial check stated the target did not exist, but mkdir states it did!"
@@ -116,14 +116,12 @@ class KNMIDownloader:
                 shutil.rmtree(possible_download_folder)  # Clear everything within the folder
                 possible_download_folder.mkdir(parents=False, exist_ok=False)
             except Exception as unknown_exception:
-                self.logger.error(
-                    "An unexpected Exception occurred while clearing the target directory for " "KNMIDownloader:"
-                )
+                logger.error("An unexpected Exception occurred while clearing the target directory for KNMIDownloader:")
                 raise unknown_exception
 
         return possible_download_folder
 
-    def get_all_available_files(self) -> List[str]:
+    def get_all_available_files(self) -> list:
         """Requests a list with all available files for the configured dataset.
 
         Returns:
@@ -133,7 +131,7 @@ class KNMIDownloader:
             Depending on the dataset configured, this list may hold quite a large number of files.
 
         """
-        self.logger.info(
+        logger.info(
             f"Fetching the full list of files available for dataset [{self.dataset_name}], "
             f"version [{self.dataset_version}]."
         )
@@ -158,14 +156,14 @@ class KNMIDownloader:
             Nothing
 
         """
-        self.logger.info(f"KNMIDownloader is starting the download of [{filename}], size [{filesize} bytes]")
+        logger.info(f"KNMIDownloader is starting the download of [{filename}], size [{filesize} bytes]")
 
         if (
             self.temporary_download_folder.joinpath(filename).exists()
             and self.temporary_download_folder.joinpath(filename).stat().st_size == filesize
         ):
             # A file with the correct size and name already exists. There is no need to re-download it.
-            self.logger.info(f"File [{filename}] already exist. Skipping download.")
+            logger.info(f"File [{filename}] already exist. Skipping download.")
             return
 
         file_request = requests.get(
@@ -175,7 +173,7 @@ class KNMIDownloader:
         )
 
         temporary_download_url = file_request.json().get("temporaryDownloadUrl")
-        self.logger.debug(f"Temporary download url for [{filename}] set to: {temporary_download_url}")
+        logger.debug(f"Temporary download url for [{filename}] set to: {temporary_download_url}")
 
         self._download_and_save_file_by_name_and_size(temporary_download_url, filesize)
 
@@ -196,9 +194,7 @@ class KNMIDownloader:
                         file_download.write(chunk)
                         total_bytes_transferred += len(chunk)
         finally:
-            self.logger.debug(
-                f"File download complete: [{self.temporary_download_folder.joinpath(file_name_of_download)}]"
-            )
+            logger.debug(f"File download complete: [{self.temporary_download_folder.joinpath(file_name_of_download)}]")
 
         if total_bytes_transferred != filesize:
             raise EOFError(

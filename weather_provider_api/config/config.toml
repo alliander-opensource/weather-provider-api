@@ -1,0 +1,39 @@
+[base]
+title = "WPLA"
+full_title = "Weather Provider Libraries and API"
+description = """
+    The Weather Provider Libraries and API (WPLA) is an Open Source Project intended to present an easy
+    and uniform way to request meteorological data from a extensive numer of sources in a plethora of formats and
+    styles.
+"""
+expiration_checking = true
+expiration_date = "2024-04-01"
+
+[maintainer]
+show_info = true
+name = "Verbindingsteam"
+email_address = "weather.provider@alliander.com"
+
+[networking]
+default_interface_ip = "127.0.0.1"
+default_port = 8080
+
+[logging]
+log_level = "INFO"
+use_stdout_logger = true
+use_file_loggers = false
+file_logger_folder = "/tmp/wpla_logs"
+
+[components]
+prometheus = false
+cors = false
+cors_allowed_origins = ['*']
+cors_allowed_origins_regex = []
+
+[api_v1]
+implementation = "2.1.0"
+expiration_date = "2024-04-01"
+
+[api_v2]
+implementation = "2.1.0"
+expiration_date = "2024-04-01"

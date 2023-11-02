@@ -10,7 +10,6 @@ import copy
 from typing import List, Optional
 
 import numpy as np
-import structlog
 import xarray as xr
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
@@ -24,8 +23,6 @@ from weather_provider_api.routers.weather.sources.knmi.utils import (
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
-logger = structlog.get_logger(__name__)
-
 
 class ActueleWaarnemingenModel(WeatherModelBase):
     """
@@ -37,7 +34,7 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         super().__init__()
         self.id = "waarnemingen"
         self.name = "KNMI Actuele Waarnemingen"
-        self.version = None
+        self.version = ""
         self.url = "https://www.knmi.nl/nederland-nu/weer/waarnemingen"
         self.predictive = False
         self.time_step_size_minutes = 10
@@ -91,7 +88,6 @@ class ActueleWaarnemingenModel(WeatherModelBase):
 
         # Download the current weather data
         raw_ds = download_actuele_waarnemingen_weather()
-        print(raw_ds)
 
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
         coords_stn, _, _ = find_closest_stn_list(stations_actual, coords)

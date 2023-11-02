@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import List
 
 from dateutil.relativedelta import relativedelta
+from loguru import logger
 
 from weather_provider_api.routers.weather.repository.repository import WeatherRepositoryBase
 from weather_provider_api.routers.weather.sources.cds.client.utils_era5 import era5_update
@@ -25,10 +26,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
     def __init__(self):
         super().__init__()
         self.repository_name = "CSD: ERA5-Land"
-        self.logger.debug(
-            f"Initializing {self.repository_name} repository",
-            datetime=datetime.utcnow(),
-        )
+        logger.debug(f"Initializing {self.repository_name} repository")
         self.file_prefix = "ERA5LAND"
         self.runtime_limit = 3 * 60  # 3 hours maximum runtime
         self.permanent_suffixes = ["INCOMPLETE", "TEMP"]
@@ -36,7 +34,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         self.file_identifier_length = 7
         self.age_of_permanence_in_months = 3
 
-        self.logger.debug(f"Initialized {self.repository_name} repository", datetime=datetime.utcnow())
+        logger.debug(f"Initialized {self.repository_name} repository")
 
     @staticmethod
     def _get_repo_sub_folder():
@@ -100,7 +98,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
                 or (file_year == self.first_day_of_repo.year and file_month < self.first_day_of_repo.month)
                 or (file_year == self.last_day_of_repo.year and file_month > self.last_day_of_repo.month)
             ):
-                self.logger.debug(
+                logger.debug(
                     f"Deleting file [{file_name}] because it does not lie in the "
                     f"repository scope ({self.first_day_of_repo, self.last_day_of_repo})"
                 )

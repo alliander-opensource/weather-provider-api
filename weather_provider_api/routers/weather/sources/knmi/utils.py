@@ -14,17 +14,15 @@ from typing import List
 import numpy as np
 import pandas as pd
 import requests
-import structlog
 import xarray as xr
 from geopy.distance import great_circle
+from loguru import logger
 
 from weather_provider_api.routers.weather.sources.knmi.stations import (
     stations_actual,
     stations_actual_reversed,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-
-logger = structlog.get_logger(__name__)
 
 
 def find_closest_stn_list(stn_stations: pd.DataFrame, coords: List[GeoPosition]):
@@ -71,9 +69,7 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
     raw_ds = None
 
     try:
-        knmi_site_response = requests.get(
-            "https://www.knmi.nl/nederland-nu/weer/waarnemingen"
-        )
+        knmi_site_response = requests.get("https://www.knmi.nl/nederland-nu/weer/waarnemingen")
 
         if knmi_site_response.ok:
             knmi_site_df = pd.read_html(knmi_site_response.text)[0]
@@ -94,34 +90,22 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
             # Rename to the conventional naming system used for the Weather Provider API
             for dictionary_item in knmi_site_df.columns.copy(deep=True):
                 if dictionary_item in column_translations.keys():
-                    knmi_site_df = knmi_site_df.rename(
-                        columns={dictionary_item: column_translations[dictionary_item]}
-                    )
+                    knmi_site_df = knmi_site_df.rename(columns={dictionary_item: column_translations[dictionary_item]})
                 else:
                     knmi_site_df = knmi_site_df.drop(dictionary_item, axis="columns")
 
-            current_observation_moment = _retrieve_observation_moment(
-                knmi_site_response.text
-            )
+            current_observation_moment = _retrieve_observation_moment(knmi_site_response.text)
             knmi_site_df["time"] = current_observation_moment
             if "wind_direction" in knmi_site_df:
-                knmi_site_df["wind_direction"] = knmi_site_df[
-                    "wind_direction"
-                ].str.strip("\n")
+                knmi_site_df["wind_direction"] = knmi_site_df["wind_direction"].str.strip("\n")
 
             # Add a field for the station with its (lat, lon)-coordinates and remove the original station code
-            knmi_site_df["STN"] = knmi_site_df["station"].apply(
-                lambda x: stations_actual_reversed[x.upper()]
-            )
+            knmi_site_df["STN"] = knmi_site_df["station"].apply(lambda x: stations_actual_reversed[x.upper()])
 
             stations_actual_indexed = stations_actual.set_index("STN")
 
-            knmi_site_df["lat"] = knmi_site_df["STN"].apply(
-                lambda x: stations_actual_indexed.loc[x, "lat"]
-            )
-            knmi_site_df["lon"] = knmi_site_df["STN"].apply(
-                lambda x: stations_actual_indexed.loc[x, "lon"]
-            )
+            knmi_site_df["lat"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lat"])
+            knmi_site_df["lon"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lon"])
             knmi_site_df = knmi_site_df.drop("station", axis="columns")
 
             # Rebuild the index
@@ -167,15 +151,13 @@ def _retrieve_observation_moment(html_body: str):
     except locale.Error:
         logger.warning(
             "No locale could be determined for KNMI Waarnemingen datetime transformation. "
-            "Using local datetime instead.",
-            datetime=datetime.utcnow(),
+            "Using local datetime instead."
         )
         return datetime.now()
     except Exception as e:
         logger.exception(
             "An unknown exception occurred while retrieving the KNMI Waarnemingen datetime for use in the response."
-            f" Using local datetime instead. Error: {e}",
-            datetime=datetime.utcnow(),
+            f" Using local datetime instead. Error: {e}"
         )
         return datetime.now()
 

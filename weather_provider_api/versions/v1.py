@@ -6,9 +6,19 @@
 
 from fastapi import FastAPI
 
-from weather_provider_api.app_config import get_setting
+from weather_provider_api.config import APP_CONFIG, APP_SERVER
 from weather_provider_api.routers.weather.api_view_v1 import app as weather_router
 
-app = FastAPI(title="Weather API", root_path="/api/v1", version=get_setting("APP_V1_VERSION"))
+app = FastAPI(
+    version=APP_CONFIG["api_v1"]["implementation"],
+    title="Weather API (v1)",
+    root_path="/api/v1",
+    servers=[{"url": f"{APP_SERVER}/api/v1"}],
+    description="The v1 endpoint interface for the Weather Provider API",
+    contact={"name": APP_CONFIG["maintainer"]["name"], "email": APP_CONFIG["maintainer"]["email_address"]},
+)
 
-app.include_router(weather_router, prefix="/weather")
+app.openapi_version = "3.0.2"
+
+app.include_router(weather_router, prefix="/api/v1/weather")
+app.openapi()

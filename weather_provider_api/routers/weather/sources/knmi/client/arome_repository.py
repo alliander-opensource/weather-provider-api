@@ -16,9 +16,9 @@ import cfgrib
 import numpy as np
 import pandas as pd
 import pytz
-import structlog
 import xarray as xr
 from dateutil.relativedelta import relativedelta
+from loguru import logger
 
 from weather_provider_api.routers.weather.repository.repository import (
     RepositoryUpdateResult,
@@ -41,11 +41,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         # Pre-work
         super().__init__()
 
-        self.logger = structlog.get_logger(__name__)
         self.repository_name = "KNMI Harmonie (Arome)"
-        self.logger.debug(
-            f"Initialized {self.repository_name} repository", datetime=datetime.utcnow()
-        )
+        logger.debug(f"Initialized {self.repository_name} repository")
 
         # Repository settings
         self.file_prefix = "AROME"
@@ -60,8 +57,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         try:
             import cfgrib
         except RuntimeError as e:
-            self.logger.warning(f"CFGRIB could not properly be initialized: {e}")
-            self.logger.warning(
+            logger.warning(f"CFGRIB could not properly be initialized: {e}")
+            logger.warning(
                 "Due to problems with CFGRIB, this repository will only be able to access existing "
                 "data. The repository will not be able to update"
             )
@@ -75,19 +72,13 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
     @property
     def first_day_of_repo(self):
-        first_day_of_repo = datetime.utcnow() - relativedelta(
-            years=3
-        )  # Three years back
-        first_day_of_repo = first_day_of_repo.replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )  # Start of day
+        first_day_of_repo = datetime.utcnow() - relativedelta(years=3)  # Three years back
+        first_day_of_repo = first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)  # Start of day
         return first_day_of_repo
 
     @property
     def last_day_of_repo(self):
-        last_day_of_repo = datetime.utcnow().replace(
-            minute=0, second=0, microsecond=0
-        )  # Start of today
+        last_day_of_repo = datetime.utcnow().replace(minute=0, second=0, microsecond=0)  # Start of today
         return last_day_of_repo
 
     def update(self):
@@ -99,67 +90,40 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         """
         # Stop if cfgrib wasn't added into the system modules during boot.
         if "cfgrib" not in sys.modules:
-            self.logger.error(
-                'CANNOT PERFORM UPDATE: No valid "cfgrib" installation available.'
-            )
-            self.logger.info(
-                'Please properly install "cfgrib" and restart the system to enable updates.'
-            )
+            logger.error('CANNOT PERFORM UPDATE: No valid "cfgrib" installation available.')
+            logger.info('Please properly install "cfgrib" and restart the system to enable updates.')
             quit()
 
         # Cleanup the repository
         self.cleanup()
 
-        self.logger.info(f"KNMI Arome Update - Storage in: {self.repository_folder} ")
+        logger.info(f"KNMI Arome Update - Storage in: {self.repository_folder} ")
 
         # Configure initial settings for the update
         start_of_update = datetime.utcnow()
         no_of_items_processed = 0
-        average_seconds_per_item = (
-            1500  # Assuming 25 minutes of processing time per month for the first item
-        )
-        forced_end_of_update = start_of_update + relativedelta(
-            seconds=self.runtime_limit
-        )
+        average_seconds_per_item = 1500  # Assuming 25 minutes of processing time per month for the first item
+        forced_end_of_update = start_of_update + relativedelta(seconds=self.runtime_limit)
 
-        self.logger.info(
-            f"Update of [{self.repository_name}] started", datetime=datetime.utcnow()
-        )
-        self.logger.info(f"- A forced end time of [{forced_end_of_update}] was set.")
+        logger.info(f"Update of [{self.repository_name}] started")
+        logger.info(f"- A forced end time of [{forced_end_of_update}] was set.")
 
         prediction_to_evaluate = self.get_most_recent_prediction_moment
         download_folder = Path(tempfile.gettempdir()).joinpath(self.dataset_name)
-        knmi_downloader = KNMIDownloader(
-            self.dataset_name, self.dataset_version, str(download_folder), True
-        )
-        files_in_dataset = {
-            item["filename"]: item["size"]
-            for item in knmi_downloader.get_all_available_files()
-        }
+        knmi_downloader = KNMIDownloader(self.dataset_name, self.dataset_version, str(download_folder), True)
+        files_in_dataset = {item["filename"]: item["size"] for item in knmi_downloader.get_all_available_files()}
 
         while prediction_to_evaluate >= self.first_day_of_repo:
             if no_of_items_processed != 0:
-                average_seconds_per_item = (
-                    datetime.utcnow() - start_of_update
-                ).total_seconds() / no_of_items_processed
+                average_seconds_per_item = (datetime.utcnow() - start_of_update).total_seconds() / no_of_items_processed
 
-            if forced_end_of_update < (
-                datetime.utcnow() + relativedelta(seconds=average_seconds_per_item)
-            ):
-                self.logger.info(
-                    f"- Not enough time left to update before [{forced_end_of_update}]",
-                    datetime=datetime.utcnow(),
-                )
-                self.logger.info(
-                    f"Update of [{self.repository_name}] ended...",
-                    datetimee=datetime.utcnow(),
-                )
+            if forced_end_of_update < (datetime.utcnow() + relativedelta(seconds=average_seconds_per_item)):
+                logger.info(f"- Not enough time left to update before [{forced_end_of_update}]")
+                logger.info(f"Update of [{self.repository_name}] ended...")
                 return RepositoryUpdateResult.timed_out
 
             if not self._prediction_already_available(prediction_to_evaluate):
-                self.logger.debug(
-                    f"- Gathering the prediction for: {prediction_to_evaluate}"
-                )
+                logger.debug(f"- Gathering the prediction for: {prediction_to_evaluate}")
                 file_to_download = (
                     f"harm40_v1_p1_{prediction_to_evaluate.year}"
                     f"{str(prediction_to_evaluate.month).zfill(2)}"
@@ -169,28 +133,20 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
                 if file_to_download in files_in_dataset.keys():
                     # File exists
-                    knmi_downloader.download_specific_file(
-                        file_to_download, files_in_dataset[file_to_download]
-                    )
-                    self._process_downloaded_file(
-                        download_folder, file_to_download, prediction_to_evaluate
-                    )
+                    knmi_downloader.download_specific_file(file_to_download, files_in_dataset[file_to_download])
+                    self._process_downloaded_file(download_folder, file_to_download, prediction_to_evaluate)
                     no_of_items_processed += 1
                 else:
-                    self.logger.info(
+                    logger.info(
                         f"The expected file [{file_to_download}] was not found within the KNMI dataset. "
                         f"Moving on to the next file!"
                     )
             else:
-                self.logger.debug(
-                    f"The prediction for [{prediction_to_evaluate}] is already stored in the repository."
-                )
+                logger.debug(f"The prediction for [{prediction_to_evaluate}] is already stored in the repository.")
 
             prediction_to_evaluate -= relativedelta(hours=6)
 
-        self.logger.info(
-            f"Update of [{self.repository_name}] ended...", datetime=datetime.utcnow()
-        )
+        logger.info(f"Update of [{self.repository_name}] ended...")
         return RepositoryUpdateResult.completed
 
     def _prediction_already_available(self, prediction_moment: datetime):
@@ -203,91 +159,64 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         return False
 
-    def _process_downloaded_file(
-        self, download_folder: Path, filename: str, prediction_time: datetime
-    ):
+    def _process_downloaded_file(self, download_folder: Path, filename: str, prediction_time: datetime):
         """The function that processes a number of downloaded files into repository files."""
         stage = "Started unpacking files.."
         try:
             self._unpack_downloaded_file(download_folder, filename)
             stage = "Files were unpacked"
-            self._convert_unpacked_data_to_netcdf4_files(
-                download_folder, prediction_time
-            )
+            self._convert_unpacked_data_to_netcdf4_files(download_folder, prediction_time)
             stage = "Data was converted to NetCDF4"
             self._fuse_hourly_netcdf4_files(download_folder, prediction_time)
             stage = "NetCDF4 files were properly fused together"
             self._clear_temp_folder(download_folder)
         except Exception as e:
-            self.logger.warning(
-                f"Processing did not get past stage: {stage}",
-                datetime=datetime.utcnow(),
-            )
-            self.logger.warning(
-                f"The downloaded data could not be properly downloaded: {e}",
-                datetime=datetime.utcnow(),
-            )
+            logger.warning(f"Processing did not get past stage: {stage}")
+            logger.warning(f"The downloaded data could not be properly downloaded: {e}")
 
-    def _clear_temp_folder(self, download_folder: Path):
+    @staticmethod
+    def _clear_temp_folder(download_folder: Path):
         """A function that cleans up the temporary download folder to prevent issues with partially written files."""
-        self.logger.debug(
-            f"Emptying the download folder: {download_folder}",
-            datetime=datetime.utcnow(),
-        )
+        logger.debug(f"Emptying the download folder: {download_folder}")
         for existing_file in glob.glob(f"{download_folder}*.*"):
             try:
                 # Try to delete:
                 Path(existing_file).unlink()
             except Exception as e:
-                self.logger.info(
-                    f"An error occurred while deleting the file [{existing_file}]: {e}",
-                    datetime=datetime.utcnow(),
-                )
-                self.logger.warning(
-                    "There may be issues while updating using a file with an identical name..."
-                )
+                logger.info(f"An error occurred while deleting the file [{existing_file}]: {e}")
+                logger.warning("There may be issues while updating using a file with an identical name...")
 
-    def _unpack_downloaded_file(self, download_folder: Path, file_name: str):
+    @staticmethod
+    def _unpack_downloaded_file(download_folder: Path, file_name: str):
         """The function that unpacks downloaded files to prediction files."""
-        self.logger.info(f"Unpacking file: {file_name}")
+        logger.info(f"Unpacking file: {file_name}")
         try:
             tar_file = tarfile.open(download_folder.joinpath(file_name))
             tar_file.extractall(path=download_folder)
             tar_file.close()
         except Exception as e:
-            self.logger.error(
-                f"The tarfile [{file_name}] could not be unpacked!",
-                datetime=datetime.utcnow(),
-            )
+            logger.error(f"The tarfile [{file_name}] could not be unpacked!")
             raise e
 
-    def _convert_unpacked_data_to_netcdf4_files(
-        self, download_folder: Path, prediction_time: datetime
-    ):
+    def _convert_unpacked_data_to_netcdf4_files(self, download_folder: Path, prediction_time: datetime):
         """This function converts any unpacked data files into NetCDF4 files"""
         try:
             import cfgrib
 
-            self.logger.debug("Import of cfgrib was successful")
+            logger.debug("Import of cfgrib was successful")
         except RuntimeError as e:
-            self.logger.error(
-                "CFGRIB was not properly installed. Cannot access GRIB files."
-            )
+            logger.error("CFGRIB was not properly installed. Cannot access GRIB files.")
             raise e
 
         grib_files_available = glob.glob(
-            str(
-                download_folder.joinpath(
-                    f'HA40_N25_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'
-                )
-            )
+            str(download_folder.joinpath(f'HA40_N25_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'))
         )
 
         for grib_file in grib_files_available:
-            self.logger.debug(f"Processing GRIB file: {grib_file}")
+            logger.debug(f"Processing GRIB file: {grib_file}")
             self._convert_grib_file_to_NetCDF(Path(grib_file))
 
-        self.logger.info("All Partial datasets were successfully processed.")
+        logger.info("All Partial datasets were successfully processed.")
 
     def _convert_grib_file_to_NetCDF(self, grib_file: Path):
         """A function that converts a Harmonie Arome GRIB-file into a NetCDF4 file
@@ -299,9 +228,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             Nothing
 
         """
-        prediction_moment, predicted_hour = self._get_times_from_filename(
-            grib_file.name
-        )
+        prediction_moment, predicted_hour = self._get_times_from_filename(grib_file.name)
         grib_filestream = cfgrib.FileStream(str(grib_file))
         file_dataset = xr.Dataset()
 
@@ -309,10 +236,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             grib_message = item[1]
             # We skip the rotated grid data of the first file in each file-set and only process the regular_ll grids.
             if grib_message["gridType"] == "regular_ll":
-                (
-                    field_name,
-                    message_dataset,
-                ) = self._process_grib_message_to_message_dataset(
+                (field_name, message_dataset,) = self._process_grib_message_to_message_dataset(
                     grib_message=grib_message,
                     prediction_moment=prediction_moment,
                     predicted_hour=predicted_hour,
@@ -333,7 +257,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         file_dataset.time.encoding["units"] = "hours since 2018-01-01"
 
         file_dataset.to_netcdf(path=filename_to_save_to, format="NETCDF4")
-        self.logger.info(f"Saved partial dataset as: {filename_to_save_to}")
+        logger.info(f"Saved partial dataset as: {filename_to_save_to}")
 
     def _process_grib_message_to_message_dataset(
         self,
@@ -354,9 +278,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         """
         # Gather the message's level type and the level it was set to
-        msg_level_type = "_".join(
-            re.findall("[A-Z][^A-Z]*", grib_message["typeOfLevel"])
-        ).lower()
+        msg_level_type = "_".join(re.findall("[A-Z][^A-Z]*", grib_message["typeOfLevel"])).lower()
         msg_level = grib_message["level"]
 
         # Process the supported factors
@@ -378,9 +300,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         # Prepare data for dataset creation
         field_name = field_name.strip()  # Strip any excess spaces
-        lats, lons = self._build_lat_lon_grid(
-            grib_message
-        )  # Get the dimensions of the message
+        lats, lons = self._build_lat_lon_grid(grib_message)  # Get the dimensions of the message
         field_values = np.reshape(grib_message["values"], len(lats) * len(lons))
 
         data_dict = {field_name: (["time", "coord"], [field_values])}
@@ -405,27 +325,19 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             A datetime holding the most recent available prediction moment
 
         """
-        knmi_lag_time = (
-            5  # There is a known 5-hour calculation lag to take into account
-        )
+        knmi_lag_time = 5  # There is a known 5-hour calculation lag to take into account
 
         # Determine the current CET time (the KNMI works from the Netherlands, and this project from UTC)
         time_cet = self.last_day_of_repo.astimezone(pytz.timezone("Europe/Amsterdam"))
-        time_cet += (
-            time_cet.utcoffset()
-        )  # We add the UTC offset to change the actual values to those hours
+        time_cet += time_cet.utcoffset()  # We add the UTC offset to change the actual values to those hours
         time_cet = time_cet.replace(tzinfo=None, microsecond=0)  # Finish formatting
 
-        time_cet -= relativedelta(hours=knmi_lag_time)  # Subtract the KMNI lag
-        rounded_hour = (
-            time_cet.hour // 6
-        ) * 6  # Get the nearest preceding hours divisible by six
+        time_cet -= relativedelta(hours=knmi_lag_time)  # Subtract the KNMI lag
+        rounded_hour = (time_cet.hour // 6) * 6  # Get the nearest preceding hours divisible by six
         time_cet = time_cet.replace(hour=rounded_hour, minute=0, second=0)
         return time_cet
 
-    def _fuse_hourly_netcdf4_files(
-        self, download_folder: Path, prediction_moment: datetime
-    ):
+    def _fuse_hourly_netcdf4_files(self, download_folder: Path, prediction_moment: datetime):
         """
 
         Args:
@@ -435,39 +347,32 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         Returns:
 
         """
-        self.logger.info(f"Starting merge of all files for: {prediction_moment}")
-        existing_prediction_files = sorted(
-            glob.glob(str(Path(download_folder).joinpath(f"{self.file_prefix}*.nc")))
-        )
+        logger.info(f"Starting merge of all files for: {prediction_moment}")
+        existing_prediction_files = sorted(glob.glob(str(Path(download_folder).joinpath(f"{self.file_prefix}*.nc"))))
 
         fused_dataset = None
 
         for prediction_file in existing_prediction_files:
-            self.logger.debug(f"- Starting merge of: {prediction_file}")
+            logger.debug(f"- Starting merge of: {prediction_file}")
             with xr.open_dataset(prediction_file) as prediction_file_dataset:
                 prediction_file_dataset.load()
                 if not fused_dataset:
                     fused_dataset = prediction_file_dataset
                 else:
-                    fused_dataset = xr.merge([fused_dataset, prediction_file_dataset])
+                    fused_dataset = xr.merge([fused_dataset, prediction_file_dataset], compat="override")
 
         filename_to_save_to = self.repository_folder.joinpath(
             f"{self.file_prefix}_{prediction_moment.year}{str(prediction_moment.month).zfill(2)}"
             f"{str(prediction_moment.day).zfill(2)}_{str(prediction_moment.hour).zfill(2)}00.nc"
         )
 
-        self.logger.debug(
-            f"- Saving prediction [{prediction_moment}] to: {filename_to_save_to}"
-        )
+        logger.debug(f"- Saving prediction [{prediction_moment}] to: {filename_to_save_to}")
 
         encoding = {v: {"zlib": True, "complevel": 4} for v in fused_dataset.variables}
-        fused_dataset.to_netcdf(
-            filename_to_save_to, format="NETCDF4", engine="netcdf4", encoding=encoding
-        )
+        fused_dataset.to_netcdf(filename_to_save_to, format="NETCDF4", engine="netcdf4", encoding=encoding)
 
-    def _build_lat_lon_grid(
-        self, grib_message: cfgrib.Message
-    ) -> Tuple[List[float], List[float]]:
+    @staticmethod
+    def _build_lat_lon_grid(grib_message: cfgrib.Message) -> Tuple[List[float], List[float]]:
         """This function uses an existing GRIB file to extract the dimensions of the 'regular_ll' grid and format
          those into a list of latitudes and a list of longitudes that together make up the grid.
 
@@ -512,7 +417,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         return latitudes, longitudes
 
-    def _get_times_from_filename(self, filename: str) -> Tuple[datetime, int]:
+    @staticmethod
+    def _get_times_from_filename(filename: str) -> Tuple[datetime, int]:
         """This function extracts the timeframe a file represents from its name and translates that into the datetime
          that the prediction was made, and the exact hour it represents of that prediction.
 
@@ -531,9 +437,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
             predicted_hour = int(filename[-7:-5])
         except Exception as e:
-            raise ValueError(
-                f"Could not properly obtain the prediction from the title of the file: {filename} [{e}]"
-            )
+            raise ValueError(f"Could not properly obtain the prediction from the title of the file: {filename} [{e}]")
 
         prediction_moment = datetime(
             year=prediction_year,
@@ -541,9 +445,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             day=prediction_day,
             hour=prediction_hour,
         )
-        self.logger.debug(
-            f"File [{filename}] was parsed to prediction moment and hour:"
-            f" [{prediction_moment}],[{predicted_hour}]"
+        logger.debug(
+            f"File [{filename}] was parsed to prediction moment and hour: [{prediction_moment}],[{predicted_hour}]"
         )
         return prediction_moment, predicted_hour
 
@@ -560,52 +463,23 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
 
         """
-        counter_until_date_in_filename = (
-            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
-        )
+        counter_until_date_in_filename = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
 
-        for file_name in glob.glob(
-            f"{self.repository_folder.joinpath(self.file_prefix)}*.nc"
-        ):
+        for file_name in glob.glob(f"{self.repository_folder.joinpath(self.file_prefix)}*.nc"):
             file_date = datetime(
-                year=int(
-                    file_name[
-                        counter_until_date_in_filename : counter_until_date_in_filename
-                        + 4
-                    ]
-                ),
-                month=int(
-                    file_name[
-                        counter_until_date_in_filename
-                        + 4 : counter_until_date_in_filename
-                        + 6
-                    ]
-                ),
-                day=int(
-                    file_name[
-                        counter_until_date_in_filename
-                        + 6 : counter_until_date_in_filename
-                        + 8
-                    ]
-                ),
+                year=int(file_name[counter_until_date_in_filename : counter_until_date_in_filename + 4]),
+                month=int(file_name[counter_until_date_in_filename + 4 : counter_until_date_in_filename + 6]),
+                day=int(file_name[counter_until_date_in_filename + 6 : counter_until_date_in_filename + 8]),
                 hour=0,
                 minute=0,
                 second=0,
                 microsecond=0,
             ).date()
 
-            if (
-                file_date < self.first_day_of_repo.date()
-                or file_date > self.last_day_of_repo.date()
-            ):
-                self.logger.debug(
-                    f"The current scope is [{self.first_day_of_repo.date()}-{self.last_day_of_repo.date()}]",
-                    datetime=datetime.utcnow(),
-                )
-                self.logger.debug(
-                    f"The file [{file_name}] resolved to [{file_date}], which lies out of scope."
-                )
-                self.logger.debug(f"The file [{file_name}] will therefor be deleted.")
+            if file_date < self.first_day_of_repo.date() or file_date > self.last_day_of_repo.date():
+                logger.debug(f"The current scope is [{self.first_day_of_repo.date()}-{self.last_day_of_repo.date()}]")
+                logger.debug(f"The file [{file_name}] resolved to [{file_date}], which lies out of scope.")
+                logger.debug(f"The file [{file_name}] will therefor be deleted.")
 
                 self._safely_delete_file(file_name)
 
@@ -620,39 +494,18 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             List[Path]: A list of the files associated with the given timeframe
 
         """
-        self.logger.debug(f"Finding files for the timeframe: [({start})-({end})]")
-        self.logger.debug(f"Searching folder: [{self.repository_folder}]")
-        counter_until_date_in_filename = (
-            len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
-        )
+        logger.debug(f"Finding files for the timeframe: [({start})-({end})]")
+        logger.debug(f"Searching folder: [{self.repository_folder}]")
+        counter_until_date_in_filename = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
 
-        list_of_all_netcdf4_files_in_repo = glob.glob(
-            str(self.repository_folder.joinpath(f"{self.file_prefix}*.nc"))
-        )
+        list_of_all_netcdf4_files_in_repo = glob.glob(str(self.repository_folder.joinpath(f"{self.file_prefix}*.nc")))
         list_of_files_in_timeframe = []
 
         for file_name in list_of_all_netcdf4_files_in_repo:
             file_date = datetime(
-                year=int(
-                    file_name[
-                        counter_until_date_in_filename : counter_until_date_in_filename
-                        + 4
-                    ]
-                ),
-                month=int(
-                    file_name[
-                        counter_until_date_in_filename
-                        + 4 : counter_until_date_in_filename
-                        + 6
-                    ]
-                ),
-                day=int(
-                    file_name[
-                        counter_until_date_in_filename
-                        + 6 : counter_until_date_in_filename
-                        + 8
-                    ]
-                ),
+                year=int(file_name[counter_until_date_in_filename : counter_until_date_in_filename + 4]),
+                month=int(file_name[counter_until_date_in_filename + 4 : counter_until_date_in_filename + 6]),
+                day=int(file_name[counter_until_date_in_filename + 6 : counter_until_date_in_filename + 8]),
                 hour=0,
                 minute=0,
                 second=0,

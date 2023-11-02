@@ -117,7 +117,7 @@ def get_weather_slice_for_coords(coord, unserialized_data) -> pd.DataFrame:
     # We then switch to a Pandas dataframe
     if isinstance(coord, list):
         coord = coord[0]
-    weather = unserialized_data.sel(lat=coord[0], lon=coord[1], method='nearest')
+    weather = unserialized_data.sel(lat=coord[0], lon=coord[1], method="nearest")
     if weather.dims["time"] == 1:
         # Because a single moment in time can't be squeezed...
         df = weather.to_dataframe()
