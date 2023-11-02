@@ -9,10 +9,8 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-import structlog
 from fastapi import HTTPException
-
-logger = structlog.get_logger(__name__)
+from loguru import logger
 
 
 def parse_datetime(
@@ -79,50 +77,14 @@ def validate_begin_and_end(
 
     if start >= data_end:
         raise HTTPException(
-            422, f"Invalid [start] value [{start}]: value lies after last available moment for model " f"({data_end})"
+            422, f"Invalid [start] value [{start}]: value lies after last available moment for model ({data_end})"
         )
     if data_start is not None and end <= data_start:
         raise HTTPException(
-            422, f"Invalid [end] value [{end}]: value lies before first available moment for model " f"({data_start})"
+            422, f"Invalid [end] value [{end}]: value lies before first available moment for model ({data_start})"
         )
 
     if end < start:
         raise HTTPException(422, f"Invalid [start] and [end] values: [end]({end}) lies before [start]({start})")
 
     return start, end
-
-
-"""
-def validate_begin_and_end(
-    start: datetime,
-    end: datetime,
-    data_start: datetime = None,
-    data_end: datetime = None,
-):
-    if data_end is None:
-        data_end = (
-            datetime.utcnow()
-        )  # Even predictions are made in the past, so no end time can lie in the future.
-
-    # Ending time needs to be filled and is at most the repo ending time
-    if end is None or end > data_end:
-        end = data_end
-
-    # Ending time needs to lie after the repo starting time as well!
-    if data_start is not None and end <= data_start:
-        end = data_start + timedelta(
-            days=7
-        )  # Set to a default of 7 days after the repo starting time
-
-    # Starting time needs to be filled and has to lie before the ending time
-    if start is None or start >= end:
-        start = end - timedelta(
-            days=7
-        )  # Set to a default of 7 days before the ending time
-
-    # Starting time needs to lie at least at the repo starting time if one is given
-    if data_start is not None and start < data_start:
-        start = data_start
-
-    return start, end
-"""

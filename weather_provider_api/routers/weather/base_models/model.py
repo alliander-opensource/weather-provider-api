@@ -10,6 +10,7 @@ from typing import List, Optional
 import numpy as np
 import xarray as xr
 
+from weather_provider_api.core.initializers.exception_handling import NOT_IMPLEMENTED_ERROR
 from weather_provider_api.routers.weather.api_models import OutputUnit
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
@@ -32,11 +33,11 @@ class WeatherModelBase(metaclass=ABCMeta):
         end: Optional[np.datetime64],
         weather_factors: List[str] = None,
     ) -> xr.Dataset:  # pragma: no cover
-        print("This method is abstract and should be overridden.")
+        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     @abstractmethod
     def is_async(self):  # pragma: no cover
-        print("This method is abstract and should be overridden.")
+        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     def convert_names_and_units(self, weather_data: xr.Dataset, unit: OutputUnit):
         """
@@ -90,7 +91,7 @@ class WeatherModelBase(metaclass=ABCMeta):
 
     @abstractmethod
     def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
-        print("This method is abstract and should be overridden.")
+        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     @staticmethod
     def celsius_to_kelvin(x):  # pragma: no cover

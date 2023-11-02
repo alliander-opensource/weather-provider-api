@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import List
 
 import accept_types
-import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
+from loguru import logger
 
 from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
 from weather_provider_api.routers.weather.api_models import (
@@ -28,11 +28,9 @@ from weather_provider_api.routers.weather.utils import serializers
 from weather_provider_api.routers.weather.utils.date_helpers import parse_datetime
 from weather_provider_api.routers.weather.utils.file_helpers import remove_file
 
-app = APIRouter()
+v2_router = APIRouter()
 
 controller = WeatherController()
-
-logger = structlog.get_logger(__name__)
 
 
 def header_accept_type(accept: str = Header(None)) -> str:
@@ -42,7 +40,7 @@ def header_accept_type(accept: str = Header(None)) -> str:
 
 
 # @weather_provider_api.get("/sources", response_model=List[WeatherSource], tags=["sync", "async"])
-@app.get("/sources", response_model=List[WeatherSource], tags=["sync"])
+@v2_router.get("/sources", response_model=List[WeatherSource], tags=["sync"])
 async def get_sources():  # pragma: no cover
     """<B>List all the Weather Sources available</B>"""
     """
@@ -56,7 +54,7 @@ async def get_sources():  # pragma: no cover
 
 
 # @weather_provider_api.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync", "async"])
-@app.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync"])
+@v2_router.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync"])
 async def get_source(source_id: str):  # pragma: no cover
     """<B>List all the Models available  for the Source</B>"""
     """
@@ -70,7 +68,7 @@ async def get_source(source_id: str):  # pragma: no cover
     return controller.get_source(source_id)
 
 
-@app.get("/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"])
+@v2_router.get("/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"])
 async def get_sync_models(source_id: str):  # pragma: no cover
     """<B>List all the synchronous Models available for the selected Source</B>"""
     """
@@ -85,7 +83,7 @@ async def get_sync_models(source_id: str):  # pragma: no cover
     return controller.get_models(source_id, fetch_async=False)
 
 
-@app.get("/sources/{source_id}/models/{model_id}", tags=["sync"])
+@v2_router.get("/sources/{source_id}/models/{model_id}", tags=["sync"])
 @API_RATE_LIMITER.limit("20/minute")
 async def get_sync_weather(
     request: Request,
@@ -121,7 +119,7 @@ async def get_sync_weather(
         The weather data in the requested format for the requested parameters.
     """
     starting_time = datetime.utcnow()
-    logger.info(f"WeatherRequest({starting_time}): {request.url}", datetime=datetime.utcnow())
+    logger.info(f"WeatherRequest({starting_time}): {request.url}")
     source_id = source_id.lower()
     model_id = model_id.lower()
     coords = controller.lat_lon_to_coords(ret_args.lat, ret_args.lon)
@@ -168,12 +166,12 @@ async def get_sync_weather(
         converted_weather_data, response_format, source_id, model_id, ret_args, coords
     )
     cleanup_tasks.add_task(remove_file, optional_file_path)
-    logger.info(f"WeatherRequest({starting_time}) data preparation finished.", datetime=datetime.utcnow())
+    logger.info(f"WeatherRequest({starting_time}) data preparation finished.")
     return response
 
 
 # @weather_provider_api.get("/weeralarm")
-@app.get("/alarms/knmi", tags=["alerts"])
+@v2_router.get("/alarms/knmi", tags=["alerts"])
 async def get_alarm():  # pragma: no cover
     """<B>Fetches the WeatherAlarm status for all the provinces from KNMI Weer Alarm and returns the results</B>"""
     """
@@ -186,19 +184,19 @@ async def get_alarm():  # pragma: no cover
 
 
 # Handler for requests with multiple locations:
-@app.get("/sources/{source_id}/models/{model_id}/multiple-locations/", tags=["sync"])
+@v2_router.get("/sources/{source_id}/models/{model_id}/multiple-locations/", tags=["sync"])
 @API_RATE_LIMITER.limit("5/minute")
 async def get_sync_weather_multi_loc(
-        request: Request,
-        source_id: str,
-        model_id: str,
-        cleanup_tasks: BackgroundTasks,
-        ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
-        fmt_args: WeatherFormattingRequestQuery = Depends(),
-        accept: str = Depends(header_accept_type),
+    request: Request,
+    source_id: str,
+    model_id: str,
+    cleanup_tasks: BackgroundTasks,
+    ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
+    fmt_args: WeatherFormattingRequestQuery = Depends(),
+    accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
     starting_time = datetime.utcnow()
-    logger.info(f"WeatherRequest({starting_time}): {request.url}", datetime=datetime.utcnow())
+    logger.info(f"WeatherRequest({starting_time}): {request.url}")
 
     source_id = source_id.lower()
     model_id = model_id.lower()
@@ -243,5 +241,5 @@ async def get_sync_weather_multi_loc(
         converted_weather_data, response_format, source_id, model_id, ret_args, coords
     )
     cleanup_tasks.add_task(remove_file, optional_file_path)
-    logger.info(f"WeatherRequest({starting_time}) data preparation finished.", datetime=datetime.utcnow())
+    logger.info(f"WeatherRequest({starting_time}) data preparation finished.")
     return response
