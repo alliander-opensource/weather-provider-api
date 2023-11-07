@@ -17,6 +17,7 @@ WORKDIR /
 COPY ./weather_provider_api ./weather_provider_api
 COPY ./var_maps ./var_maps
 COPY ./pyproject.toml ./pyproject.toml
+RUN apt-get clean
 
 # *** DEV IMAGE ***
 # The purpose of this image is to supply the project as an interpreter / testing ground
@@ -42,5 +43,7 @@ FROM base-image AS gunicorn-image
 WORKDIR /
 
 EXPOSE 8000
+RUN apt-get install -y gunicorn
+RUN apt-get clean
 
 CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "weather_provider_api.core.application:WPLA_APPLICATION", "--timeout", "180"]
