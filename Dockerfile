@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-FROM python:3.13-bullseye AS base-image
+FROM python:3.10.13-bullseye AS base-image
 
 RUN apt-get update &&  \
     apt-get -y install libeccodes-dev &&  \
