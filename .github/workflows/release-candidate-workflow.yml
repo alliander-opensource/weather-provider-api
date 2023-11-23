@@ -39,11 +39,11 @@ jobs:
           poetry run coverage run -m pytest
           poetry run coverage report
       # Generate XML Coverage result file
-      - if: matrix.version == '3.8'
+      - if: matrix.version == '3.10'
         name: Generate Coverage XML file
         run: poetry run coverage xml
       # Upload coverage data to SonarCloud.io
-      - if: matrix.version == '3.8'
+      - if: matrix.version == '3.10'
         name: Update SonarCloud.io
         uses: SonarSource/sonarcloud-github-action@master
         env:
