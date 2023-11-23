@@ -1,0 +1,15 @@
+component_depth: 2
+exclude:
+  - "/demos/.*"
+  - "/doc/.*"
+  - "/LICENSES/.*"
+  - "/img/.*"
+  - "/scripts/.*"
+  - ".*/__init__.py"
+languages:
+  - name: python
+  - name: docker
+  - name: json
+component_base_dirs:
+  - "weather_provider_api"
+  - "var_maps"

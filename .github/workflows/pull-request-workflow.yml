@@ -9,7 +9,7 @@ jobs:
   tests-and-sonarcloud:
     strategy:
       matrix:
-        version: ["3.8", "3.9", "3.10"]  # TODO: Get Python versions from the project
+        version: ["3.10", "3.11"]  # TODO: Get Python versions from the project
     name: Testing and updating SonarCloud
     runs-on: ubuntu-latest
     steps:

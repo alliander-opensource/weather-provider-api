@@ -29,6 +29,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
     """ """
 
     def _delete_files_outside_of_scope(self):
+        logger.info(f"Deleting files outside of scope [{self.first_day_of_repo} - {self.last_day_of_repo}]")
         if self.filename.exists():
             current_data = xr.load_dataset(self.filename, engine="netcdf4")
             current_data = current_data.sel(time=slice(self.first_day_of_repo, self.last_day_of_repo))
@@ -121,7 +122,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
             stored_data_ds = None
 
         logger.info(
-            f"Storing data for: {update_moment.strftime('%m-%d-%Y %H:%M:%S')} "
+            f"Storing data at [{update_moment.strftime('%m-%d-%Y %H:%M:%S')}] for "
             f"[{new_data_ds.isel(STN=0, time=0)['time'].values}]"
         )
         if stored_data_ds is None:
@@ -133,7 +134,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
 
                 new_stored_data_ds.to_netcdf(self.filename, format="NETCDF4")
             except ValueError as value_error:
-                logger.warning(f"Could not update file: {value_error}")
+                logger.error(f"Could not update file: {value_error}")
 
     def get_24_hour_registry_for_station(self, station: int) -> xr.Dataset:
         """This method obtains the last 24 hours of data of Actuele Waarnemingen and returns it for single station.

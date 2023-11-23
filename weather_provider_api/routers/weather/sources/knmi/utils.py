@@ -96,6 +96,7 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
 
             current_observation_moment = _retrieve_observation_moment(knmi_site_response.text)
             knmi_site_df["time"] = current_observation_moment
+            knmi_site_df["time"] = knmi_site_df["time"].astype("datetime64[ns]")
             if "wind_direction" in knmi_site_df:
                 knmi_site_df["wind_direction"] = knmi_site_df["wind_direction"].str.strip("\n")
 
@@ -126,7 +127,7 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
     return raw_ds
 
 
-def _retrieve_observation_moment(html_body: str):
+def _retrieve_observation_moment(html_body: str) -> datetime:
     """
     A function that extracts the observation date from the supplied html body of the Actuele Waarnemingen site.
 
