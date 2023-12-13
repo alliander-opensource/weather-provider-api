@@ -4,7 +4,7 @@ exclude:
   - "/doc/.*"
   - "/LICENSES/.*"
   - "/img/.*"
-  - "/scripts/.*"
+  - "weather_provider_api/scripts/.*"
   - ".*/__init__.py"
 languages:
   - name: python
