@@ -304,7 +304,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         field_values = np.reshape(grib_message["values"], len(lats) * len(lons))
 
         data_dict = {field_name: (["time", "coord"], [field_values])}
-        predicted_moment = prediction_moment + relativedelta(hours=predicted_hour)
+        predicted_moment = np.datetime64((prediction_moment + relativedelta(hours=predicted_hour))).astype(
+            "datetime64[ns]"
+        )
 
         dataset_coords = {
             "time_of_prediction": [prediction_moment],
@@ -359,7 +361,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
                 if not fused_dataset:
                     fused_dataset = prediction_file_dataset
                 else:
-                    fused_dataset = xr.merge([fused_dataset, prediction_file_dataset], compat="override")
+                    fused_dataset = xr.merge([fused_dataset, prediction_file_dataset], compat="no_conflicts")
 
         filename_to_save_to = self.repository_folder.joinpath(
             f"{self.file_prefix}_{prediction_moment.year}{str(prediction_moment.month).zfill(2)}"
