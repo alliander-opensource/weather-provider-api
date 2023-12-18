@@ -156,7 +156,7 @@ def _retrieve_observation_moment(html_body: str) -> datetime:
         )
         return datetime.now()
     except Exception as e:
-        logger.exception(
+        logger.error(
             "An unknown exception occurred while retrieving the KNMI Waarnemingen datetime for use in the response."
             f" Using local datetime instead. Error: {e}"
         )
