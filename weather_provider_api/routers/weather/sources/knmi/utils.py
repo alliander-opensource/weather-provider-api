@@ -25,7 +25,9 @@ from weather_provider_api.routers.weather.sources.knmi.stations import (
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
-def find_closest_stn_list(stn_stations: pd.DataFrame, coords: List[GeoPosition]):
+def find_closest_stn_list(
+        stn_stations: pd.DataFrame, coords: List[GeoPosition]
+) -> tuple[list[np.int64], list[np.int64], list[int]]:
     """
             A function that finds the closest stations to the locations in the given list of GeoPositions
     Args:
@@ -45,7 +47,7 @@ def find_closest_stn_list(stn_stations: pd.DataFrame, coords: List[GeoPosition])
     return coords_stn, stns, coords_stn_ind
 
 
-def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition):
+def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> np.int64:
     """
         A function that finds the closest station to a single GeoPosition
     Args:
