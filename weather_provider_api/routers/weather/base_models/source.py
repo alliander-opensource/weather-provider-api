@@ -6,8 +6,7 @@
 
 
 class WeatherSourceBase(object):  # pragma: no cover
-    """
-    Base class that contains the basic functionality for all sources. Any new sources should implement this as their
+    """Base class that contains the basic functionality for all sources. Any new sources should implement this as their
     base class!
     """
 

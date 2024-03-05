@@ -179,12 +179,12 @@ class DagGegevensModel(WeatherModelBase):
         logger.debug(f"Weather model [{self.id}] initialized successfully")
 
     def get_weather(
-        self,
-        coords: List[GeoPosition],
-        begin: datetime,
-        end: datetime,
-        inseason=False,
-        weather_factors: List[str] = None,
+            self,
+            coords: List[GeoPosition],
+            begin: datetime,
+            end: datetime,
+            inseason=False,
+            weather_factors: List[str] = None,
     ) -> xr.Dataset:
         """
             The function that gathers and processes the requested Daggegevens weather data from the KNMI site
@@ -222,18 +222,19 @@ class DagGegevensModel(WeatherModelBase):
 
         # The KNMI model isn't working properly yet, so we have to cut out any overflow time-wise
         ds = ds.sel(time=slice(begin, end))
+
         return ds
 
-    def is_async(self):  # pragma: no cover
+    def is_async(self) -> bool:  # pragma: no cover
         return self.async_model
 
     def _download_weather(
-        self,
-        stations: List[int],
-        start: datetime,
-        end: datetime,
-        inseason=False,
-        weather_factors: List[str] = None,
+            self,
+            stations: List[int],
+            start: datetime,
+            end: datetime,
+            inseason=False,
+            weather_factors: List[str] = None,
     ):
         """
             A function that downloads the weather from the KNMI download location and returns it as a text
@@ -306,7 +307,8 @@ class DagGegevensModel(WeatherModelBase):
         return dataframe_data.to_xarray()
 
     @staticmethod
-    def _prepare_weather_data(coordinates: List[GeoPosition], station_id, raw_ds):
+    def _prepare_weather_data(coordinates: List[GeoPosition], station_id: list[np.int64],
+                              raw_ds: xr.Dataset) -> xr.Dataset:
         # A function that prepares the weather data for return by the API, by replacing the matching station with the
         # lat/lon location that was requested, and properly formatting the dimensions.
 
@@ -322,6 +324,7 @@ class DagGegevensModel(WeatherModelBase):
             coords={"time": timeline, "coord": coords_to_pd_index(coordinates)},
         )
         ds = ds.unstack("coord")
+
         return ds
 
     def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
