@@ -1,13 +1,13 @@
 [base]
-title = "WPLA"
-full_title = "Weather Provider Libraries and API"
+title = "WP Access Suite"
+full_title = "Weather Provider Access Suite"
 description = """
-    The Weather Provider Libraries and API (WPLA) is an Open Source Project intended to present an easy
+    The Weather Provider Access Suite (WPAS) is an Open Source Project intended to present an easy
     and uniform way to request meteorological data from a extensive numer of sources in a plethora of formats and
-    styles.
+    styles. This implementation incorporates the WP API and the WP Libraries components.
 """
 expiration_checking = true
-expiration_date = "2024-08-01"
+expiration_date = "2026-10-16"
 
 [maintainer]
 show_info = true
@@ -30,10 +30,10 @@ cors = false
 cors_allowed_origins = ['*']
 cors_allowed_origins_regex = []
 
-[api_v1]
-implementation = "2.2.0"
-expiration_date = "2024-08-01"
-
 [api_v2]
 implementation = "2.2.0"
-expiration_date = "2024-08-01"
+expiration_date = "2024-10-16"
+
+[api_v3]
+implementation = "3.0.0"
+expiration_date = "2026-10-16"
