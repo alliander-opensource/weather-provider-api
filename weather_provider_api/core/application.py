@@ -7,7 +7,6 @@
 """ Main Application """
 
 from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
 from starlette.responses import RedirectResponse
 
 from weather_provider_api.app_version import APP_VERSION
@@ -19,7 +18,6 @@ from weather_provider_api.core.initializers.logging_handler import initialize_lo
 from weather_provider_api.core.initializers.mounting import mount_api_version
 from weather_provider_api.core.initializers.prometheus import initialize_prometheus_interface
 from weather_provider_api.core.initializers.validation import initialize_api_validation
-
 from weather_provider_api.versions.v1 import app as v1
 from weather_provider_api.versions.v2 import app as v2
 
@@ -41,6 +39,7 @@ def _build_api_application() -> FastAPI:
     application = FastAPI(
         version=APP_VERSION,
         title=app_title,
+        summary=app_description,
         description=app_description,
         contact={"name": APP_CONFIG["maintainer"]["name"], "email": APP_CONFIG["maintainer"]["email_address"]},
     )

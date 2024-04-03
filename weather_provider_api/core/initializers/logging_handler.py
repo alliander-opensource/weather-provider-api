@@ -38,7 +38,7 @@ class LoggingInterceptHandler(logging.Handler):
     }
 
     def emit(self, record: logging.LogRecord) -> None:
-        """Emission method that intercepts the original logging message using Python's base logging system and
+        """Emission method that intercepts the original logging message using Python's base logging system and  # noqa: D205
          re-formats it (if needed) to match Loguru systems.
 
         Args:
@@ -66,8 +66,9 @@ class LoggingInterceptHandler(logging.Handler):
 
 
 def initialize_logging():
-    """The method that initializes and sets our custom logging system as the default, and reroutes other logging
+    """The method that initializes and sets our custom logging system as the default, and reroutes other logging  # noqa: D205
      systems to use our system instead.
+
     Returns:
         Nothing. The logging system itself is overwritten.
     """
