@@ -23,7 +23,7 @@ def mount_fastapi_sub_app_to_app(base_application: FastAPI, sub_application: Fas
 
     # Then we mount the sub-application onto the base application
     logger.info(
-        f"WP API - Mounting sub-application [{sub_application_title}] to [{base_application_title}] at: "
+        f"WP API - init - Mounting sub-app [{sub_application_title}] to [{base_application_title}] at: "
         f"{mounting_path}"
     )
     base_application.mount(mounting_path, sub_application)

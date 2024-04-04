@@ -1,14 +1,15 @@
 #!/usr/bin/env python
+
 #  -------------------------------------------------------
 #  SPDX-FileCopyrightText: 2019-2024 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 #  -------------------------------------------------------
 
-from loguru import logger
-
 from importlib import metadata
 
 import tomli
+
+from weather_provider_api.core.utils.file_transformers import get_main_project_folder
 
 
 def _get_app_version() -> str:
@@ -23,29 +24,20 @@ def _get_app_version() -> str:
     # Please note that this assumes that this function was called from a context that has the Project's main folder as
     #  the working directory.
     try:
-        with open("./pyproject.toml", mode="rb") as project_file:
+        with open(get_main_project_folder().parent.parent.joinpath("pyproject.toml"), mode="rb") as project_file:
             version = tomli.load(project_file)["tool"]["poetry"]["version"]
-        logger.info(
-            f"Retrieved the project version from the pyproject.toml file: {version}"
-        )
         return version
-    except FileNotFoundError as fnf_error:
-        logger.debug(
-            f"Could not retrieve the active version from the pyproject.toml file: {fnf_error}"
-        )
+    except FileNotFoundError:
+        pass
 
     # Second attempt: Get the version number from the package that was used to install this component, if applicable.
     try:
         version = metadata.version(__package__)
-        logger.info(f"Retrieved the project version from package data: {version}")
         return version
-    except metadata.PackageNotFoundError as pnf_error:
-        logger.debug(
-            f"Could not retrieve the active version from package data: {pnf_error}"
-        )
+    except metadata.PackageNotFoundError:
+        pass
 
     # No version could be determined
-    logger.warning("No version could be found for the project!")
     return "<< version could not be determined >>"
 
 

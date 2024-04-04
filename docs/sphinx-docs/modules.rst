@@ -4,4 +4,4 @@
 .. toctree::
    :maxdepth: 4
 
-   weather_provider_libraries
+   weather_provider_api

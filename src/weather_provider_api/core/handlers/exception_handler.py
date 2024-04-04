@@ -38,6 +38,6 @@ def install_exception_handler(app: FastAPI):
 
     app_title = app.title if hasattr(app, "title") else "Unknown"
 
-    logger.info(f"WP API - Attaching Exception handler to application:  ({app_title})...")
+    logger.info(f"WP API - init - Attaching Exception handler to:  {app_title}")
     # noinspection PyTypeChecker
     app.add_exception_handler(StarletteHTTPException, handle_http_exception)

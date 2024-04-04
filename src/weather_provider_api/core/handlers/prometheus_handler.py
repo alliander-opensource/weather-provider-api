@@ -19,7 +19,7 @@ def install_prometheus_handler(app: FastAPI, mount_path: str = "/metrics"):
 
 
     """
-    logger.info("WP API - Installing Prometheus handler and opening metrics endpoint at: [{mount_path}]")
+    logger.info(f"WP API - Installing Prometheus handler and opening metrics endpoint at: [{mount_path}]")
 
     # noinspection PyTypeChecker
     app.add_middleware(middleware_class=PrometheusMiddleware, filter_unhandled_paths=True)

@@ -6,6 +6,7 @@
 #  -------------------------------------------------------
 
 from fastapi import FastAPI
+from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from weather_provider_api.core.handlers.configuration_handler import WP_API_CONFIG
@@ -13,6 +14,7 @@ from weather_provider_api.core.utils.version_detection import WP_API_APP_VERSION
 
 
 def install_response_header_handler(app: FastAPI):
+    """Install the response header handler."""
 
     async def adjust_response_headers(request, call_next):
         response = await call_next(request)
@@ -30,5 +32,5 @@ def install_response_header_handler(app: FastAPI):
                 "email_address", "Maintainer Email Not Set!"
             )
         return response
-
+    logger.info("WP API - init - Installing response header handler.")
     app.add_middleware(BaseHTTPMiddleware, dispatch=adjust_response_headers)

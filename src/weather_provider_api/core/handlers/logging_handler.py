@@ -16,9 +16,20 @@ from weather_provider_api.core.handlers.configuration_handler import (
     WP_API_ENV_VARS,
 )
 
-_LOG_FORMAT_SERVERLOG = ""
-_LOG_FORMAT_EXTENDED = ""
-_LOG_FORMAT_FILES = ""
+_LOG_FORMAT_SERVERLOG = "[{level}][UTC {time:YYYY-MM-DD HH:mm:ss:SSS!UTC}]: {message}"
+_LOG_FORMAT_EXTENDED = (
+    "<level>[{level: <8}]</level>"
+    "<green>[{time:YYYY-MM-DD HH:mm:ss:SSS!UTC} UTC]</green>"
+    "<yellow>[{name: <64}]</yellow>"
+    "<blue><b>[{function: <36}]</b></blue>: "
+    "<level>{message}</level>"
+)
+_LOG_FORMAT_SIMPLIFIED = (
+    "<level>[{level: <8}]</level>"
+    "<green>[{time:YYYY-MM-DD HH:mm:ss:SSS!UTC} UTC]</green>: "
+    "<level>{message}</level>"
+)
+_LOG_FORMAT_FILES = "[{level}][UTC {time:YYYY-MM-DD HH:mm:ss:SSS!UTC}][{name} {function}]: {message}"
 
 
 class LoggingInterceptHandler(logging.Handler):
@@ -63,9 +74,7 @@ class LoggingInterceptHandler(logging.Handler):
 
         # Log the message as intended by writing the converted data to the proper logger.
         log = logger.bind(request_id="app")
-        log.opt(depth=depth, exception=record.exc_info).log(
-            __level=record_level, __message=record.getMessage()
-        )
+        log.opt(depth=depth, exception=record.exc_info).log(record_level, "WP API - " + record.getMessage())
 
 
 def install_logging_handler(app: FastAPI):
@@ -78,12 +87,12 @@ def install_logging_handler(app: FastAPI):
         Nothing. The logging handler is installed on the FastAPI application instance.
 
     """
+    logger.info("WP API - init - Attaching logging handler")
     app.add_event_handler("startup", initialize_logging)
 
 
 def initialize_logging():
     """(Re-)initialize the logging system to use Loguru as the default logger."""
-
     # Remove any pre-existing Loguru loggers
     logger.remove()
 
@@ -107,7 +116,7 @@ def attach_uvicorn_loggers():
     existing_uvicorn_loggers = (
         logging.getLogger(name=name)
         for name in logging.root.manager.loggerDict
-        if name.startswith("uvicorn")
+        if name.startswith("uvicorn.") or name.startswith("gunicorn.")
     )
     for existing_logger in existing_uvicorn_loggers:
         existing_logger.handlers = [LoggingInterceptHandler()]
@@ -121,11 +130,13 @@ def add_stdout_logger():
     """
     _logging_format_from_env = WP_API_ENV_VARS.get("LOGGING_FORMAT", "SERVERLOG")
 
-    logging_format = (
-        _LOG_FORMAT_EXTENDED
-        if _logging_format_from_env == "EXTENDED"
-        else _LOG_FORMAT_SERVERLOG
-    )
+    logging_format = _LOG_FORMAT_SERVERLOG
+
+    if _logging_format_from_env == "EXTENDED":
+        logging_format = _LOG_FORMAT_EXTENDED
+    elif _logging_format_from_env == "SIMPLIFIED":
+        logging_format = _LOG_FORMAT_SIMPLIFIED
+
     logger.add(
         sys.stdout,
         enqueue=False,

@@ -12,14 +12,11 @@ from loguru import logger
 
 from weather_provider_api.core.utils.file_transformers import get_main_config_folder
 
-
 with open(get_main_config_folder().joinpath("config.toml"), mode="rb") as config_file:
     WP_API_CONFIG = tomli.load(config_file)
 
-logger.debug("WP API - Loaded the configuration file.")
-
 WP_API_ENV_VARS = {
-    key.replace("WP_API_", "").upper(): value.upper()
+    key.replace("WP_API_", "").upper(): value
     for key, value in os.environ.items()
     if key.startswith("WP_API_")
 }

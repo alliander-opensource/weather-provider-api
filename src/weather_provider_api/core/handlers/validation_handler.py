@@ -5,12 +5,11 @@
 #  SPDX-License-Identifier: MPL-2.0
 #  -------------------------------------------------------
 
-from datetime import datetime
 import re
-
+from datetime import datetime
 
 from fastapi import FastAPI
-from fastapi.logger import logger
+from loguru import logger
 from starlette.exceptions import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -34,13 +33,22 @@ def install_api_validation_handler(app: FastAPI):
         # If the API is still valid, continue with the request
         return await call_next(request)
 
-    logger.info("WP API - Attaching API validation middleware to the FastAPI application.")
+    logger.info("WP API - init - Attaching API validation middleware to the FastAPI application.")
     # noinspection PyTypeChecker
     app.add_middleware(BaseHTTPMiddleware, dispatch=check_api_for_validity)
 
 
 def _get_api_version_from_url(url: str) -> str | None:
-    """"""
+    """Retrieves the API version from a given URL if applicable.
+
+    Args:
+        url (str):
+            A string representing the URL to search in.
+
+    Returns:
+        str | None:
+            The API version if found, otherwise None.
+    """
     regex_to_search_for = r"/api\/v(\d+)\/"
     api_version_in_url = re.search(regex_to_search_for, url)
     return api_version_in_url.group(1) if api_version_in_url else None
@@ -49,18 +57,18 @@ def _get_api_version_from_url(url: str) -> str | None:
 def validate_the_main_api():
     """Validate the main API based on its expiration date.
 
-    raises:
+    Raises:
         HTTPException:
             If the main API has expired.
     """
     _expiration_date_string = WP_API_CONFIG["base"].get("expiration_date", "2099-12-31")
     try:
         main_api_expiration_date = datetime.strptime(_expiration_date_string, "%Y-%m-%d").date()
-    except ValueError:
+    except ValueError as val_error:
         raise ValueError(
             f"WP API - An invalid expiration date was set for the main API in the configuration file: "
             f"{_expiration_date_string}"
-        )
+        ) from val_error
 
     if datetime.today().date() > main_api_expiration_date:
         raise HTTPException(
@@ -77,7 +85,7 @@ def validate_sub_api_version(api_version: str):
         api_version (str):
             The version of the sub-API to validate.
 
-    raises:
+    Raises:
         HTTPException:
             If the sub-API version has expired.
     """
@@ -85,11 +93,11 @@ def validate_sub_api_version(api_version: str):
 
     try:
         sub_api_expiration_date = datetime.strptime(_sub_api_version_expiration_date_string, "%Y-%m-%d").date()
-    except ValueError:
+    except ValueError as val_error:
         raise ValueError(
             f"WP API - An invalid expiration date was set for API version [{api_version}] in the configuration file: "
             f"{_sub_api_version_expiration_date_string}"
-        )
+        ) from val_error
 
     if datetime.today().date() > sub_api_expiration_date:
         raise HTTPException(

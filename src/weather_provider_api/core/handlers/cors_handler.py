@@ -27,7 +27,7 @@ def install_cors_handler(app: FastAPI):
     allowed_origins_regex = WP_API_CONFIG["components"].get("cors_allowed_origins_regex", [])
 
     if len(allowed_origins_regex) > 0:
-        logger.debug(f"CORS middleware enabled for origins regex: {allowed_origins_regex}")
+        logger.info(f"CORS middleware enabled for origins regex: {allowed_origins_regex}")
         app.add_middleware(
             CORSMiddleware,
             allow_origins_regex=allowed_origins_regex,
@@ -36,7 +36,7 @@ def install_cors_handler(app: FastAPI):
             allow_headers=["*"],
         )
     elif len(allowed_origins) > 0:
-        logger.debug(f"CORS middleware enabled for origins: {allowed_origins}")
+        logger.info(f"CORS middleware enabled for origins: {allowed_origins}")
         app.add_middleware(
             CORSMiddleware,
             allow_origins=allowed_origins,
@@ -45,4 +45,4 @@ def install_cors_handler(app: FastAPI):
             allow_headers=["*"],
         )
     else:
-        logger.debug("CORS middleware disabled")
+        logger.info("CORS middleware disabled")
