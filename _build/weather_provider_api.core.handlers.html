@@ -59,13 +59,13 @@
 <li class="toctree-l2 current"><a class="reference internal" href="weather_provider_api.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="weather_provider_api.core.html">weather_provider_api.core package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="weather_provider_api.core.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="weather_provider_api.core.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="weather_provider_api.core.html#module-weather_provider_api.core">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="weather_provider_api.routing.html">weather_provider_api.routing package</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="weather_provider_api.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weather_provider_api.html#module-weather_provider_api">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="py-modindex.html">Module Index</a></li>
@@ -103,35 +103,226 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
-<section id="weather-provider-api-core-handlers-access-rate-handler-module">
-<h2>weather_provider_api.core.handlers.access_rate_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-access-rate-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.access_rate_handler">
+<span id="weather-provider-api-core-handlers-access-rate-handler-module"></span><h2>weather_provider_api.core.handlers.access_rate_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.access_rate_handler" title="Link to this heading"></a></h2>
 </section>
-<section id="weather-provider-api-core-handlers-celery-handler-module">
-<h2>weather_provider_api.core.handlers.celery_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-celery-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.celery_handler">
+<span id="weather-provider-api-core-handlers-celery-handler-module"></span><h2>weather_provider_api.core.handlers.celery_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.celery_handler" title="Link to this heading"></a></h2>
 </section>
-<section id="weather-provider-api-core-handlers-configuration-handler-module">
-<h2>weather_provider_api.core.handlers.configuration_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-configuration-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.configuration_handler">
+<span id="weather-provider-api-core-handlers-configuration-handler-module"></span><h2>weather_provider_api.core.handlers.configuration_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.configuration_handler" title="Link to this heading"></a></h2>
 </section>
-<section id="weather-provider-api-core-handlers-cors-handler-module">
-<h2>weather_provider_api.core.handlers.cors_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-cors-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.cors_handler">
+<span id="weather-provider-api-core-handlers-cors-handler-module"></span><h2>weather_provider_api.core.handlers.cors_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.cors_handler" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.cors_handler.install_cors_handler">
+<span class="sig-name descname"><span class="pre">install_cors_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.cors_handler.install_cors_handler" title="Link to this definition"></a></dt>
+<dd><p>Install a CORS Handler into the FastAPI application if needed.</p>
+<p>This function installs a CORS handler into the FastAPI application if the configuration settings
+<cite>components.cors_allowed_origins</cite> or <cite>components.cors_allowed_origins_regex</cite> are set.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>app (FastAPI):</dt><dd><p>The FastAPI application to install the CORS handler into.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>FastAPI</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="weather-provider-api-core-handlers-exception-handler-module">
-<h2>weather_provider_api.core.handlers.exception_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-exception-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.exception_handler">
+<span id="weather-provider-api-core-handlers-exception-handler-module"></span><h2>weather_provider_api.core.handlers.exception_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.exception_handler" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.exception_handler.install_exception_handler">
+<span class="sig-name descname"><span class="pre">install_exception_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.exception_handler.install_exception_handler" title="Link to this definition"></a></dt>
+<dd><p>Install the custom exception handler into the FastAPI application.</p>
+<p>This function installs the custom exception handler into the FastAPI application.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>app (FastAPI):</dt><dd><p>The FastAPI application to install the exception handler into.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>FastAPI</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="weather-provider-api-core-handlers-logging-handler-module">
-<h2>weather_provider_api.core.handlers.logging_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-logging-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.logging_handler">
+<span id="weather-provider-api-core-handlers-logging-handler-module"></span><h2>weather_provider_api.core.handlers.logging_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.logging_handler" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.LoggingInterceptHandler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LoggingInterceptHandler</span></span><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.LoggingInterceptHandler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Handler</span></code></p>
+<p>A class that intercepts all log messages and forwards them to the customized Loguru logging system.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.LoggingInterceptHandler.LOG_LEVEL_MAP">
+<span class="sig-name descname"><span class="pre">LOG_LEVEL_MAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{0:</span> <span class="pre">'NOTSET',</span> <span class="pre">10:</span> <span class="pre">'DEBUG',</span> <span class="pre">20:</span> <span class="pre">'INFO',</span> <span class="pre">30:</span> <span class="pre">'WARNING',</span> <span class="pre">40:</span> <span class="pre">'ERROR',</span> <span class="pre">50:</span> <span class="pre">'CRITICAL'}</span></em><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.LoggingInterceptHandler.LOG_LEVEL_MAP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.LoggingInterceptHandler.emit">
+<span class="sig-name descname"><span class="pre">emit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.LoggingInterceptHandler.emit" title="Link to this definition"></a></dt>
+<dd><p>Intercept the original logging messages and repurpose them for the custom Loguru logging system.</p>
+<dl class="simple">
+<dt>Notes:</dt><dd><p>To properly repurpose the original logging messages, this method will obtain any original logging
+record, and emit it itself using the Loguru logging system.</p>
+</dd>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>record (logging.LogRecord):</dt><dd><p>The original logging record to be intercepted.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>record</strong> (<em>LogRecord</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.add_file_loggers">
+<span class="sig-name descname"><span class="pre">add_file_loggers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.add_file_loggers" title="Link to this definition"></a></dt>
+<dd><p>Add file loggers to Loguru.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.add_stdout_logger">
+<span class="sig-name descname"><span class="pre">add_stdout_logger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.add_stdout_logger" title="Link to this definition"></a></dt>
+<dd><p>Add a STDOUT logger to Loguru.</p>
+<p>The standard server logging format is used unless the environment variable is set to EXTENDED.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.attach_uvicorn_loggers">
+<span class="sig-name descname"><span class="pre">attach_uvicorn_loggers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.attach_uvicorn_loggers" title="Link to this definition"></a></dt>
+<dd><p>Attach any existing Uvicorn loggers to the Loguru logger.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.initialize_logging">
+<span class="sig-name descname"><span class="pre">initialize_logging</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.initialize_logging" title="Link to this definition"></a></dt>
+<dd><p>(Re-)initialize the logging system to use Loguru as the default logger.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.logging_handler.install_logging_handler">
+<span class="sig-name descname"><span class="pre">install_logging_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.logging_handler.install_logging_handler" title="Link to this definition"></a></dt>
+<dd><p>Install the logging handler to intercept all log messages and forward them to our custom logging system.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>app: The FastAPI application instance to install the logging handler on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Nothing. The logging handler is installed on the FastAPI application instance.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>FastAPI</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="weather-provider-api-core-handlers-prometheus-handler-module">
-<h2>weather_provider_api.core.handlers.prometheus_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-prometheus-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.prometheus_handler">
+<span id="weather-provider-api-core-handlers-prometheus-handler-module"></span><h2>weather_provider_api.core.handlers.prometheus_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.prometheus_handler" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.prometheus_handler.install_prometheus_handler">
+<span class="sig-name descname"><span class="pre">install_prometheus_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mount_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/metrics'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.prometheus_handler.install_prometheus_handler" title="Link to this definition"></a></dt>
+<dd><p>Install a Prometheus monitoring system handler to the FastAPI application.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>app: The FastAPI application to attach the Prometheus Middleware to.
+mount_path: The endpoint at which the Prometheus data should become available.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> (<em>FastAPI</em>) – </p></li>
+<li><p><strong>mount_path</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="weather-provider-api-core-handlers-response-header-handler-module">
-<h2>weather_provider_api.core.handlers.response_header_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-response-header-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.response_header_handler">
+<span id="weather-provider-api-core-handlers-response-header-handler-module"></span><h2>weather_provider_api.core.handlers.response_header_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.response_header_handler" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.response_header_handler.install_response_header_handler">
+<span class="sig-name descname"><span class="pre">install_response_header_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.response_header_handler.install_response_header_handler" title="Link to this definition"></a></dt>
+<dd><p>Install the response header handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>FastAPI</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="weather-provider-api-core-handlers-validation-handler-module">
-<h2>weather_provider_api.core.handlers.validation_handler module<a class="headerlink" href="#weather-provider-api-core-handlers-validation-handler-module" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers.validation_handler">
+<span id="weather-provider-api-core-handlers-validation-handler-module"></span><h2>weather_provider_api.core.handlers.validation_handler module<a class="headerlink" href="#module-weather_provider_api.core.handlers.validation_handler" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.validation_handler.install_api_validation_handler">
+<span class="sig-name descname"><span class="pre">install_api_validation_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.validation_handler.install_api_validation_handler" title="Link to this definition"></a></dt>
+<dd><p>Install the API validation middleware to the FastAPI application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>FastAPI</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.validation_handler.validate_sub_api_version">
+<span class="sig-name descname"><span class="pre">validate_sub_api_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_version</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.validation_handler.validate_sub_api_version" title="Link to this definition"></a></dt>
+<dd><p>Validate a sub-API version based on its expiration date.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>api_version (str):</dt><dd><p>The version of the sub-API to validate.</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>HTTPException:</dt><dd><p>If the sub-API version has expired.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>api_version</strong> (<em>str</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="weather_provider_api.core.handlers.validation_handler.validate_the_main_api">
+<span class="sig-name descname"><span class="pre">validate_the_main_api</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#weather_provider_api.core.handlers.validation_handler.validate_the_main_api" title="Link to this definition"></a></dt>
+<dd><p>Validate the main API based on its expiration date.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>HTTPException:</dt><dd><p>If the main API has expired.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="module-weather_provider_api.core.handlers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-weather_provider_api.core.handlers" title="Link to this heading"></a></h2>
 </section>
 </section>
 
