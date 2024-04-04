@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xarray formatting your data for a model &mdash; Weather Provider Libraries 0.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=c87aa342"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="&lt;no title&gt;" href="modules.html" />
+    <link rel="prev" title="Getting Started with the Weather Provider API" href="quick-start.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Weather Provider Libraries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to the Weather Provider API (WPA) documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Basic Information</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An introduction to the Weather Provider API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Getting Started with the Weather Provider API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Xarray formatting your data for a model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-your-source-data-into-xarray">Loading your source data into Xarray</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#indexation">Indexation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modular information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="py-modindex.html">Module Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Weather Provider Libraries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Xarray formatting your data for a model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/xarray_formatting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="xarray-formatting-your-data-for-a-model">
+<h1>Xarray formatting your data for a model<a class="headerlink" href="#xarray-formatting-your-data-for-a-model" title="Link to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>The hardest thing to do when creating your own data for a model, will likely be the formatting into a proper Xarray
+Dataset format. The reason for this is that a single meteorological dataset can often have multiple indexes, allowing
+for one weather factor to be dependant on a lat/lon location and time alone, whereas another may also be dependant on
+for instance height/depth or a prediction moment.</p>
+<p>The reason we use Xarray for handling these datasets is exactly because a singular dataset can be so divided, and
+because it is heavily based on the NetCDF file format, which was designed to deal with exactly this issue.</p>
+<p>Having said that, we still have to lay the groundwork for proper storage of these different indexes.</p>
+<p>This document wil show you how to load the most common meteorological dataset formats into a xarray dataset and how to
+properly create the needed index settings to allow the WPL project to automatically handle harmonisation and formatting.</p>
+</section>
+<section id="loading-your-source-data-into-xarray">
+<h2>Loading your source data into Xarray<a class="headerlink" href="#loading-your-source-data-into-xarray" title="Link to this heading"></a></h2>
+<p>So you have downloaded meteorological from a dataset and wish to load it into Xarray for further handling by WPL.
+What now?</p>
+<p>That depends on the format you have ready to go. One of the reasons the WPL project was initiated was because of the
+wide range of formatting and file systems used to stored and request meteorological data. Sometimes even from within a
+singular source.</p>
+<p>Fortunately this first step of loading data into Xarray can be easily handled:</p>
+<p>If your data currently is already stored as a file or exists in memory as a Pandas Dataframe, GRIB, NetCDF or
+similarly formatted multidimensional format, you can simply load your data by using the Xarray <strong>load_dataset()</strong> and
+<strong>load_dataarray()</strong> methods or the xarray.Dataset methods <strong>from_dict()</strong> or <strong>from_dataframe</strong>.</p>
+<p>This means that most properly formatted GRIB and NetCDF files can be loaded directly into Xarray after retrieving them,
+while most more two-dimensional formats like for example CSV or JSON can easily be loaded by transforming them into
+either dictionaries, or Pandas Dataframes, and them loading them into Xarray.</p>
+<p><strong>Problems</strong>
+In this stage, there usually shouldn’t be many problems, but the following problematic situations may arise:</p>
+<ul class="simple">
+<li><p><strong>A custom GRIB format was used and can’t be loaded directly into Xarray.</strong>
+GRIB isn’t as much of a file format as it is a loose guideline for how you could store meteorological data inside of
+a file. As such, if the used format moves away too far from the regular usage, it can end up becoming unreadable for
+the xarray supported GRIB engine and possibly even most GRIB tools.
+This is basically a worst case scenario, as this usually means you will have to manually sift through GRIB lines and
+reformat them into another more readable format (like a Pandas Dataframe, a custom build Xarray Dataset, or even a
+properly formatted GRIB file.</p></li>
+<li><p><strong>Multi-dimensional complexity arises.</strong>
+Sometimes having a lot of data with each its own settings and possibly its own dimensions can result in Xarray not
+being able to properly evaluate which indexes apply when, or how. Usually Xarray will inform you of the issue as best
+as possible, possibly even with suggested solutions, but at times you may have to resort to either initially
+separating the data and adjusting it for use in a single dataset, or flattening the data outright and fixing it from
+there.</p></li>
+</ul>
+</section>
+<section id="indexation">
+<h2>Indexation<a class="headerlink" href="#indexation" title="Link to this heading"></a></h2>
+<p>With your data now well and loaded into a Xarray Dataset, we’re not quite there yet. To allow for easy use in the WPL
+project, we ‘ll need to address indexation.</p>
+<p>Each Xarray Dataset usable by the WPL project will have the following base indexation set:</p>
+<p><strong>coord</strong>
+An indexation field consisting of the two field values “lat” and “lon”, which represent the latitude and longitude
+WGS84 grid references accordingly. Each measurement, prediction or value needs to be attached to a <strong>coord</strong>.</p>
+<p><strong>time</strong>
+An indexation field representing the moment of time a measurement, prediction or value applies to. For clarity, in the
+case of a prediction made at 2023-05-01 22:00 for the moment of 2023-06-01 00:00, the <strong>time</strong> field should hold the
+2023-06-01 00:00 moment.</p>
+<p><em>&lt;optional&gt;</em> <strong>prediction</strong>
+An optional indexation field used to hold the moment at which predictive data was conceived. For clarity, in the case
+of a prediction made at 2023-05-01 22:00 for the moment of 2023-06-01 00:00, the <strong>prediction</strong> field should hold
+the 2023-05-01 22:00 moment.</p>
+<p><em>&lt;optional&gt;</em> <strong>height/depth/level</strong>
+A series of optional indexation fields used to hold an indication of level where multiple measurements apply for a
+factor but at different heights, intensities or data-types. For instance, if air temperature is measured not only
+at 2 meter above ground, but also at 10 meter above ground and 100 meter above ground, the same field would have three
+“height” levels.
+Please note that while we only name “height”, “depth” and “level” here, other indexation names may apply depending on
+the nature of the level indicated. Also please note that in the case mentioned just now in practice that the 2m above
+ground temperature, while technically of the same type and unit as the 10m and 100m above ground temperatures, has its
+own designation within the ECCODES parameter system,due to the 2m version being the standard for “temperature” in
+general. As such make sure to check if multiple levels should apply for your situation.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quick-start.html" class="btn btn-neutral float-left" title="Getting Started with the Weather Provider API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alliander.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

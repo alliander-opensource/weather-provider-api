@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to the Weather Provider API (WPA) documentation! &mdash; Weather Provider Libraries 0.4.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=c87aa342"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="An introduction to the Weather Provider API" href="introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Weather Provider Libraries
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to the Weather Provider API (WPA) documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Basic Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An introduction to the Weather Provider API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Getting Started with the Weather Provider API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="xarray_formatting.html">Xarray formatting your data for a model</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modular information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="weather_provider_api.html">weather_provider_api package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-modindex.html">Module Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Weather Provider Libraries</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to the Weather Provider API (WPA) documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-the-weather-provider-api-wpa-documentation">
+<h1>Welcome to the Weather Provider API (WPA) documentation!<a class="headerlink" href="#welcome-to-the-weather-provider-api-wpa-documentation" title="Link to this heading"></a></h1>
+<a class="reference internal image-reference" href="_images/wpas_logo.svg"><img alt="Weather Provider Access Suite" class="align-center" src="_images/wpas_logo.svg" width="480px" /></a>
+<section id="an-introduction-to-the-weather-provider-api">
+<h2>An introduction to the Weather Provider API<a class="headerlink" href="#an-introduction-to-the-weather-provider-api" title="Link to this heading"></a></h2>
+<section id="what-is-the-weather-provider-access-suite-wpas">
+<h3>What is the Weather Provider Access Suite (WPAS)?<a class="headerlink" href="#what-is-the-weather-provider-access-suite-wpas" title="Link to this heading"></a></h3>
+<section id="project-goal">
+<h4><strong>Project Goal</strong><a class="headerlink" href="#project-goal" title="Link to this heading"></a></h4>
+<p>The Weather Provider Access Suite project is a project with a singular goal in mind:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">Easily</span> <span class="n">accessing</span> <span class="nb">any</span> <span class="n">data</span> <span class="k">for</span> <span class="n">a</span> <span class="n">multitude</span> <span class="n">of</span> <span class="n">meteorological</span> <span class="n">datasets</span> <span class="ow">and</span> <span class="n">meteorological</span> <span class="n">site</span><span class="o">-</span><span class="n">pages</span>
+<span class="n">without</span> <span class="nb">any</span> <span class="n">prior</span> <span class="n">knowledge</span> <span class="n">of</span> <span class="n">those</span> <span class="n">datasets</span> <span class="ow">or</span> <span class="n">even</span> <span class="n">their</span> <span class="n">specific</span> <span class="n">content</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>That is right. Without any prior knowledge of a supported dataset itself, we want you to be able to achieve the
+following:</p>
+<ul class="simple">
+<li><p><em>Make requests for specific periods and meteorological factors.</em></p></li>
+<li><p><em>Transform the received data into one of several supported uniform formats, allowing for comparison of data between
+datasets if the fields are identical in nature.</em></p></li>
+<li><p><em>Transform the output for those requests into a wide number of commonly used file formats, flattening the output from
+multi-dimensional data as needed.</em></p></li>
+<li><p><em>Translate existing dataset output directly into the aforementioned supported uniform data and allow for outputting
+that result in the supported output file formats as well.</em></p></li>
+</ul>
+<p><strong>As a secondary goal, we also wish to achieve the following:</strong></p>
+<ul class="simple">
+<li><p>For motivated people that have knowledge or affinity with unsupported datasets to build their own compatible model(s)
+and source(s) without prior knowledge of the WPL system by being guided by the base classes themselves.</p></li>
+<li><p>Allow for the easy access and plugging of sources and models as desired. You can access the data you want to use
+without any need for installing more than just a singular source and calling more than just the model you need if
+that is what you need, while also retaining the possibility to upscale to a multitude of sources and models and
+even connect those to the <a class="reference external" href="https://github.com/alliander-opensource/weather-provider-api">Weather Provider API</a> project for a fully functional API based on your wishes.</p></li>
+</ul>
+</section>
+</section>
+<section id="project-origins">
+<h3>Project Origins<a class="headerlink" href="#project-origins" title="Link to this heading"></a></h3>
+<p>The Weather Provider Access Suite Project, or WPL, as it will be abbreviated a lot in the documentation of this project,
+is a project based on the original “<strong>weather_provider_api</strong>” project found at:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://github.com/alliander-opensource/weather-provider-api/">https://github.com/alliander-opensource/weather-provider-api/</a></p>
+</div></blockquote>
+<p>Until version 3.0 of this project, every component thereof was considered a part of a singular whole, but to allow for
+easier usage and the easier building of new models and sources, the project was split up into three components:</p>
+<section id="weather-provider-libraries">
+<h4><strong>1. Weather Provider Libraries</strong><a class="headerlink" href="#weather-provider-libraries" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>This project and the part that holds all of the common components and tools responsible for formatting, processing
+and transforming meteorological data, as well as all of the base classes for creating Models and Sources for the
+project. Finally the project also houses the Controller which allows for easy configuration and acquisition of data
+over multiple sources and models.</p>
+</div></blockquote>
+</section>
+<section id="weather-provider-api">
+<h4><strong>2. Weather Provider API</strong><a class="headerlink" href="#weather-provider-api" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>This project houses the API implementation of this project. It uses the Weather Provider Libraries project to
+transform any connected source and model into appropriate endpoints. This fully functional FastAPI implementation is
+fully supportive of the OpenAPI standard and can easily be scaled according to your wishes. The project repository
+even comes with a number of example deployment folders. The project can be used via custom deployment through its
+package or deployment using the readily available Docker images.
+For more information on this project please check the Project’s repository page at: <a class="reference external" href="https://github.com/alliander-opensource/weather-provider-api">Weather Provider API</a></p>
+</div></blockquote>
+</section>
+<section id="weather-provider-sources">
+<h4><strong>3. Weather Provider Sources</strong><a class="headerlink" href="#weather-provider-sources" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>This project actually consists of multiple repositories. Each repository houses one or multiple Sources that can be
+installed as packages used separately or from a Weather Provider Libraries system. Each Source can house one or
+multiple Models, each representing a specific meteorological dataset, site-page with meteorological data, or fusion
+thereof.</p>
+</div></blockquote>
+<div class="toctree-wrapper compound">
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to the Weather Provider API (WPA) documentation!</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Basic Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An introduction to the Weather Provider API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#what-is-the-weather-provider-access-suite-wpas">What is the Weather Provider Access Suite (WPAS)?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#project-goal"><strong>Project Goal</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#project-origins">Project Origins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#weather-provider-libraries"><strong>1. Weather Provider Libraries</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#weather-provider-api"><strong>2. Weather Provider API</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#weather-provider-sources"><strong>3. Weather Provider Sources</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Getting Started with the Weather Provider API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#package-installation">Package installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#service-installation-via-docker-image">Service installation via Docker Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#default-sources-and-models">Default Sources and Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#your-first-request-using-the-wpl-controller">Your first request using the WPL Controller</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="xarray_formatting.html">Xarray formatting your data for a model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="xarray_formatting.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xarray_formatting.html#loading-your-source-data-into-xarray">Loading your source data into Xarray</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xarray_formatting.html#indexation">Indexation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="introduction.html" class="btn btn-neutral float-right" title="An introduction to the Weather Provider API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alliander.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
