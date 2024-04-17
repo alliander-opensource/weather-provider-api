@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weather_provider_api"
-version = "2.49.0"
+version = "2.50.0"
 description = "Weather Provider Libraries and API"
 authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -16,7 +16,7 @@ fastapi = "^0.110.1"
 requests = "^2.31.0"
 geopy = "^2.3.0"
 numpy = "^1.26.2"
-gunicorn = "^21.2.0"
+gunicorn = "^22.0.0"
 lxml = "^5.2.1"
 starlette-prometheus = "^0.9.0"
 beautifulsoup4 = "^4.12.2"
