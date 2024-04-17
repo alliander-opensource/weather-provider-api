@@ -12,9 +12,13 @@ import pytest
 import requests
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import ActueleWaarnemingenModel
-from weather_provider_api.routers.weather.sources.knmi.utils import download_actuele_waarnemingen_weather, \
-    _retrieve_observation_moment
+from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import (
+    ActueleWaarnemingenModel,
+)
+from weather_provider_api.routers.weather.sources.knmi.utils import (
+    _retrieve_observation_moment,
+    download_actuele_waarnemingen_weather,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 

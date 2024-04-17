@@ -4,8 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""KNMI hour models data fetcher.
-"""
+"""KNMI hour models data fetcher."""
 import copy
 import json
 from datetime import datetime
@@ -27,11 +26,7 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 
 
 class UurgegevensModel(WeatherModelBase):
-    """
-    A Weather Model that incorporates the:
-        KNMI Uurgegevens
-    dataset into the Weather Provider API
-    """
+    """A Weather Model that incorporates the: KNMI Uurgegevens dataset into the Weather Provider API."""
 
     def __init__(self):
         super().__init__()
@@ -140,18 +135,20 @@ class UurgegevensModel(WeatherModelBase):
         coords: List[GeoPosition],
         begin: datetime,
         end: datetime,
-        weather_factors: List[str] = None,
+        weather_factors: List[str] | None = None,
     ) -> xr.Dataset:
-        """
-            The function that gathers and processes the requested Daggegevens weather data from the KNMI site
-            and returns it as a Xarray Dataset.
-            (Though this model downloads from a specific download url, the question remains whether this source is also
-            listed on the new KNMI Data Platform)
+        """The function that gathers and processes the requested Daggegevens weather data from the KNMI site
+        and returns it as a Xarray Dataset.
+
+        (Though this model downloads from a specific download url, the question remains whether this source is also
+        listed on the new KNMI Data Platform).
+
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
@@ -186,7 +183,7 @@ class UurgegevensModel(WeatherModelBase):
         stations: List[int],
         start: datetime,
         end: datetime,
-        weather_factors: List[str] = None,
+        weather_factors: List[str] | None = None,
     ):
         """
             A function that downloads the weather from the KNMI download location and returns it as a text
@@ -200,7 +197,7 @@ class UurgegevensModel(WeatherModelBase):
         """
         # fetch data
         params = self._create_request_params(start, end, stations, weather_factors)
-        r = requests.post(url=self.download_url, data=params)
+        r = requests.post(url=self.download_url, data=params, timeout=60)
 
         if r.status_code != 200:
             raise requests.HTTPError(
@@ -216,14 +213,15 @@ class UurgegevensModel(WeatherModelBase):
             )
         return r.text
 
-    def _create_request_params(self, start, end, stations, weather_factors):
-        """
-            A Function that transforms the request settings into parameters usable for the KMNI download request.
+    def _create_request_params(self, start: datetime, end: datetime, stations: list[int], weather_factors: list[str]):
+        """A Function that transforms the request settings into parameters usable for the KMNI download request.
+
         Args:
             start:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             stations:           A list containing the requested stations
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             A params field (string) containing the matching settings for a KNMI Daggegevens download request.
         """
@@ -271,10 +269,11 @@ class UurgegevensModel(WeatherModelBase):
         return dataframe_data.to_xarray()
 
     @staticmethod
-    def _prepare_weather_data(coordinates: List[GeoPosition], station_id, raw_ds):
-        # A function that prepares the weather data for return by the API, by replacing the matching station with the
-        # lat/lon location that was requested, and properly formatting the dimensions.
+    def _prepare_weather_data(coordinates: List[GeoPosition], station_id: list[np.int64], raw_ds: xr.Dataset):
+        """A function that prepares the weather data for return by the API, by replacing the matching station with the
+        lat/lon location that was requested, and properly formatting the dimensions.
 
+        """
         # re-arrange stns
         ds = raw_ds.sel(station_code=station_id)
 
@@ -290,7 +289,9 @@ class UurgegevensModel(WeatherModelBase):
         return ds
 
     def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
-        # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
+        """Implementation of the Base Weather Model function that returns a list of known weather factors for the
+        model.
+        """
         if factors is None:
             return list(self.to_si.keys())
 
