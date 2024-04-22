@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weather_provider_api"
-version = "2.50.0"
+version = "2.51.0"
 description = "Weather Provider Libraries and API"
 authors = ["Verbindingsteam", "Raoul Linnenbank <58594297+rflinnenbank@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -12,7 +12,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
-fastapi = "^0.110.1"
+fastapi = "^0.110.2"
 requests = "^2.31.0"
 geopy = "^2.3.0"
 numpy = "^1.26.2"
@@ -37,12 +37,11 @@ accept-types = "^0.4.1"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-coverage = "^6.5.0"
-pytest-cov = "^4.0.0"
-isort = "^5.10.1"
-pylint = "^2.15.10"
-black = "^23.10.1"
-ruff = {version = "^0.1.8", source = "pypi"}
+coverage = "^7.4.4"
+pytest-cov = "^5.0.0"
+pylint = "^3.1.0"
+black = "^24.4.0"
+ruff = {version = "^0.4.1", source = "pypi"}
 
 [tool.poetry.scripts]
 wpla_update_era5sl = "weather_provider_api.scripts.update_era5sl_repository:main"
