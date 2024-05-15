@@ -4,8 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""
-    CDS - ERA5 Single Levels Weather data Model
+"""CDS - ERA5 Single Levels Weather data Model
 """
 import copy
 from datetime import datetime
@@ -16,15 +15,18 @@ import xarray as xr
 from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
-from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository import ERA5SLRepository
+from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository import (
+    ERA5SLRepository,
+)
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
-from weather_provider_api.routers.weather.utils.date_helpers import validate_begin_and_end
+from weather_provider_api.routers.weather.utils.date_helpers import (
+    validate_begin_and_end,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 class ERA5SLModel(WeatherModelBase):
-    """
-    A Weather Model that incorporates the:
+    """A Weather Model that incorporates the:
         ERA5 hourly data on single levels from 1979 to present
     dataset into the Weather Provider API
     """
@@ -78,18 +80,18 @@ class ERA5SLModel(WeatherModelBase):
         end: datetime,
         weather_factors: List[str] = None,
     ) -> xr.Dataset:
-        """
-            The function that gathers and processes the requested ERA5 Single Levels weather data from the repository
+        """The function that gathers and processes the requested ERA5 Single Levels weather data from the repository
             and returns it as a Xarray Dataset.
+
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
-
         # Test and account for invalid datetime timeframes or input
         begin, end = validate_begin_and_end(
             begin,
@@ -106,12 +108,13 @@ class ERA5SLModel(WeatherModelBase):
 
     @staticmethod
     def _validate_weather_factors(weather_factors: List[str]) -> List[str]:
-        """
-            A function that validates a list of weather factors to that of the dataset in the repository.
+        """A function that validates a list of weather factors to that of the dataset in the repository.
             Existing factors will be kept, non-existing removed, and if the list is empty the full set for the dataset
             will be used.
+
         Args:
             weather_factors:    A list of weather factors to validate (in string format)
+
         Returns:
             A list of weather factors (in string format) only factors that match those of the ERA5SL dataset.
         """
@@ -144,14 +147,15 @@ class ERA5SLModel(WeatherModelBase):
         end: datetime,
         validated_factors: List[str],
     ) -> xr.Dataset:
-        """
-            A function that fills a dataset with ERA5SL weather data from the repository, based on the requested
+        """A function that fills a dataset with ERA5SL weather data from the repository, based on the requested
             coordinates and period, and removes any not-requested weather factors from the output.
+
         Args:
             era5sl_coordinates:     A list of GeoPositions containing the locations to be gathered from the repository.
             begin:                  A datetime containing the starting moment for the period to gather.
             end:                    A datetime containing the end moment for the period to gather.
             validated_factors:      A list of valid ERA5SL factors wanted for the result.
+
         Returns:
             An Xarray Dataset containing the weather data requested.
         """

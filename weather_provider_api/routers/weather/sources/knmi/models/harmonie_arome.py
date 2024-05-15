@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" -- MODULE --
+"""-- MODULE --
 
 """
 import copy
@@ -15,9 +15,13 @@ import xarray as xr
 from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import HarmonieAromeRepository
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
+    HarmonieAromeRepository,
+)
 from weather_provider_api.routers.weather.sources.knmi.knmi_factors import arome_factors
-from weather_provider_api.routers.weather.utils.date_helpers import validate_begin_and_end
+from weather_provider_api.routers.weather.utils.date_helpers import (
+    validate_begin_and_end,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 

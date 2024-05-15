@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" KNMI current weather data fetcher.
+"""KNMI current weather data fetcher.
 """
 import copy
 from typing import List, Optional
@@ -17,17 +17,16 @@ from weather_provider_api.routers.weather.sources.knmi.stations import (
     stations_actual,
 )
 from weather_provider_api.routers.weather.sources.knmi.utils import (
-    find_closest_stn_list,
     download_actuele_waarnemingen_weather,
+    find_closest_stn_list,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
 
 class ActueleWaarnemingenModel(WeatherModelBase):
-    """
-    A Weather Model that incorporates the:
-    "KNMI Actuele Waarnemingen" dataset into the Weather Provider API
+    """A Weather Model that incorporates the "KNMI Actuele Waarnemingen"
+    dataset into the Weather Provider API.
     """
 
     def __init__(self):
@@ -66,8 +65,7 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         end: Optional[np.datetime64],
         weather_factors: List[str] = None,
     ) -> xr.Dataset:
-        """
-        The function that gathers and processes the requested Actuele Waarnemingen weather data from the KNMI site
+        """The function that gathers and processes the requested Actuele Waarnemingen weather data from the KNMI site
         and returns it as a Xarray Dataset.
         (This model interprets directly from an HTML page, but the information is also available from the data
         platform. Due to it being rather impractically handled, we stick to the site for now.)
@@ -81,7 +79,7 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
 
-        NOTES:
+        Notes:
             As this model only return the current weather data the 'begin' and 'end' values are not actually used.
         """
         updated_weather_factors = self._request_weather_factors(weather_factors)

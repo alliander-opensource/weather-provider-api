@@ -4,7 +4,9 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 # -*- coding: utf-8 -*-
-from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import ERA5LandRepository
+from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import (
+    ERA5LandRepository,
+)
 
 
 def main():

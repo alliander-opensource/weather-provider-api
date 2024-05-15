@@ -4,14 +4,13 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" Exception Handling
+"""Exception Handling
 
 This module holds the API's exception handler.
 """
 
 from fastapi import FastAPI
 from loguru import logger
-
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -35,13 +34,14 @@ def initialize_exception_handler(application: FastAPI):
 
     Args:
         application:    The FastAPI application to attach the custom exception handler to.
+
     Returns:
         Nothing. The FastAPI application itself is updated.
 
     Notes:
         This method assumes that the FastAPI application given has a [title] set.
 
-    TODO:
+    Todo:
         Evaluate the dependency on [title] and [root_path] parameters being set for FastAPI applications in ALL
          initializers. By either extending the base class to enforce these or improving the code to not be dependent on
          these parameters, we can eradiate code smell and chances at Exceptions caused by not having these parameters.

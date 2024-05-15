@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" Version detection module """
+"""Version detection module."""
 
 from importlib import metadata
 

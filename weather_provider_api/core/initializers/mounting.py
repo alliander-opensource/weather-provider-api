@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" (sub)-API Mounting
+"""(sub)-API Mounting
 
 This module handles the mounting of sub-API's onto a main API.
 """
