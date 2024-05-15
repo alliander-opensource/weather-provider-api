@@ -8,7 +8,9 @@
 
 import json
 
-from weather_provider_api.routers.weather.utils.file_helpers import get_var_map_file_location
+from weather_provider_api.routers.weather.utils.file_helpers import (
+    get_var_map_file_location,
+)
 
 file_to_use_era5sl = get_var_map_file_location("era5sl_var_map.json")
 file_to_use_era5land = get_var_map_file_location("era5land_var_map.json")

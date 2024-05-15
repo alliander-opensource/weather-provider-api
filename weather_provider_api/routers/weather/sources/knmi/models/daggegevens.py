@@ -4,8 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""
-    KNMI day models data fetcher.
+"""KNMI day models data fetcher.
 """
 
 import copy
@@ -33,8 +32,7 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 
 
 class DagGegevensModel(WeatherModelBase):
-    """
-    A Weather Model that incorporates the:
+    """A Weather Model that incorporates the:
         KNMI Daggegevens
     dataset into the Weather Provider API
     """
@@ -186,17 +184,18 @@ class DagGegevensModel(WeatherModelBase):
             inseason=False,
             weather_factors: List[str] = None,
     ) -> xr.Dataset:
-        """
-            The function that gathers and processes the requested Daggegevens weather data from the KNMI site
+        """The function that gathers and processes the requested Daggegevens weather data from the KNMI site
             and returns it as a Xarray Dataset.
             (Though this model downloads from a specific download url, the question remains whether this source is also
             listed on the new KNMI Data Platform)
+
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
             begin:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             inseason:           A boolean representing the "inseason" parameter
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
@@ -236,14 +235,14 @@ class DagGegevensModel(WeatherModelBase):
             inseason=False,
             weather_factors: List[str] = None,
     ):
-        """
-            A function that downloads the weather from the KNMI download location and returns it as a text
+        """A function that downloads the weather from the KNMI download location and returns it as a text
         Args:
             stations:           A list containing the requested stations
             start:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             inseason:           A boolean representing the "inseason" parameter
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             A field containing the full response of the made download-request (text-based)
         """
@@ -261,14 +260,15 @@ class DagGegevensModel(WeatherModelBase):
         return r.text
 
     def _create_request_params(self, start, end, inseason, stations, weather_factors):
-        """
-            A Function that transforms the request settings into parameters usable for the KMNI download request.
+        """A Function that transforms the request settings into parameters usable for the KMNI download request.
+
         Args:
             start:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             inseason:           A boolean representing the "inseason" parameter
             stations:           A list containing the requested stations
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             A params field (string) containing the matching settings for a KNMI Daggegevens download request.
         """

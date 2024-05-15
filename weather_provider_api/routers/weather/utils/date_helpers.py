@@ -60,8 +60,7 @@ def time_unknown(dt: datetime, datetime_string: str):  # pragma: no cover
 def validate_begin_and_end(
     start: datetime, end: datetime, data_start: Union[datetime, None] = None, data_end: Union[datetime, None] = None
 ):
-    """
-    Checks the given date parameters and replaces them with default values if they aren't valid.
+    """Checks the given date parameters and replaces them with default values if they aren't valid.
     The resulting values are then returned.
     """
     if data_end is None:

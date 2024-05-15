@@ -23,7 +23,9 @@ from weather_provider_api.routers.weather.api_models import (
     result_mime_types,
 )
 from weather_provider_api.routers.weather.controller import WeatherController
-from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
+from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import (
+    WeatherAlert,
+)
 from weather_provider_api.routers.weather.utils import serializers
 from weather_provider_api.routers.weather.utils.date_helpers import parse_datetime
 from weather_provider_api.routers.weather.utils.file_helpers import remove_file
@@ -94,8 +96,7 @@ async def get_sync_weather(
     fmt_args: WeatherFormattingRequestQuery = Depends(),
     accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
-    """
-    <B>Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.). <BR>
+    """<B>Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.). <BR>
     This data is then formatted as the requested output format (output unit system and file format) before returning the requested data.</B>
 
     <I>(Please note that as some models are predictive or otherwise restricted in the periods available for requests,

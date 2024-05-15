@@ -4,11 +4,10 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" Prometheus Middleware handler """
+"""Prometheus Middleware handler"""
 
 from fastapi import FastAPI
 from loguru import logger
-
 from starlette_prometheus import PrometheusMiddleware, metrics
 
 
@@ -18,6 +17,7 @@ def initialize_prometheus_interface(application: FastAPI, metrics_endpoint: str 
     Args:
         application:        The FastAPI application to attach the Prometheus Middleware to.
         metrics_endpoint:   The endpoint at which the Prometheus data should become available.
+
     Returns:
         Nothing. The FastAPI application itself is updated.
 

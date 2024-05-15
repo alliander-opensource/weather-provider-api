@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" Main Application """
+"""Main Application."""
 
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
@@ -12,11 +12,15 @@ from starlette.responses import RedirectResponse
 from weather_provider_api.app_version import APP_VERSION
 from weather_provider_api.config import APP_CONFIG
 from weather_provider_api.core.initializers.cors import initialize_cors_middleware
-from weather_provider_api.core.initializers.exception_handling import initialize_exception_handler
+from weather_provider_api.core.initializers.exception_handling import (
+    initialize_exception_handler,
+)
 from weather_provider_api.core.initializers.headers import initialize_header_metadata
 from weather_provider_api.core.initializers.logging_handler import initialize_logging
 from weather_provider_api.core.initializers.mounting import mount_api_version
-from weather_provider_api.core.initializers.prometheus import initialize_prometheus_interface
+from weather_provider_api.core.initializers.prometheus import (
+    initialize_prometheus_interface,
+)
 from weather_provider_api.core.initializers.validation import initialize_api_validation
 from weather_provider_api.versions.v1 import app as v1
 from weather_provider_api.versions.v2 import app as v2
@@ -65,7 +69,7 @@ def _build_api_application() -> FastAPI:
     # Adding a redirect from the root of the application to our default view
     @application.get("/")
     def redirect_to_docs():
-        """This function redirects the visitors to the default view from the application's base URL"""
+        """This function redirects the visitors to the default view from the application's base URL."""
         return RedirectResponse(url="/api/v2/docs")
 
     application.openapi()

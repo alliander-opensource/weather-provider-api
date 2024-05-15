@@ -15,15 +15,17 @@ import xarray as xr
 from weather_provider_api.routers.weather.api_models import OutputUnit
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.base_models.source import WeatherSourceBase
-from weather_provider_api.routers.weather.exceptions import UnknownModelException, UnknownSourceException
+from weather_provider_api.routers.weather.exceptions import (
+    UnknownModelException,
+    UnknownSourceException,
+)
 from weather_provider_api.routers.weather.sources.cds.cds import CDS
 from weather_provider_api.routers.weather.sources.knmi.knmi import KNMI
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 class WeatherController(object):  # pragma: no cover
-    """
-    A Controller Object that can handle any request for the hooked up weather models and format it into any of the
+    """A Controller Object that can handle any request for the hooked up weather models and format it into any of the
     hooked up output formats.
     """
 
@@ -42,9 +44,9 @@ class WeatherController(object):  # pragma: no cover
         end: Optional[datetime.datetime] = None,
         factors: List[str] = None,
     ):
-        """
-            Function to use the requested weather model from the requested source to get specific weather factors for a
+        """Function to use the requested weather model from the requested source to get specific weather factors for a
             specific time and specific location(s)
+
         Args:
             source_id:  The weather source that need to be queried (e.g.: knmi, cds)
             model_id:   The model identifier of the model that needs to be queried (has to be a model that exists within

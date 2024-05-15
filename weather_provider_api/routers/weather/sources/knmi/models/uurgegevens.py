@@ -19,8 +19,12 @@ from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.stations import stations_history
-from weather_provider_api.routers.weather.sources.knmi.utils import find_closest_stn_list
-from weather_provider_api.routers.weather.utils.date_helpers import validate_begin_and_end
+from weather_provider_api.routers.weather.sources.knmi.utils import (
+    find_closest_stn_list,
+)
+from weather_provider_api.routers.weather.utils.date_helpers import (
+    validate_begin_and_end,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
@@ -185,13 +189,13 @@ class UurgegevensModel(WeatherModelBase):
         end: datetime,
         weather_factors: List[str] | None = None,
     ):
-        """
-            A function that downloads the weather from the KNMI download location and returns it as a text
+        """A function that downloads the weather from the KNMI download location and returns it as a text
         Args:
             stations:           A list containing the requested stations
             start:              A datetime containing the start of the period to request data for.
             end:                A datetime containing the end of the period to request data for.
             weather_factors:    A list of weather factors to request data for (in string format)
+
         Returns:
             A field containing the full response of the made download-request (text-based)
         """

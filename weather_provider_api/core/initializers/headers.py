@@ -6,7 +6,6 @@
 
 
 from fastapi import FastAPI
-
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
@@ -19,6 +18,7 @@ def initialize_header_metadata(application: FastAPI):
 
     Args:
         application: The FastAPI application to attach the custom method to.
+
     Returns:
         Nothing. The FastAPI application itself is updated.
     """

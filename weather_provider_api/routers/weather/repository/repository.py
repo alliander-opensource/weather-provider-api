@@ -17,7 +17,9 @@ from fastapi import HTTPException
 from loguru import logger
 
 from weather_provider_api.config import APP_STORAGE_FOLDER
-from weather_provider_api.core.initializers.exception_handling import NOT_IMPLEMENTED_ERROR
+from weather_provider_api.core.initializers.exception_handling import (
+    NOT_IMPLEMENTED_ERROR,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
@@ -28,8 +30,7 @@ class RepositoryUpdateResult(Enum):
 
 
 class WeatherRepositoryBase(metaclass=ABCMeta):
-    """
-    This is the base class for all weather data storage repositories. Any new repositories should implement this
+    """This is the base class for all weather data storage repositories. Any new repositories should implement this
     as their base class.
     All valid stored repository files are named as follows:
     {file_prefix}_{file_identifier}.nc
@@ -39,24 +40,23 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     """
 
     def __init__(self):
-        """
-        Specification of required fields for a weather data storage repository:
-            - repository_folder:    Contains the folder where the repository will be saved. Is set inside a main
-                                    repository folder, and based on a sub-folder passed by the repository itself
-                                    through the _get_repo_subfolder() function.
-            - file_prefix:          Contains a string with the file_prefix to use for all files within the
-                                    repository. Is set from the repository itself.
-            - runtime_limit:        Contains the maximum time the update function of the repository is allowed to be
-                                    running, in seconds.
-            - first_day_of_repo:    Contains a datetime indicating the oldest moment allowed to be stored in the
-                                    repository.
-            - last_day_of_repo:     Contains a datetime indicating the newest moment allowed to be stored in the
-                                    repository.
-            - permanent_suffixes:   Contains a list of suffixes that can be added to the repository files to
-                                    indicate that the file should not be deleted. Any file not matching the prefix
-                                    or having a suffix not matching this list will be deleted upon cleanup.
-            - file_identifier_length:   This is the length in characters that the unique identifier part of the
-                                        filename takes up. Usually this is based on a datetime.
+        """Specification of required fields for a weather data storage repository:
+        - repository_folder:    Contains the folder where the repository will be saved. Is set inside a main
+                                repository folder, and based on a sub-folder passed by the repository itself
+                                through the _get_repo_subfolder() function.
+        - file_prefix:          Contains a string with the file_prefix to use for all files within the
+                                repository. Is set from the repository itself.
+        - runtime_limit:        Contains the maximum time the update function of the repository is allowed to be
+                                running, in seconds.
+        - first_day_of_repo:    Contains a datetime indicating the oldest moment allowed to be stored in the
+                                repository.
+        - last_day_of_repo:     Contains a datetime indicating the newest moment allowed to be stored in the
+                                repository.
+        - permanent_suffixes:   Contains a list of suffixes that can be added to the repository files to
+                                indicate that the file should not be deleted. Any file not matching the prefix
+                                or having a suffix not matching this list will be deleted upon cleanup.
+        - file_identifier_length:   This is the length in characters that the unique identifier part of the
+                                    filename takes up. Usually this is based on a datetime.
         """
         self.repository_folder = Path(APP_STORAGE_FOLDER).joinpath(self._get_repo_sub_folder())
         self.repository_name = None
@@ -79,8 +79,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     def _validate_repo_folder(self):
-        """
-        This function checks whether the repository folder already exists (starting from its parent folder)
+        """This function checks whether the repository folder already exists (starting from its parent folder)
         and creates it, if it (or its parent folder) don't exist yet.
         """
         if not Path(self.repository_folder).exists():  # If the folder doesn't exist yet, create it
@@ -95,8 +94,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
                 raise e
 
     def cleanup(self):
-        """
-        This is the cleanup function for any Weather Repository.
+        """This is the cleanup function for any Weather Repository.
         Any files not matching the pattern required for the Repository shall be deleted.
         """
         self._validate_repo_folder()
@@ -116,8 +114,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     def gather_period(self, begin: datetime, end: datetime, coordinates: List[GeoPosition]) -> xr.Dataset:
-        """
-            A function that gathers the repository files associated with a requested period, and then returns the full
+        """A function that gathers the repository files associated with a requested period, and then returns the full
             weather data that matches both that period as the requested locations from those files, as a Xarray Dataset
         Args:
             begin:          A datetime holding the starting moment for the requested period to gather data for
@@ -159,8 +156,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
 
     @staticmethod
     def load_file(file: Path) -> xr.Dataset:
-        """
-            A function that loads and returns the full data for a specific repository file as a Xarray Dataset
+        """A function that loads and returns the full data for a specific repository file as a Xarray Dataset
         Args:
             file:   The filename (in the Path format by PathLib) specifying the file to load
         Returns:
@@ -172,20 +168,18 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             return ds
 
         # Raise a FileNotFoundError if the file doesn't exist
-        logger.error(f"File [{str(file)} does not exist]")
+        logger.error(f"File [{file!s} does not exist]")
         raise FileNotFoundError
 
     def purge_repository(self):
-        """
-        Function to fully delete the repository's folder and create a new clean one. Use with care!
+        """Function to fully delete the repository's folder and create a new clean one. Use with care!
         """
         logger.warning(f"Purging the entire repository folder for {self.repository_name}!")
         shutil.rmtree(self.repository_folder, ignore_errors=True)
         self._validate_repo_folder()  # Rebuild the folder after deletion
 
     def _delete_non_permanent_files(self):
-        """
-        A function that deletes any and all files in the repository's folder that are not considered permanent in
+        """A function that deletes any and all files in the repository's folder that are not considered permanent in
         nature. Only the files matching either repository files without a suffix or those with suffix listed in the
         permanent_suffixes field are allowed.
         Every other file should be deleted from the repository immediately.
@@ -208,8 +202,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         pass
 
     def _delete_excess_files(self):
-        """
-        A function that selects the proper file to keep when more than one permanent file exists for a given
+        """A function that selects the proper file to keep when more than one permanent file exists for a given
         identifier. The other files are deleted.
         """
         len_filename_until_date = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
@@ -266,11 +259,12 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     def _filter_dataset_by_coordinates(self, coordinates: List[GeoPosition], ds: xr.Dataset) -> xr.Dataset:
-        """
-            A function that filters a given Xarray Dataset down to the values matching a given list of locations.
+        """A function that filters a given Xarray Dataset down to the values matching a given list of locations.
+
         Args:
             coordinates:    A list of GeoPositions that the data is requested for.
             ds:             An Xarray Dataset containing the data to be filtered.
+
         Returns:
             An Xarray Dataset containing only the weather data that matched the given list of coordinates.
         """

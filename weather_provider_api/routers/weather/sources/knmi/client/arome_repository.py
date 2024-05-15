@@ -55,7 +55,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         # Verify if cfgrib is properly installed
         try:
-            import cfgrib
+            pass
         except RuntimeError as e:
             logger.warning(f"CFGRIB could not properly be initialized: {e}")
             logger.warning(
@@ -201,7 +201,6 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
     def _convert_unpacked_data_to_netcdf4_files(self, download_folder: Path, prediction_time: datetime):
         """This function converts any unpacked data files into NetCDF4 files"""
         try:
-            import cfgrib
 
             logger.debug("Import of cfgrib was successful")
         except RuntimeError as e:
@@ -265,9 +264,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         prediction_moment: datetime,
         predicted_hour: int,
     ) -> (str, xr.Dataset):
-        """
-
-        Args:
+        """Args:
             grib_message (grib.Message):    A GRIB message holding the data to process
             prediction_moment (datetime):   The datetime moment the data was generated
             predicted_hour (int):           The hour it is predicting
@@ -340,9 +337,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         return time_cet
 
     def _fuse_hourly_netcdf4_files(self, download_folder: Path, prediction_moment: datetime):
-        """
-
-        Args:
+        """Args:
             download_folder:
             prediction_moment:
 

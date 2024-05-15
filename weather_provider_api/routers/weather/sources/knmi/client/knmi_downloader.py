@@ -3,7 +3,7 @@
 
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
-""" Module that holds the KNMI Downloader class
+"""Module that holds the KNMI Downloader class
 """
 
 import os
