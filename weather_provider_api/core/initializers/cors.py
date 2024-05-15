@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" CORS support """
+"""CORS support"""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

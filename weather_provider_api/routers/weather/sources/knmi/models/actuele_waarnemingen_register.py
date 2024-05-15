@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" KNMI current weather data aggregate fetcher.
+"""KNMI current weather data aggregate fetcher.
 """
 import copy
 from datetime import datetime
@@ -27,8 +27,7 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 
 
 class ActueleWaarnemingenRegisterModel(WeatherModelBase):
-    """
-    A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset.
+    """A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset.
     """
 
     def is_async(self):
@@ -71,8 +70,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         end: Optional[np.datetime64],
         weather_factors: List[str] = None,
     ) -> xr.Dataset:
-        """
-        The function that gathers and processes the requested Actuele Waarnemingen Register weather data from the
+        """The function that gathers and processes the requested Actuele Waarnemingen Register weather data from the
         48-hour register and returns it as a Xarray Dataset.
         (The register for this model interprets directly from an HTML page, but the information is also available from
         the data platform. Due to it being rather impractically handled, we stick to the site for now.)
@@ -86,7 +84,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         Returns:
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
 
-        NOTES:
+        Notes:
             As this model only return the current weather data the 'begin' and 'end' values are not actually used.
         """
         updated_weather_factors = self._request_weather_factors(weather_factors)

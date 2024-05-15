@@ -25,7 +25,7 @@ use_file_loggers = false
 file_logger_folder = "/tmp/wpla_logs"
 
 [components]
-prometheus = false
+prometheus = true
 cors = false
 cors_allowed_origins = ['*']
 cors_allowed_origins_regex = []

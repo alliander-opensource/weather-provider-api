@@ -4,8 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""
-TODO:
+"""TODO:
 - Decouple weather factors from the get_weather function
 - Add the async process for e.g. CDS and Harmonie
 - Improve datetime slicing
@@ -26,7 +25,9 @@ from weather_provider_api.routers.weather.api_models import (
     result_mime_types,
 )
 from weather_provider_api.routers.weather.controller import WeatherController
-from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
+from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import (
+    WeatherAlert,
+)
 from weather_provider_api.routers.weather.utils import serializers
 from weather_provider_api.routers.weather.utils.date_helpers import parse_datetime
 from weather_provider_api.routers.weather.utils.file_helpers import remove_file
@@ -73,10 +74,10 @@ async def get_sync_weather(
     fmt_args: WeatherFormattingRequestQuery = Depends(),
     accept: str = Depends(header_accept_type),
 ):  # pragma: no cover
-    """
-        Function to gather data for a specific model using specific settings (location, period, factors, e.g.).
+    """Function to gather data for a specific model using specific settings (location, period, factors, e.g.).
         The function then formats this data into the requested output format (file-format and selected output unit) and
         returns it.
+
     Args:
         source_id:  The identifier for the chosen source
         model_id:   The identifier for the chosen model
@@ -91,7 +92,6 @@ async def get_sync_weather(
         the WeatherContentRequestQuery.
 
     """
-
     # TODO: Append a proper definition of the accept arg
     source_id = source_id.lower()
     model_id = model_id.lower()

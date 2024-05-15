@@ -11,16 +11,21 @@ from typing import List
 from dateutil.relativedelta import relativedelta
 from loguru import logger
 
-from weather_provider_api.routers.weather.repository.repository import WeatherRepositoryBase
-from weather_provider_api.routers.weather.sources.cds.client.utils_era5 import era5_update
+from weather_provider_api.routers.weather.repository.repository import (
+    WeatherRepositoryBase,
+)
+from weather_provider_api.routers.weather.sources.cds.client.utils_era5 import (
+    era5_update,
+)
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-from weather_provider_api.routers.weather.utils.grid_helpers import round_coordinates_to_wgs84_grid
+from weather_provider_api.routers.weather.utils.grid_helpers import (
+    round_coordinates_to_wgs84_grid,
+)
 
 
 class ERA5SLRepository(WeatherRepositoryBase):
-    """
-    A class that holds all functionality (excepting the downloader) for the ERA5 Single Levels Repository
+    """A class that holds all functionality (excepting the downloader) for the ERA5 Single Levels Repository
     """
 
     def __init__(self):
@@ -53,16 +58,15 @@ class ERA5SLRepository(WeatherRepositoryBase):
         return last_day_of_repo
 
     def update(self):
-        """
-            The implementation of the WeatherRepository required update() function.
+        """The implementation of the WeatherRepository required update() function.
             This function handles all the required actions to update the repository completely, but taking into
             account its set runtime_limit. If based on the time of completion of other downloaded files this session
             the next file wouldn't complete within the runtime_limit, the update process halts.
             (if no other downloads were made yet, a generous rough estimate is used)
+
         Returns:
             A RepositoryUpdateResult value indicating a completion, time-out or failure of the update process
         """
-
         # Always start with a nicely cleaned repository
         self.cleanup()
 
@@ -81,9 +85,9 @@ class ERA5SLRepository(WeatherRepositoryBase):
         )
 
     def _delete_files_outside_of_scope(self):
-        """
-            A function that deletes all files in the repository with a date not inside the repository's scope.
+        """A function that deletes all files in the repository with a date not inside the repository's scope.
             All files labeled as either before or after the given scope will be deleted.
+
         Returns:
             Nothing. Successful means the all files outside the scope were deleted.
         """
@@ -106,11 +110,11 @@ class ERA5SLRepository(WeatherRepositoryBase):
                 self._safely_delete_file(file_name)
 
     def _get_file_list_for_period(self, start: datetime, end: datetime):
-        """
-            A function that retrieves a list of files in the repository associated with the requested period of time
+        """A function that retrieves a list of files in the repository associated with the requested period of time
         Args:
             start:  A datetime containing the start of the requested period of time.
             end:    A datetime containing the end of the requested period of time.
+
         Returns:
             A list of files (in string format) that indicate the files containing data for the requested period.
         """

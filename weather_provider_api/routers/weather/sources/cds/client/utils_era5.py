@@ -14,7 +14,9 @@ import xarray as xr
 from dateutil.relativedelta import relativedelta
 from loguru import logger
 
-from weather_provider_api.routers.weather.repository.repository import RepositoryUpdateResult
+from weather_provider_api.routers.weather.repository.repository import (
+    RepositoryUpdateResult,
+)
 from weather_provider_api.routers.weather.sources.cds.client import downloader
 
 _FORMATTED_SUFFIX = ".FORMATTED.nc"
@@ -262,9 +264,9 @@ def download_era5_file(
     days,
     target_location,
 ):
-    """
-        A function that download a NetCDF file to the target location, containing the requested factors for an
+    """A function that download a NetCDF file to the target location, containing the requested factors for an
         also requested range of years, months, days and locations.
+
     Args:
         dataset:            The name of the dataset to download from
         product_type:       The type of product to download
@@ -274,6 +276,7 @@ def download_era5_file(
         months:             A list of months to be requested (numeric)
         days:               A list of days to be requested (numeric)
         target_location:    The file location to which the result should be saved after downloading.
+
     Returns:
         Returns nothing, but success means a result file will exist at the given target location.
     """
@@ -325,8 +328,7 @@ def download_era5_file(
 
 
 def load_file(file: Path) -> xr.Dataset:
-    """
-        A function that loads and returns the full data for a specific repository file as a Xarray Dataset
+    """A function that loads and returns the full data for a specific repository file as a Xarray Dataset
     Args:
         file:   The filename (in the Path format by PathLib) specifying the file to load
     Returns:
@@ -339,7 +341,7 @@ def load_file(file: Path) -> xr.Dataset:
         return ds
 
     # Raise a FileNotFoundError if the file doesn't exist
-    logger.error(f"File [{str(file)}] does not exist")
+    logger.error(f"File [{file!s}] does not exist")
     raise FileNotFoundError
 
 

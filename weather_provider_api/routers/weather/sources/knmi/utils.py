@@ -28,12 +28,12 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 def find_closest_stn_list(
         stn_stations: pd.DataFrame, coords: List[GeoPosition]
 ) -> tuple[list[np.int64], list[np.int64], list[int]]:
-    """
-            A function that finds the closest stations to the locations in the given list of GeoPositions
+    """A function that finds the closest stations to the locations in the given list of GeoPositions
     Args:
             stn_stations:   A Pandas Dataframe containing all the station data for the KNMI stations
             coords:         A list of GeoPositions with locations to find the nearest stations to.
-        Returns:
+
+    Returns:
             A list of coordinates for found stations
             A list of found stations in the same order
             A list of index numbers for the found in the same order
@@ -48,8 +48,7 @@ def find_closest_stn_list(
 
 
 def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> np.int64:
-    """
-        A function that finds the closest station to a single GeoPosition
+    """A function that finds the closest station to a single GeoPosition
     Args:
         stn_stations:   A Pandas Dataframe containing all the station data for the KNMI stations
         coord:          A GeoPosition to find the nearest station for
@@ -130,8 +129,7 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
 
 
 def _retrieve_observation_moment(html_body: str) -> datetime:
-    """
-    A function that extracts the observation date from the supplied html body of the Actuele Waarnemingen site.
+    """A function that extracts the observation date from the supplied html body of the Actuele Waarnemingen site.
 
     Args:
         html_body:  The text from the body downloaded from the Actuele Waarnemingen Site.

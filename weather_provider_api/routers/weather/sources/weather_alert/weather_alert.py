@@ -4,8 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""
-    Class to retrieve the current Weather Alert status according to the KNMI site
+"""Class to retrieve the current Weather Alert status according to the KNMI site
 """
 
 from enum import Enum
@@ -26,8 +25,7 @@ class WeatherAlertCode(Enum):
 
 
 class WeatherAlert:
-    """
-    A class (not a Weather Model!) that parses the Weather Alert status from the KNMI site (Weeralarm)
+    """A class (not a Weather Model!) that parses the Weather Alert status from the KNMI site (Weeralarm)
     """
 
     def __init__(self):
@@ -52,9 +50,9 @@ class WeatherAlert:
         )  # The Dutch Provinces. Every province has its own page.
 
     def get_alarm(self):
-        """
-            A function that retrieves the current weather alarm stage for each of the Dutch provinces and puts those
+        """A function that retrieves the current weather alarm stage for each of the Dutch provinces and puts those
             together into a formatted list of results (string-based).
+
         Returns:
             A list of strings holding all the provinces and their retrieved current alarm stages according to KNMI
         """
@@ -79,12 +77,13 @@ class WeatherAlert:
 
     @staticmethod
     def process_page(page_text: str, status_code, province):
-        """
-            A function that parses the weather alert page for a province and retrieves its current alarm stage.
+        """A function that parses the weather alert page for a province and retrieves its current alarm stage.
+
         Args:
             page_text:      The response content retrieved while trying to download the page
             status_code:    The status code retrieved while trying to download the page.
             province:       The province associated with the url, status code and alarm stage.
+
         Returns:
             A tuple holding the province and a result-string for that province.
             A result-string usually hold the alarm stage for that province, but can also hold exceptions when

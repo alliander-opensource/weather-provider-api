@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" Main executable module """
+"""Main executable module."""
 
 import uvicorn
 from loguru import logger

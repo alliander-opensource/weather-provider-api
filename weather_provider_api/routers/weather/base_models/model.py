@@ -10,14 +10,15 @@ from typing import List, Optional
 import numpy as np
 import xarray as xr
 
-from weather_provider_api.core.initializers.exception_handling import NOT_IMPLEMENTED_ERROR
+from weather_provider_api.core.initializers.exception_handling import (
+    NOT_IMPLEMENTED_ERROR,
+)
 from weather_provider_api.routers.weather.api_models import OutputUnit
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 class WeatherModelBase(metaclass=ABCMeta):
-    """
-    Base class for all Weather Models. All new models should use this base class!
+    """Base class for all Weather Models. All new models should use this base class!
     """
 
     def __init__(self):
@@ -40,8 +41,7 @@ class WeatherModelBase(metaclass=ABCMeta):
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     def convert_names_and_units(self, weather_data: xr.Dataset, unit: OutputUnit):
-        """
-            Function to convert all names and units in a dataset according to the required translations set in the
+        """Function to convert all names and units in a dataset according to the required translations set in the
             to_xxxx values for the model itself
         Args:
             weather_data:   A Xarray Dataset containing
@@ -153,8 +153,7 @@ class WeatherModelBase(metaclass=ABCMeta):
 
     @staticmethod
     def knmi_visibility_class_to_meter_estimate(xs):
-        """
-            Function to transform KNMI visibility class values to an estimate of meters visibility
+        """Function to transform KNMI visibility class values to an estimate of meters visibility
         Args:
             xs:     The visibility class value to be interpreted
 

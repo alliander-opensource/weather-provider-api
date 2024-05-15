@@ -4,7 +4,9 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import HarmonieAromeRepository
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
+    HarmonieAromeRepository,
+)
 
 
 def main():

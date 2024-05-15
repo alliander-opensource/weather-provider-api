@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" This module houses the repository class for the Actuele Waarnemingen Register. """
+"""This module houses the repository class for the Actuele Waarnemingen Register."""
 from datetime import datetime
 from typing import List
 

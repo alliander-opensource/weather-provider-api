@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" Logging Handler
+"""Logging Handler
 
 This module initializes the logging intercept handler, which intercepts other logging methods and translates them into
  the intended loguru logging format.
@@ -17,7 +17,7 @@ from tempfile import gettempdir
 
 from loguru import logger
 
-from weather_provider_api.config import APP_DEBUGGING, APP_CONFIG, APP_LOG_LEVEL
+from weather_provider_api.config import APP_CONFIG, APP_DEBUGGING, APP_LOG_LEVEL
 
 
 class LoggingInterceptHandler(logging.Handler):

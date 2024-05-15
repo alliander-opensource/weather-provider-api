@@ -4,10 +4,10 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-""" API Validation checks """
+"""API Validation checks"""
 
-from datetime import datetime
 import re
+from datetime import datetime
 
 from fastapi import FastAPI
 from loguru import logger
@@ -26,6 +26,7 @@ def initialize_api_validation(application: FastAPI):
 
     Args:
         application:    The FastAPI application to attach the checker to.
+
     Returns:
         Nothing. The application itself is updated.
 
@@ -37,6 +38,7 @@ def initialize_api_validation(application: FastAPI):
         Args:
             request:    The request to evaluate
             call_next:  The call_next object for the request (what to do next if this step doesn't raise any exceptions)
+
         Returns:
             The next step to execute for this request. This is either the original call_next, or an
              HTTP Exception trigger for an APIExpiredException.
