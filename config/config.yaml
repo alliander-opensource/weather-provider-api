@@ -1,0 +1,32 @@
+ weather-provider-api:
+   short-title: "Weather Provider API"
+   full-title: "Weather Provider Access Suite - API"
+   description: "The Weather Provider API is the API part of the Weather Provider Access Suite, an Open Source project 
+   that provides uniform and easy access to weather data from multiple providers."
+   expiration-date: "2026-10-16"  # remove to disable expiration validation
+   server-url: "http://localhost:8000"
+   maintainer:
+     name: "Verbindingsteam"
+     email: "weather.provider@alliander.com"
+     add-maintainer-to-headers: true
+   connected-api-versions:
+     - version: 2
+       expiration-date: "2026-10-16"  # remove to disable expiration validation
+     - version: 3
+       expiration-date: "2026-10-16"  # remove to disable expiration validation
+   components:
+     prometheus-endpoint: "/metrics"
+     cors:
+       allow-origins:
+          - "http://localhost:8000"
+          - "http://localhost:8001"
+          - "http://localhost:8002"
+       allow-origins-regex:
+         - ".*\\.example\\.com"
+     rate-limiter:
+       default-max-requests-per-minute: 100
+       heavy-load-max-requests-per-minute: 50
+       minimal-load-max-requests-per-minute: 200
+     project-logger:
+       log-level: "INFO"  # Can be overwritten wit env var LOG_LEVEL
+       log-format: "plain"  # Can be overwritten wit env var LOG_FORMAT

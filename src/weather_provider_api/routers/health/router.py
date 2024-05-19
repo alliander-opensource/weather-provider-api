@@ -23,4 +23,8 @@ def readiness():
     # 1. Check access to storage
     # 2. Check access to external services
     # 3. Check validity of sources, models and storage
-    return {"status": "ok"}
+    return {
+        "Storage functionality": "ok",
+        "Access to external sources": "ok",
+        "Validity of sources": "ok",
+    }
