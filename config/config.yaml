@@ -29,4 +29,4 @@
        minimal-load-max-requests-per-minute: 200
      project-logger:
        log-level: "INFO"  # Can be overwritten wit env var LOG_LEVEL
-       log-format: "plain"  # Can be overwritten wit env var LOG_FORMAT
+       log-format: "extended"  # Can be overwritten wit env var LOG_FORMAT

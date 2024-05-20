@@ -20,7 +20,7 @@ def mount_sub_application_to_base_application(base_application: FastAPI, sub_app
 
     base_application.mount(path=sub_root_path, app=sub_application)
 
-    logging.info(f"Mounted sub-application [{sub_title}] to [{base_title}] at {sub_root_path}")
+    logging.debug(f"Mounted sub-application [{sub_title}] to [{base_title}] at {sub_root_path}")
 
 
 def __get_required_titles_and_path_for_mounting(base_application: FastAPI, sub_application: FastAPI):

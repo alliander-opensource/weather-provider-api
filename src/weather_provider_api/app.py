@@ -15,10 +15,12 @@ from weather_provider_api.core.handlers.logging import setup_included_project_lo
 
 def __build_app() -> FastAPI:
     setup_included_project_logger()  # Initial logger interception
-
+    logging.info("Logger initialization complete")
+    logging.info("Started - Application assembly based on configuration settings")
     application = assemble_application_from_configuration()
+    logging.info("Finished - Application assembly based on configuration settings")
     logging.info(
-        f"Application successfully assembled from configuration settings: "
+        f"Application ready for use: "
         f"[{getattr(application, 'title', 'Weather Provider API')} "
         f"({getattr(application, 'version', '<version unknown>')})"
     )

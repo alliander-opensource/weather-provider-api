@@ -45,7 +45,7 @@ def __setup_new_logger():
     log_format = LogFormats[log_format].value if log_format in LogFormats.__members__ else LogFormats.plain
 
     logger.add(sys.stdout, enqueue=False, level=log_level, format=log_format, serialize=serialize)
-    logging.info("Logger initialized")
+    logging.debug("Logger successfully connected to default logging system")
 
 
 def __propagate_uvicorn_to_default_handler():
@@ -53,4 +53,4 @@ def __propagate_uvicorn_to_default_handler():
         logging.getLogger(uvicorn_logger).handlers.clear()
         logging.getLogger(uvicorn_logger).propagate = True
 
-    logging.info("Uvicorn loggers successfully propagated to default logger")
+    logging.debug("Uvicorn loggers successfully propagated onto default logger")
