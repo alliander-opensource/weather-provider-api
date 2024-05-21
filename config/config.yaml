@@ -24,9 +24,9 @@
        allow-origins-regex:
          - ".*\\.example\\.com"
      rate-limiter:
-       default-max-requests-per-minute: 100
-       heavy-load-max-requests-per-minute: 50
-       minimal-load-max-requests-per-minute: 200
+       default-max-requests-per-minute: 20
+       heavy-load-max-requests-per-minute: 5
+       minimal-load-max-requests-per-minute: 40
      project-logger:
        log-level: "INFO"  # Can be overwritten wit env var LOG_LEVEL
        log-format: "extended"  # Can be overwritten wit env var LOG_FORMAT

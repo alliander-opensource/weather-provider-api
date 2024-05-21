@@ -20,6 +20,6 @@ async def project_http_exception_handler(request: Request, exc: HTTPException) -
 
     if API_CONFIGURATION.maintainer.add_to_headers:
         body["maintainer"] = API_CONFIGURATION.maintainer.name
-        body["maintainer_email"] = API_CONFIGURATION.maintainer.email_address
+        body["maintainer_email"] = API_CONFIGURATION.maintainer.email
 
     return JSONResponse(content=body, status_code=exc.status_code, headers=headers)

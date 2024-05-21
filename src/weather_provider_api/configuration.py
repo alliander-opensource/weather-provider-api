@@ -184,15 +184,15 @@ def __load_component_settings_from_yaml(components_yaml: dict) -> _ComponentSett
     )
     rate_limiter_settings = (
         {
-            "max_requests": components_yaml.get("rate_limiter").get("max_requests_per_minute"),
-            "max_requests_heavy_load": components_yaml.get("rate_limiter").get(
-                "heavy_load_max_requests_per_minute", None
+            "max_requests": components_yaml.get("rate-limiter").get("default-max-requests-per-minute"),
+            "max_requests_heavy_load": components_yaml.get("rate-limiter").get(
+                "heavy-load-max-requests-per-minute", None
             ),
-            "max_requests_minimal_load": components_yaml.get("rate_limiter").get(
-                "minimal_load_max_requests_-per_minute", None
+            "max_requests_minimal_load": components_yaml.get("rate-limiter").get(
+                "minimal-load-max-requests-per-minute", None
             ),
         }
-        if components_yaml.get("rate_limiter")
+        if components_yaml.get("rate-limiter")
         else None
     )
     project_logger_settings = {

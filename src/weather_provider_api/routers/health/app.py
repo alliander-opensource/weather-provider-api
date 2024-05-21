@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException
 
 from weather_provider_api.configuration import API_CONFIGURATION
 from weather_provider_api.core.handlers.exceptions import project_http_exception_handler
+from weather_provider_api.core.handlers.rate_limiting import attach_rate_limiter
 from weather_provider_api.routers.health.router import health_router
 
 health_application = FastAPI(
@@ -22,5 +23,6 @@ health_application = FastAPI(
     exception_handlers={HTTPException: project_http_exception_handler},
 )
 
+attach_rate_limiter(health_application)
 health_application.include_router(health_router, prefix="/health")
 health_application.openapi()

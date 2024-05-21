@@ -14,9 +14,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, RedirectResponse
 
 from weather_provider_api.configuration import API_CONFIGURATION
+from weather_provider_api.core.handlers.cors import attach_cors_handler
 from weather_provider_api.core.handlers.exceptions import project_http_exception_handler
 from weather_provider_api.core.handlers.logging import setup_included_project_logger
 from weather_provider_api.core.handlers.prometheus import attach_prometheus_handler
+from weather_provider_api.core.handlers.rate_limiting import attach_rate_limiter
 from weather_provider_api.core.handlers.response_headers import customize_response_headers
 from weather_provider_api.core.utils.api_mounting_utils import mount_sub_application_to_base_application
 from weather_provider_api.routers.health.app import health_application
@@ -73,6 +75,14 @@ def __attach_handlers(application: FastAPI):
 
     if component_settings.prometheus_endpoint:
         attach_prometheus_handler(application)
+
+    # attach CORS
+    if component_settings.cors:
+        attach_cors_handler(application)
+
+    # attach rate limiter
+    if component_settings.rate_limiter:
+        attach_rate_limiter(application)
 
     logging.debug("FastAPI application successfully connected to all configured handlers")
 
