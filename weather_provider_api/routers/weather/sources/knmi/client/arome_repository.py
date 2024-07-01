@@ -4,6 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 import glob
+import os
 import re
 import sys
 import tarfile
@@ -178,7 +179,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
     def _clear_temp_folder(download_folder: Path):
         """A function that cleans up the temporary download folder to prevent issues with partially written files."""
         logger.debug(f"Emptying the download folder: {download_folder}")
-        for existing_file in glob.glob(f"{download_folder}*.*"):
+        file_filter = f"{download_folder}/*.*" if str(download_folder)[-1] != "/" else f"{download_folder}*.*"
+        for existing_file in glob.glob(file_filter):
             try:
                 # Try to delete:
                 Path(existing_file).unlink()
@@ -191,9 +193,13 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         """The function that unpacks downloaded files to prediction files."""
         logger.info(f"Unpacking file: {file_name}")
         try:
-            tar_file = tarfile.open(download_folder.joinpath(file_name))
-            tar_file.extractall(path=download_folder)
-            tar_file.close()
+            tar = tarfile.open(download_folder.joinpath(file_name))
+            for member in tar.getmembers():
+                if member.isreg():  # Only process files
+                    member.name = os.path.basename(
+                        member.name)  # Remove the path to setting it to only the filename.
+                    tar.extract(member, download_folder)  # Extract the file to the download folder
+            tar.close()
         except Exception as e:
             logger.error(f"The tarfile [{file_name}] could not be unpacked!")
             raise e
