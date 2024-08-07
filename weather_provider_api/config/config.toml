@@ -7,7 +7,7 @@ description = """
     styles.
 """
 expiration_checking = true
-expiration_date = "2024-08-01"
+expiration_date = "2024-12-31"
 
 [maintainer]
 show_info = true
@@ -32,8 +32,8 @@ cors_allowed_origins_regex = []
 
 [api_v1]
 implementation = "2.2.0"
-expiration_date = "2024-08-01"
+expiration_date = "2024-12-31"
 
 [api_v2]
 implementation = "2.2.0"
-expiration_date = "2024-08-01"
+expiration_date = "2024-12-31"
