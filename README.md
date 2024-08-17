@@ -18,10 +18,12 @@ By just supplying a list of locations and a time window you can get data for a s
 This project can currently be found on the following location:
 https://github.com/alliander-opensource/Weather-Provider-API
 
-For more information also check out this webinar:
+**For more information also check out this webinar:**
 
 [![Webinar Weather Provider API](https://img.youtube.com/vi/pjE0DZmSphQ/0.jpg)](https://www.youtube.com/watch?v=pjE0DZmSphQ)
 
+**And the GitHub Pages at:**
+https://alliander-opensource.github.io/weather-provider-api/
 
 The project uses a number of data sources for the acquisition of weather data. Currently being supported by this API 
 are the following weather data sources:
