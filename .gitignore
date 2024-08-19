@@ -38,7 +38,7 @@ pip-delete-this-directory.txt
 
 # Sphinx Documentation
 _build/
-_static/
+#_static/
 _templates/
 conf.py
 index.rst
