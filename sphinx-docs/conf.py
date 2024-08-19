@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "Weather Provider API"
 copyright = "2024, Alliander"
 author = "Raoul Linnenbank"
-release = "0.7.0"
+release = "2.5.5"
 
 highlight_language = "python3"
 
