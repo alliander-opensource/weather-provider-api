@@ -49,7 +49,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         self.file_prefix = "AROME"
         self.runtime_limit = 60 * 60 * 3  # 3 hours maximum runtime
         self.permanent_suffixes = ["0000", "0600", "1200", "1800"]
-        self.dataset_name = "harmonie_arome_cy40_p1"
+        self.dataset_name = "harmonie_arome_cy43_p1"
         self.dataset_version = "0.2"
         self.file_identifier_length = 13
         self.time_encoding = "hours since 2018-01-01"  # Used to keep values usable for at least the upcoming decennium
