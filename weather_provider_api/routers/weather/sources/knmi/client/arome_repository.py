@@ -214,7 +214,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             raise e
 
         grib_files_available = glob.glob(
-            str(download_folder.joinpath(f'HA40_N25_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'))
+            str(download_folder.joinpath(f'HA43_N20_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'))
         )
 
         for grib_file in grib_files_available:
