@@ -49,8 +49,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         self.file_prefix = "AROME"
         self.runtime_limit = 60 * 60 * 3  # 3 hours maximum runtime
         self.permanent_suffixes = ["0000", "0600", "1200", "1800"]
-        self.dataset_name = "harmonie_arome_cy40_p1"
-        self.dataset_version = "0.2"
+        self.dataset_name = "harmonie_arome_cy43_p1"
+        self.dataset_version = "1.0"
         self.file_identifier_length = 13
         self.time_encoding = "hours since 2018-01-01"  # Used to keep values usable for at least the upcoming decennium
 
@@ -126,7 +126,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             if not self._prediction_already_available(prediction_to_evaluate):
                 logger.debug(f"- Gathering the prediction for: {prediction_to_evaluate}")
                 file_to_download = (
-                    f"harm40_v1_p1_{prediction_to_evaluate.year}"
+                    f"HARM43_V1_P1_{prediction_to_evaluate.year}"
                     f"{str(prediction_to_evaluate.month).zfill(2)}"
                     f"{str(prediction_to_evaluate.day).zfill(2)}"
                     f"{str(prediction_to_evaluate.hour).zfill(2)}.tar"
@@ -214,7 +214,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             raise e
 
         grib_files_available = glob.glob(
-            str(download_folder.joinpath(f'HA40_N25_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'))
+            str(download_folder.joinpath(f'HA43_N20_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'))
         )
 
         for grib_file in grib_files_available:
