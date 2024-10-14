@@ -26,7 +26,7 @@ file_logger_folder = "/tmp/wpla_logs"
 
 [components]
 prometheus = true
-cors = false
+cors = true
 cors_allowed_origins = ['*']
 cors_allowed_origins_regex = []
 
