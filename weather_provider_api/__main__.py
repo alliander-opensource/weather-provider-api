@@ -66,5 +66,6 @@ def launch_api(run_mode: str = "uvicorn", host: str = "127.0.0.1", port: int = 8
 
 # The main function for easy local execution
 if __name__ == "__main__":
+
     # If run from main start using the defaults
     launch_api()
