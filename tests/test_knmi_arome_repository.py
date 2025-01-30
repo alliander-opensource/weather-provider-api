@@ -15,7 +15,9 @@ from pathlib import Path
 import pytest
 from dateutil.relativedelta import relativedelta
 
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import HarmonieAromeRepository
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
+    HarmonieAromeRepository,
+)
 
 
 def _get_mock_prefix(dummy_date: datetime):

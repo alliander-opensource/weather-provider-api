@@ -172,8 +172,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         raise FileNotFoundError
 
     def purge_repository(self):
-        """Function to fully delete the repository's folder and create a new clean one. Use with care!
-        """
+        """Function to fully delete the repository's folder and create a new clean one. Use with care!"""
         logger.warning(f"Purging the entire repository folder for {self.repository_name}!")
         shutil.rmtree(self.repository_folder, ignore_errors=True)
         self._validate_repo_folder()  # Rebuild the folder after deletion
@@ -276,7 +275,8 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             ds_single_coord = ds.stack(dimensions={"coord": ["lat", "lon"]})
             ds_single_coord = ds_single_coord.where(ds_single_coord.lat == coordinate.get_WGS84()[0], drop=True)
             ds_single_coord = ds_single_coord.where(
-                ds_single_coord.lon.round(3) == coordinate.get_WGS84()[1].round(3), drop=True
+                ds_single_coord.lon.round(3) == coordinate.get_WGS84()[1].round(3),
+                drop=True,
             )
             ds_single_coord = ds_single_coord.unstack("coord")
             # Then append this to a clean list

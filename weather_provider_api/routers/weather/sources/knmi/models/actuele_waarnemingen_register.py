@@ -4,8 +4,8 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""KNMI current weather data aggregate fetcher.
-"""
+"""KNMI current weather data aggregate fetcher."""
+
 import copy
 from datetime import datetime
 from typing import List, Optional
@@ -27,8 +27,7 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 
 
 class ActueleWaarnemingenRegisterModel(WeatherModelBase):
-    """A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset.
-    """
+    """A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset."""
 
     def is_async(self):
         return self.async_model

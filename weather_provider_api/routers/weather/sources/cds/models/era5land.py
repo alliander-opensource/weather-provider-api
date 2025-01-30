@@ -4,8 +4,8 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""CDS - ERA5 Single Levels Weatherdata Model
-"""
+"""CDS - ERA5 Single Levels Weatherdata Model"""
+
 import copy
 from datetime import datetime
 from typing import List, Optional

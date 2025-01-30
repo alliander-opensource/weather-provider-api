@@ -4,8 +4,8 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""KNMI day part prediction data fetcher.
-"""
+"""KNMI day part prediction data fetcher."""
+
 import copy
 from datetime import datetime
 from typing import List, Optional

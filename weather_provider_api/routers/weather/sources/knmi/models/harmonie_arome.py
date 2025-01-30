@@ -4,9 +4,8 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""-- MODULE --
+"""-- MODULE --"""
 
-"""
 import copy
 from datetime import datetime, time, timedelta
 from typing import List, Union
@@ -80,7 +79,10 @@ class HarmonieAromeModel(WeatherModelBase):
 
         # Validate the given timeframe
         valid_begin, valid_end = validate_begin_and_end(
-            begin, end, self.repository.first_day_of_repo, self.repository.last_day_of_repo
+            begin,
+            end,
+            self.repository.first_day_of_repo,
+            self.repository.last_day_of_repo,
         )
 
         # Gather the period from the repository

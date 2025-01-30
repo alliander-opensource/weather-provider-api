@@ -15,6 +15,7 @@ import weather_provider_api.routers.weather.utils.date_helpers as dh
 # The function time_unknown() isn't tested as it only verifies that no time may have been set in the datetime conversion
 # and that the datetime string didn't contain a colon.
 
+
 # The parse_datetime() function converts a string to a datetime, returning the exact date and time passed as a string.
 # If no time was given, however:
 # - It should return 00:00 if neither time or date were rounded up

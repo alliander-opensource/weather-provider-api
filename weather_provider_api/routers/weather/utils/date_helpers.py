@@ -58,7 +58,10 @@ def time_unknown(dt: datetime, datetime_string: str):  # pragma: no cover
 
 
 def validate_begin_and_end(
-    start: datetime, end: datetime, data_start: Union[datetime, None] = None, data_end: Union[datetime, None] = None
+    start: datetime,
+    end: datetime,
+    data_start: Union[datetime, None] = None,
+    data_end: Union[datetime, None] = None,
 ):
     """Checks the given date parameters and replaces them with default values if they aren't valid.
     The resulting values are then returned.
@@ -76,14 +79,19 @@ def validate_begin_and_end(
 
     if start >= data_end:
         raise HTTPException(
-            422, f"Invalid [start] value [{start}]: value lies after last available moment for model ({data_end})"
+            422,
+            f"Invalid [start] value [{start}]: value lies after last available moment for model ({data_end})",
         )
     if data_start is not None and end <= data_start:
         raise HTTPException(
-            422, f"Invalid [end] value [{end}]: value lies before first available moment for model ({data_start})"
+            422,
+            f"Invalid [end] value [{end}]: value lies before first available moment for model ({data_start})",
         )
 
     if end < start:
-        raise HTTPException(422, f"Invalid [start] and [end] values: [end]({end}) lies before [start]({start})")
+        raise HTTPException(
+            422,
+            f"Invalid [start] and [end] values: [end]({end}) lies before [start]({start})",
+        )
 
     return start, end

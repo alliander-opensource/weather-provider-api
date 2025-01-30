@@ -4,8 +4,8 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""Utilities for handling KNMI datasets.
-"""
+"""Utilities for handling KNMI datasets."""
+
 import locale
 import re
 from datetime import datetime
@@ -26,7 +26,7 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 def find_closest_stn_list(
-        stn_stations: pd.DataFrame, coords: List[GeoPosition]
+    stn_stations: pd.DataFrame, coords: List[GeoPosition]
 ) -> tuple[list[np.int64], list[np.int64], list[int]]:
     """A function that finds the closest stations to the locations in the given list of GeoPositions
     Args:
