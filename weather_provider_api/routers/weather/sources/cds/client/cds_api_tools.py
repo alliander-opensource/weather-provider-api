@@ -98,6 +98,8 @@ class CDSRequest(BaseModel):
             "day": self.day,
             "time": self.time,
             "area": self.area,
+            "data_format": self.data_format,
+            "download_format": self.download_format,
         }
 
 
