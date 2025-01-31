@@ -15,7 +15,10 @@ app = FastAPI(
     root_path="/api/v2",
     servers=[{"url": f"{APP_SERVER}/api/v2"}],
     description="The v2 endpoint interface for the Weather Provider API",
-    contact={"name": APP_CONFIG["maintainer"]["name"], "email": APP_CONFIG["maintainer"]["email_address"]},
+    contact={
+        "name": APP_CONFIG["maintainer"]["name"],
+        "email": APP_CONFIG["maintainer"]["email_address"],
+    },
 )
 
 app.openapi_version = "3.0.2"

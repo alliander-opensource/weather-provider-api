@@ -4,8 +4,8 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""KNMI current weather data fetcher.
-"""
+"""KNMI current weather data fetcher."""
+
 import copy
 from typing import List, Optional
 

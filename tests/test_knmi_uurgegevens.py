@@ -10,7 +10,9 @@ import pytest
 import requests
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import UurgegevensModel
+from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import (
+    UurgegevensModel,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 

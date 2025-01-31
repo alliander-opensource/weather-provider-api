@@ -9,8 +9,8 @@ from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository i
 )
 
 
-def main():
-    # Simple method wrapper for purging data
+def main() -> None:
+    """Simple method wrapper for purging data."""
     era5sl_repo = ERA5SLRepository()
     era5sl_repo.purge_repository()
 

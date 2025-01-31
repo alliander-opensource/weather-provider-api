@@ -22,7 +22,7 @@ jobs:
         run: |
           sphinx-build ./sphinx-docs/ _build
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v2.0.0
+        uses: actions/upload-pages-artifact@v3
         with:
           path: _build
       - name: Push artifact to pages

@@ -45,7 +45,10 @@ def _build_api_application() -> FastAPI:
         title=app_title,
         summary=app_description,
         description=app_description,
-        contact={"name": APP_CONFIG["maintainer"]["name"], "email": APP_CONFIG["maintainer"]["email_address"]},
+        contact={
+            "name": APP_CONFIG["maintainer"]["name"],
+            "email": APP_CONFIG["maintainer"]["email_address"],
+        },
     )
     application.openapi_version = "3.0.2"
 

@@ -4,8 +4,8 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""KNMI day part prediction data fetcher.
-"""
+"""KNMI day part prediction data fetcher."""
+
 import copy
 from datetime import datetime
 from typing import List, Optional
@@ -135,7 +135,7 @@ class PluimModel(WeatherModelBase):
         ds = self._download_weather(coords, coords_stn_ind, stns, weather_factors)
 
         ds = self._select_weather_from_given_period(ds, begin, end)
-        ds = ds.dropna("time", "all")  # Dropping any times that only carry NaN values
+        ds = ds.dropna("time", how="all")  # Dropping any times that only carry NaN values
 
         return ds
 

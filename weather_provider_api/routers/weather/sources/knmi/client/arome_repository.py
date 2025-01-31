@@ -196,8 +196,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             tar = tarfile.open(download_folder.joinpath(file_name))
             for member in tar.getmembers():
                 if member.isreg():  # Only process files
-                    member.name = os.path.basename(
-                        member.name)  # Remove the path to setting it to only the filename.
+                    member.name = os.path.basename(member.name)  # Remove the path to setting it to only the filename.
                     tar.extract(member, download_folder)  # Extract the file to the download folder
             tar.close()
         except Exception as e:
@@ -207,7 +206,6 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
     def _convert_unpacked_data_to_netcdf4_files(self, download_folder: Path, prediction_time: datetime):
         """This function converts any unpacked data files into NetCDF4 files"""
         try:
-
             logger.debug("Import of cfgrib was successful")
         except RuntimeError as e:
             logger.error("CFGRIB was not properly installed. Cannot access GRIB files.")
@@ -241,7 +239,10 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             grib_message = item[1]
             # We skip the rotated grid data of the first file in each file-set and only process the regular_ll grids.
             if grib_message["gridType"] == "regular_ll":
-                (field_name, message_dataset,) = self._process_grib_message_to_message_dataset(
+                (
+                    field_name,
+                    message_dataset,
+                ) = self._process_grib_message_to_message_dataset(
                     grib_message=grib_message,
                     prediction_moment=prediction_moment,
                     predicted_hour=predicted_hour,
@@ -375,7 +376,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         fused_dataset.to_netcdf(filename_to_save_to, format="NETCDF4", engine="netcdf4", encoding=encoding)
 
     @staticmethod
-    def _build_lat_lon_grid(grib_message: cfgrib.Message) -> Tuple[List[float], List[float]]:
+    def _build_lat_lon_grid(
+        grib_message: cfgrib.Message,
+    ) -> Tuple[List[float], List[float]]:
         """This function uses an existing GRIB file to extract the dimensions of the 'regular_ll' grid and format
          those into a list of latitudes and a list of longitudes that together make up the grid.
 

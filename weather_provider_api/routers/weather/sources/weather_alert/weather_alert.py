@@ -4,8 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""Class to retrieve the current Weather Alert status according to the KNMI site
-"""
+"""Class to retrieve the current Weather Alert status according to the KNMI site"""
 
 from enum import Enum
 
@@ -25,8 +24,7 @@ class WeatherAlertCode(Enum):
 
 
 class WeatherAlert:
-    """A class (not a Weather Model!) that parses the Weather Alert status from the KNMI site (Weeralarm)
-    """
+    """A class (not a Weather Model!) that parses the Weather Alert status from the KNMI site (Weeralarm)"""
 
     def __init__(self):
         self.id = "weatheralert"
