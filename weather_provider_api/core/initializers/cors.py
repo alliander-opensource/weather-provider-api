@@ -46,7 +46,11 @@ def initialize_cors_middleware(app: FastAPI):
         logger.info(f"Attached CORS middleware enabled for the following origins: {origins}, {origins_regex}")
     elif origins:
         app.add_middleware(
-            CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
+            CORSMiddleware,
+            allow_origins=origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
         )
         logger.info(f"Attached CORS middleware enabled for the following origins: {origins}")
     elif origins_regex:

@@ -17,6 +17,6 @@ def test_header_accept_type():
 
 # The get_source, get_sources and get_sync_models only pass on requests to other functions and do not need to be tested
 
-# All of the code inside get_sync_weather consists of either externally called functions that are already covered in
-# their respective modules, or either Python system calls or calls to external libraries outside of the testing scope.
+# All the code inside get_sync_weather consists of either externally called functions that are already covered in
+# their respective modules, or either Python system calls or calls to external libraries outside the testing scope.
 # Full coverage is therefore implied and assumed

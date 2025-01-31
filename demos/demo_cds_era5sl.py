@@ -9,7 +9,11 @@ from datetime import datetime
 import numpy as np
 import xarray as xr
 
-from weather_provider_api.routers.weather.api_models import OutputUnit, ResponseFormat, WeatherContentRequestQuery
+from weather_provider_api.routers.weather.api_models import (
+    OutputUnit,
+    ResponseFormat,
+    WeatherContentRequestQuery,
+)
 from weather_provider_api.routers.weather.api_view_v2 import controller
 from weather_provider_api.routers.weather.utils import serializers
 
@@ -41,7 +45,11 @@ if __name__ == "__main__":
     converted_weather_data = controller.convert_names_and_units("cds", "era5sl", False, ds_hist_day, OutputUnit.si)
 
     ret_args = WeatherContentRequestQuery(
-        begin="2018-01-01 00:00", end="2018-01-31 23:59", lat=52.1, lon=5.18, factors=None
+        begin="2018-01-01 00:00",
+        end="2018-01-31 23:59",
+        lat=52.1,
+        lon=5.18,
+        factors=None,
     )
 
     coords = [

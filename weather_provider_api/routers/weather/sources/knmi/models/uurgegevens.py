@@ -5,6 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 """KNMI hour models data fetcher."""
+
 import copy
 import json
 from datetime import datetime
@@ -217,7 +218,13 @@ class UurgegevensModel(WeatherModelBase):
             )
         return r.text
 
-    def _create_request_params(self, start: datetime, end: datetime, stations: list[int], weather_factors: list[str]):
+    def _create_request_params(
+        self,
+        start: datetime,
+        end: datetime,
+        stations: list[int],
+        weather_factors: list[str],
+    ):
         """A Function that transforms the request settings into parameters usable for the KMNI download request.
 
         Args:

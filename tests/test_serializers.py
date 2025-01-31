@@ -9,8 +9,14 @@ from enum import Enum
 import pytest
 
 from weather_provider_api.routers.weather import api_models
-from weather_provider_api.routers.weather.api_models import ResponseFormat, WeatherContentRequestQuery
-from weather_provider_api.routers.weather.utils.serializers import file_or_text_response, file_response
+from weather_provider_api.routers.weather.api_models import (
+    ResponseFormat,
+    WeatherContentRequestQuery,
+)
+from weather_provider_api.routers.weather.utils.serializers import (
+    file_or_text_response,
+    file_response,
+)
 
 
 class MockResponseFormat(str, Enum):

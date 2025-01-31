@@ -12,8 +12,12 @@ from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5SLModel
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import HarmonieAromeRepository
-from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import HarmonieAromeModel
+from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
+    HarmonieAromeRepository,
+)
+from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import (
+    HarmonieAromeModel,
+)
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
@@ -24,6 +28,7 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 # than the actual function.
 # The _get_list_of_months function isn't tested as it only takes the first and last month of the passed time grid and
 # uses the Numpy 'arange' function to turn those into a range of months.
+
 
 # Valid periods should be between three years ago (rounding down the month), and 5 days before today
 def test__validate_weather_factors():

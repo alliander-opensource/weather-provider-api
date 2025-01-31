@@ -5,6 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 """Entry point to the weather provider."""
+
 import datetime
 import re
 from typing import List, Optional, Tuple
@@ -134,7 +135,9 @@ class WeatherController(object):  # pragma: no cover
             raise UnknownModelException
 
     @staticmethod
-    def _calculate_polygon_means(coords: List[List[Tuple[float, float]]]) -> List[Tuple[float, float]]:
+    def _calculate_polygon_means(
+        coords: List[List[Tuple[float, float]]],
+    ) -> List[Tuple[float, float]]:
         # Calculating the mean points of polygons containing locations
         coords = [
             (
@@ -146,7 +149,9 @@ class WeatherController(object):  # pragma: no cover
         return coords
 
     @staticmethod
-    def _tuples_to_geo_positions(coords: List[Tuple[float, float]]) -> List[GeoPosition]:
+    def _tuples_to_geo_positions(
+        coords: List[Tuple[float, float]],
+    ) -> List[GeoPosition]:
         # Convert the Tuples in a list to a list of Geo Positions
         coords = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in coords]
         return coords

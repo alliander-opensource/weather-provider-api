@@ -18,8 +18,7 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 class WeatherModelBase(metaclass=ABCMeta):
-    """Base class for all Weather Models. All new models should use this base class!
-    """
+    """Base class for all Weather Models. All new models should use this base class!"""
 
     def __init__(self):
         self.to_si = None
@@ -123,7 +122,6 @@ class WeatherModelBase(metaclass=ABCMeta):
 
     @staticmethod
     def dutch_wind_direction_to_degrees(xs):
-
         wind_directions = [
             "NNO",
             "NO",

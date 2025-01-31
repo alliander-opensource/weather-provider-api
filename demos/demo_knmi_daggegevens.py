@@ -8,7 +8,11 @@ from datetime import datetime
 
 import xarray as xr
 
-from weather_provider_api.routers.weather.api_models import OutputUnit, ResponseFormat, WeatherContentRequestQuery
+from weather_provider_api.routers.weather.api_models import (
+    OutputUnit,
+    ResponseFormat,
+    WeatherContentRequestQuery,
+)
 from weather_provider_api.routers.weather.controller import WeatherController
 from weather_provider_api.routers.weather.utils import serializers
 
@@ -45,7 +49,11 @@ if __name__ == "__main__":
     )
 
     ret_args = WeatherContentRequestQuery(
-        begin="2018-01-01 00:00", end="2018-01-31 23:59", lat=52.1, lon=5.18, factors=None
+        begin="2018-01-01 00:00",
+        end="2018-01-31 23:59",
+        lat=52.1,
+        lon=5.18,
+        factors=None,
     )
 
     response, optional_file_path = serializers.file_or_text_response(
