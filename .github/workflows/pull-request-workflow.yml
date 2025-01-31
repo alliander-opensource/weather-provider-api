@@ -34,6 +34,10 @@ jobs:
         run: poetry install -v --with dev
       # Run Coverage
       - name: Run Coverage
+        env:
+          CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
+          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
+          CDSAPI_VERIFY: 1
         run: |
           poetry run coverage run -m pytest
           poetry run coverage report
