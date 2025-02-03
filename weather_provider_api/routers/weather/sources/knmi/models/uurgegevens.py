@@ -17,6 +17,7 @@ import requests
 import xarray as xr
 from dateutil.relativedelta import relativedelta
 from loguru import logger
+from pytz import UTC
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.stations import stations_history
@@ -177,7 +178,7 @@ class UurgegevensModel(WeatherModelBase):
         ds = self._prepare_weather_data(coords, station_id, raw_ds)
 
         # The KNMI model isn't working properly yet, so we have to cut out any overflow time-wise
-        ds = ds.sel(time=slice(begin, end))
+        ds = ds.sel(time=slice(begin.astimezone(UTC).replace(tzinfo=None), end.astimezone(UTC).replace(tzinfo=None)))
         return ds
 
     def is_async(self):  # pragma: no cover

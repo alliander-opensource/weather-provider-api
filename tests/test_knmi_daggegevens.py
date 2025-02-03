@@ -35,6 +35,7 @@ def test_retrieve_weather(mock_coordinates, start, end, inseason):
     daggegevens_model = DagGegevensModel()
     ds = daggegevens_model.get_weather(coords=mock_geoposition_coordinates, begin=start, end=end, inseason=inseason)
 
+    print(ds["time"])
     assert ds is not None
     assert "TN" in ds
     assert len(ds["TN"]) == 31
