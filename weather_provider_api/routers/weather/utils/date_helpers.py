@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from fastapi import HTTPException
 from loguru import logger
+from pytz import UTC
 
 
 def parse_datetime(
@@ -66,9 +67,14 @@ def validate_begin_and_end(
     """Checks the given date parameters and replaces them with default values if they aren't valid.
     The resulting values are then returned.
     """
+    start = start.astimezone(UTC) if start else None
+    end = end.astimezone(UTC) if end else None
+    data_start = data_start.astimezone(UTC) if data_start else None
+    data_end = data_end.astimezone(UTC) if data_end else None
+
     if data_end is None:
         # Assuming predictions fill in this value, the most recent value for the past is before "now".
-        data_end = datetime.utcnow()
+        data_end = datetime.now(UTC)
 
     if data_start is not None and data_start > start:
         # If the starting moment lies before what can be requested, put it at the moment from which it can be requested
