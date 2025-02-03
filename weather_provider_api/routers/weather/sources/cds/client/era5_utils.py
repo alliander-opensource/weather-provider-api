@@ -46,7 +46,8 @@ def era5_repository_update(update_settings: Era5UpdateSettings) -> RepositoryUpd
     starting_moment_of_update = datetime.now(UTC)
     cutoff_time = starting_moment_of_update + relativedelta(minutes=update_settings.maximum_runtime_in_minutes)
     logger.info(
-        f"Starting update of ERA5 data for {update_settings.era5_dataset_to_update_from} to: {update_settings.target_storage_location}"
+        f"Starting update of ERA5 data for {update_settings.era5_dataset_to_update_from} "
+        f"to: {update_settings.target_storage_location}"
     )
     logger.debug(f" - Attempting update for time range: {update_settings.repository_time_range}")
     logger.debug(f" - Factors to process: {update_settings.factors_to_process}")
@@ -78,8 +79,9 @@ def _era5_update_month_by_month(
     )
 
     while update_month > target_update_month:
+        logger.info(f" > Processing month: {update_month.year}-{update_month.month}")
         if datetime.now(UTC) + relativedelta(minutes=average_time_per_month_in_minutes) > cutoff_time:
-            print(
+            logger.warning(
                 "MAXIMUM RUNTIME REACHED: ",
                 cutoff_time,
                 datetime.now(UTC) + relativedelta(minutes=average_time_per_month_in_minutes),
@@ -97,7 +99,6 @@ def _era5_update_month_by_month(
             logger.warning("More than 50% of the months failed to process. Stopping update.")
             break
 
-        update_month = update_month - relativedelta(month=1)
         average_time_per_month_in_minutes = (
             (datetime.now(UTC) - starting_moment_of_update).total_seconds() / 60 / amount_of_months_processed
         )
@@ -116,7 +117,7 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: dateti
 
     month_file_base = f"{update_settings.filename_prefix}_{update_month.year}_{update_month.month:02d}"
     month_file = update_settings.target_storage_location / f"{month_file_base}"
-    threshold_date = (datetime.now(UTC) - relativedelta(days=5, months=3)).replace(day=1)
+    threshold_date = (datetime.now(UTC) - relativedelta(days=5)).replace(day=1)
 
     if file_requires_update(month_file, update_month, threshold_date):
         logger.debug(f" > File {month_file} requires update.")
@@ -132,19 +133,19 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: dateti
                     month=[str(update_month.month)],
                     day=[str(i) for i in list(range(1, 32))],
                     time=[f"{hour:02d}:00" for hour in range(24)],
-                    area=(7.22, 50.75, 3.2, 53.7),
+                    area=(53.510403, 3.314971, 50.803721, 7.092053),
                 ),
                 target_location=str(month_file_name),
             )
 
-            print("Stored file at: ", month_file_name)
+            logger.debug("Stored file at: ", month_file_name)
 
             _recombine_multiple_files(month_file_name)
 
             _format_downloaded_file(month_file_name, update_settings.factor_dictionary)
 
             month_file_name.rename(month_file.with_suffix(Era5FileSuffixes.FORMATTED))
-            print("Renamed to: ", month_file.with_suffix(Era5FileSuffixes.UNFORMATTED))
+            logger.debug("Renamed to: ", month_file.with_suffix(Era5FileSuffixes.FORMATTED))
             _finalize_formatted_file(month_file, update_month, threshold_date)
 
         except Exception as e:
@@ -155,7 +156,9 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: dateti
 
 
 def _get_update_month(update_settings: Era5UpdateSettings) -> datetime:
-    NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5 = datetime.now(UTC) - relativedelta(days=5)
+    NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5 = (datetime.now(UTC) - relativedelta(days=5)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
     update_moment = update_settings.repository_time_range[1]
 
     update_moment = (
@@ -184,11 +187,15 @@ def _verify_first_day_available_for_era5(update_moment: datetime, update_setting
         try:
             download_era5_data(
                 dataset=update_settings.era5_dataset_to_update_from,
-                product_type=update_settings.era5_product_type,
-                weather_factors=["stl1"],  # A factor that exists in all supported ERA5 datasets
-                years=[update_moment.year],
-                months=[update_moment.month],
-                days=[update_moment.day],
+                cds_request=CDSRequest(
+                    product_type=[update_settings.era5_product_type],
+                    variables=["stl1"],  # A factor that exists in all supported ERA5 datasets
+                    year=[str(update_moment.year)],
+                    month=[str(update_moment.month)],
+                    day=[str(update_moment.day)],
+                    time=[f"{hour:02d}:00" for hour in range(2)],
+                    area=(53.510403, 3.314971, 50.803721, 7.092053),  # The Netherlands area
+                ),
                 target_location=tempfile.NamedTemporaryFile().name,
             )
             break
@@ -198,7 +205,8 @@ def _verify_first_day_available_for_era5(update_moment: datetime, update_setting
 
             if update_moment < update_settings.repository_time_range[1] - relativedelta(days=45):
                 raise ValueError(
-                    "The first day available for ERA5 data could not be found within 40 days of the target date. Aborting update."
+                    "The first day available for ERA5 data could not be found within 40 days of the target date. "
+                    "Aborting update."
                 )
 
     return update_moment
@@ -221,21 +229,20 @@ def _finalize_formatted_file(file_path: Path, current_moment: date, verification
             except Exception as e:
                 logger.error(f" > Failed to remove temporary file {file_path.with_suffix(file_suffix)}: {e}")
 
-        # Rename the file to its proper name:
-        if current_moment == verification_date.replace(day=1):
-            # Current month means an incomplete file
-            file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.INCOMPLETE))
-            logger.debug(
-                f"Month [{current_moment}] was renamed to: {file_path.with_suffix(Era5FileSuffixes.INCOMPLETE)}"
-            )
-        elif permanent_month < current_moment < incomplete_month:
-            # Non-permanent file
-            file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.TEMP))
-            logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix(Era5FileSuffixes.TEMP)}")
-        else:
-            # Permanent file
-            file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(".nc"))
-            logger.debug(f'Month [{current_moment}] was renamed to: {file_path.with_suffix(".nc")}')
+    # Rename the file to its proper name:
+    print("RENAMING FILE", current_moment, verification_date, permanent_month, incomplete_month)
+    if current_moment == verification_date.replace(day=1):
+        # Current month means an incomplete file
+        file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.INCOMPLETE))
+        logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix(Era5FileSuffixes.INCOMPLETE)}")
+    elif permanent_month < current_moment < incomplete_month:
+        # Non-permanent file
+        file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.TEMP))
+        logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix(Era5FileSuffixes.TEMP)}")
+    else:
+        # Permanent file
+        file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(".nc"))
+        logger.debug(f'Month [{current_moment}] was renamed to: {file_path.with_suffix(".nc")}')
 
 
 def file_requires_update(file_path: Path, current_month: date, verification_date: date) -> bool:
@@ -284,8 +291,8 @@ def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict) -> No
         # We remove the expver index used to denominate temporary data (5) and regular data (1) and add a field for it
         # NOTE: We removed the drop_sel version as it didn't quite have the same result as drop yet. Reverting until
         #  the proper use has been validated...
-        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop("expver").dropna("time", how="all")
-        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop("expver").dropna("time", how="all")
+        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop("expver").dropna("valid_time", how="all")
+        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop("expver").dropna("valid_time", how="all")
 
         # Recombine the data
         ds_unformatted = ds_unformatted_expver1.merge(ds_unformatted_expver5)
@@ -299,8 +306,8 @@ def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict) -> No
             ds_unformatted = ds_unformatted.rename_vars({factor: allowed_factors[factor]})
 
     # Rename and encode data where needed:
-    ds_unformatted.time.encoding["units"] = "hours since 2016-01-01"
-    ds_unformatted = ds_unformatted.rename(name_dict={"latitude": "lat", "longitude": "lon"})
+    ds_unformatted.valid_time.encoding["units"] = "hours since 2016-01-01"
+    ds_unformatted = ds_unformatted.rename(name_dict={"latitude": "lat", "longitude": "lon", "valid_time": "time"})
 
     # Store the data
     ds_unformatted.to_netcdf(path=unformatted_file, format="NETCDF4", engine="netcdf4")
@@ -336,20 +343,15 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
     with zipfile.ZipFile(unformatted_file, "r") as zip_ref:
         zip_ref.extractall(temp_dir)
 
-    combined_dataset = xr.Dataset()
-    for file in Path(temp_dir).glob("*.nc"):
-        # Now use xarray to open each NetCDF file and merge them
-        new_file_dataset = xr.open_dataset(file)
-        print("PROCESSING FILE: ", file)
+    # Load the data
 
-        if not combined_dataset.time.size or combined_dataset.time.size == 0:
-            print("SETTING FILE: ", file)
-            combined_dataset = new_file_dataset.copy(deep=True)
-        else:
-            print("MERGING FILE: ", file)
-            combined_dataset = xr.merge([combined_dataset, new_file_dataset])
+    data_stream_land_accum = xr.open_dataset(Path(temp_dir).joinpath("data_stream-oper_stepType-accum.nc"))
+    data_stream_land_instant = xr.open_dataset(Path(temp_dir).joinpath("data_stream-oper_stepType-instant.nc"))
+    data_stream_wave_instant = xr.open_dataset(Path(temp_dir).joinpath("data_stream-wave_stepType-instant.nc"))
 
-    combined_dataset.to_netcdf(unformatted_file, format="NETCDF4", engine="netcdf4")
+    # Merge the data
+    combined_data = xr.merge([data_stream_land_accum, data_stream_land_instant, data_stream_wave_instant])
+    combined_data.to_netcdf(unformatted_file, format="NETCDF4", engine="netcdf4")
 
 
 def download_era5_data(
@@ -358,8 +360,6 @@ def download_era5_data(
     target_location: str,
 ) -> None:
     """A function to download ERA5 data."""
-    print(cds_request.request_parameters)
-
     try:
         CDS_CLIENT.retrieve(
             dataset,

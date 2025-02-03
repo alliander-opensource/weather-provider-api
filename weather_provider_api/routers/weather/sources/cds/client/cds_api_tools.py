@@ -98,7 +98,9 @@ class CDSRequest(BaseModel):
             "day": self.day,
             "time": self.time,
             "area": self.area,
+            "data_format": self.data_format,
+            "download_format": self.download_format,
         }
 
 
-CDS_CLIENT = cdsapi.Client(info_callback=_info_callback())
+CDS_CLIENT = cdsapi.Client(info_callback=_info_callback(), url="https://cds.climate.copernicus.eu/api")
