@@ -128,9 +128,10 @@ class ERA5SLRepository(WeatherRepositoryBase):
         for file in full_list_of_files:
             file_year = int(file[len_filename_until_date : len_filename_until_date + 4])
             file_month = int(file[len_filename_until_date + 5 : len_filename_until_date + 7])
-            date_for_filename = datetime(year=file_year, month=file_month, day=15)
+            date_for_filename = datetime(year=file_year, month=file_month, day=15).astimezone(UTC)
 
-            if start.replace(day=1) < date_for_filename < datetime(year=end.year, month=end.month, day=28):
+
+            if start.replace(day=1) < date_for_filename < datetime(year=end.year, month=end.month, day=28).astimezone(UTC):
                 # If the file is within the requested period, save it to the list of filtered files
                 list_of_filtered_files.append(file)
 
