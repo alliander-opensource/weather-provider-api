@@ -15,6 +15,7 @@ import requests
 import xarray as xr
 from dateutil.relativedelta import relativedelta
 from loguru import logger
+from pytz import UTC
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.stations import (
@@ -157,7 +158,7 @@ class PluimModel(WeatherModelBase):
             datetime.today().replace(hour=0, minute=0, second=0),
             datetime.today().replace(hour=0, minute=0, second=0) + relativedelta(days=15),
         )
-        ds = ds.sel(time=slice(begin, end))
+        ds = ds.sel(time=slice(begin.astimezone(UTC).replace(tzinfo=None), end.astimezone(UTC).replace(tzinfo=None)))
         return ds
 
     def is_async(self):  # pragma: no cover
