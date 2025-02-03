@@ -38,7 +38,7 @@ def test_retrieve_weather(mock_coordinates, start, end, inseason):
     print(ds["time"])
     assert ds is not None
     assert "TN" in ds
-    assert len(ds["TN"]) == 30
+    assert len(ds["TN"]) == 31
     assert isinstance(ds, xr.Dataset)
 
 
