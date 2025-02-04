@@ -26,7 +26,7 @@ def file_or_text_response(
     model_id: str,
     request: Union[WeatherContentRequestQuery, WeatherContentRequestMultiLocationQuery],
     coords: List[Tuple[float, float]],
-):
+) -> tuple[ScientificJSONResponse | FileResponse, str | None]:
     if response_format == ResponseFormat.json:
         return json_response(unserialized_data, coords)
     elif response_format == ResponseFormat.json_dataset:
@@ -41,8 +41,8 @@ def file_response(
     source_id: str,
     model_id: str,
     request: WeatherContentRequestQuery,
-    coords: List[Tuple[float, float]],
-):
+    coords: list[tuple[float, float]],
+) -> tuple[FileResponse, str]:
     if response_format == ResponseFormat.netcdf4:
         file_path = to_netcdf4(unserialized_data)
         mime = "application/x-netcdf4"
@@ -64,7 +64,9 @@ def file_response(
 
 
 def generate_filename(source_id: str, model_id: str, request: WeatherContentRequestQuery, extension: str):
-    file_name = f"weather_{source_id}_{model_id}_{request.begin}-{request.end}{extension}".replace(" ", "T")
+    file_name = f"weather_{source_id}_{model_id}_{request.begin}-{request.end}{extension}".replace(" ", "T").replace(
+        ":", ""
+    )
     return file_name
 
 

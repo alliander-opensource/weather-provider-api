@@ -40,10 +40,10 @@ class WeatherController(object):  # pragma: no cover
         source_id: str,
         model_id: str,
         fetch_async: bool,
-        coords: List[List[Tuple[float, float]]],
-        begin: Optional[datetime.datetime] = None,
-        end: Optional[datetime.datetime] = None,
-        factors: List[str] = None,
+        coords: list[list[tuple[float, float]]],
+        begin: datetime.datetime | None = None,
+        end: datetime.datetime | None = None,
+        factors: list[str] | None = None,
     ):
         """Function to use the requested weather model from the requested source to get specific weather factors for a
             specific time and specific location(s)

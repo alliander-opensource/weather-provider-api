@@ -110,7 +110,7 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
         self._delete_excess_files()
 
     @abstractmethod
-    def update(self):
+    def update(self, test_mode: bool = False) -> RepositoryUpdateResult:
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     def gather_period(self, begin: datetime, end: datetime, coordinates: List[GeoPosition]) -> xr.Dataset:
