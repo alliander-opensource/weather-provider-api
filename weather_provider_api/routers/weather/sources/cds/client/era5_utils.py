@@ -41,7 +41,7 @@ class Era5UpdateSettings(BaseModel):
     maximum_runtime_in_minutes: int = 2 * 60  # 2 hours
 
 
-def era5_repository_update(update_settings: Era5UpdateSettings) -> RepositoryUpdateResult:
+def era5_repository_update(update_settings: Era5UpdateSettings, test_mode: bool) -> RepositoryUpdateResult:
     """A function to update a variant of ERA5 data into the repository."""
     starting_moment_of_update = datetime.now(UTC)
     cutoff_time = starting_moment_of_update + relativedelta(minutes=update_settings.maximum_runtime_in_minutes)
@@ -54,7 +54,7 @@ def era5_repository_update(update_settings: Era5UpdateSettings) -> RepositoryUpd
     logger.info(f" - Maximum runtime: {update_settings.maximum_runtime_in_minutes} minutes ({cutoff_time})")
 
     try:
-        _era5_update_month_by_month(update_settings, starting_moment_of_update, cutoff_time)
+        _era5_update_month_by_month(update_settings, starting_moment_of_update, cutoff_time, test_mode)
     except Exception as e:
         logger.error(f"Failed to update ERA5 data. Reason: {e}")
         return RepositoryUpdateResult.failure
@@ -67,7 +67,7 @@ def era5_repository_update(update_settings: Era5UpdateSettings) -> RepositoryUpd
 
 
 def _era5_update_month_by_month(
-    update_settings: Era5UpdateSettings, starting_moment_of_update: datetime, cutoff_time: datetime
+    update_settings: Era5UpdateSettings, starting_moment_of_update: datetime, cutoff_time: datetime, test_mode: bool
 ):
     """A function to update a variant of ERA5 data into the repository."""
     amount_of_months_processed = amount_of_months_not_processable = 0
@@ -90,7 +90,7 @@ def _era5_update_month_by_month(
             logger.warning("Maximum runtime reached. Stopping update.")
             break
 
-        update_result = _era5_update_month(update_settings, update_month)
+        update_result = _era5_update_month(update_settings, update_month, test_mode)
         if update_result == RepositoryUpdateResult.failure:
             amount_of_months_not_processable += 1
         amount_of_months_processed += 1
@@ -111,7 +111,9 @@ def _era5_update_month_by_month(
     logger.info(f"Average time per month: {average_time_per_month_in_minutes} minutes")
 
 
-def _era5_update_month(update_settings: Era5UpdateSettings, update_month: datetime) -> RepositoryUpdateResult:
+def _era5_update_month(
+    update_settings: Era5UpdateSettings, update_month: datetime, test_mode: bool
+) -> RepositoryUpdateResult:
     """A function to update a variant of ERA5 data into the repository."""
     logger.debug(f" > Processing month: {update_month.year}-{update_month.month}")
 
@@ -123,6 +125,9 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: dateti
         logger.debug(f" > File {month_file} requires update.")
         month_file_name = month_file.with_suffix(Era5FileSuffixes.UNFORMATTED)
 
+        # Only the first day of each month in test mode, otherwise all days:
+        day = [str(i) for i in list(range(1, 32))] if not test_mode else ["1"]
+
         try:
             download_era5_data(
                 update_settings.era5_dataset_to_update_from,
@@ -131,9 +136,8 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: dateti
                     variables=update_settings.factors_to_process,
                     year=[str(update_month.year)],
                     month=[str(update_month.month)],
-                    day=[str(i) for i in list(range(1, 32))],
+                    day=day,
                     time=[f"{hour:02d}:00" for hour in range(24)],
-                    area=(53.510403, 3.314971, 50.803721, 7.092053),
                 ),
                 target_location=str(month_file_name),
             )
@@ -194,7 +198,6 @@ def _verify_first_day_available_for_era5(update_moment: datetime, update_setting
                     month=[str(update_moment.month)],
                     day=[str(update_moment.day)],
                     time=[f"{hour:02d}:00" for hour in range(2)],
-                    area=(53.510403, 3.314971, 50.803721, 7.092053),  # The Netherlands area
                 ),
                 target_location=tempfile.NamedTemporaryFile().name,
             )
@@ -230,7 +233,6 @@ def _finalize_formatted_file(file_path: Path, current_moment: date, verification
                 logger.error(f" > Failed to remove temporary file {file_path.with_suffix(file_suffix)}: {e}")
 
     # Rename the file to its proper name:
-    print("RENAMING FILE", current_moment, verification_date, permanent_month, incomplete_month)
     if current_moment == verification_date.replace(day=1):
         # Current month means an incomplete file
         file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.INCOMPLETE))
@@ -343,15 +345,32 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
     with zipfile.ZipFile(unformatted_file, "r") as zip_ref:
         zip_ref.extractall(temp_dir)
 
-    # Load the data
+    concatenated_dataset = xr.Dataset()
+    files_to_load_in_order = [
+        "data_stream-oper_stepType-instant",
+        "data_stream-oper_stepType-accum",
+        # "data_stream-wave_stepType-instant",
+    ]
 
-    data_stream_land_accum = xr.open_dataset(Path(temp_dir).joinpath("data_stream-oper_stepType-accum.nc"))
-    data_stream_land_instant = xr.open_dataset(Path(temp_dir).joinpath("data_stream-oper_stepType-instant.nc"))
-    data_stream_wave_instant = xr.open_dataset(Path(temp_dir).joinpath("data_stream-wave_stepType-instant.nc"))
+    # TODO: Load, convert to dataframe, merge, convert back to xarray
+    concatenated_dataset = xr.Dataset()
+    for filename in files_to_load_in_order:
+        file_path = Path(temp_dir).joinpath(f"{filename}.nc")
+        if not file_path.exists():
+            logger.error(f" > Required file {filename}.nc does not exist. Aborting recombination.")
+            raise FileNotFoundError(f" > Required file {filename}.nc does not exist. Aborting recombination.")
 
-    # Merge the data
-    combined_data = xr.merge([data_stream_land_accum, data_stream_land_instant, data_stream_wave_instant])
-    combined_data.to_netcdf(unformatted_file, format="NETCDF4", engine="netcdf4")
+        dataset = xr.open_dataset(file_path)
+
+        if not concatenated_dataset.data_vars:
+            concatenated_dataset = dataset.copy(deep=True)
+        else:
+            concatenated_dataset = xr.merge(
+                [concatenated_dataset, dataset], join="outer", compat="no_conflicts", combine_attrs="override"
+            )
+
+    concatenated_dataset.to_netcdf(unformatted_file, format="NETCDF4", engine="netcdf4")
+    # raise ValueError("This is not working yet")
 
 
 def download_era5_data(

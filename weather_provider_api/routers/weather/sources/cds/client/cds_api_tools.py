@@ -80,11 +80,11 @@ class CDSRequest(BaseModel):
             "21:00",
             "22:00",
             "23:00",
-        ]
+        ],
     )
     data_format: str = "netcdf"
     download_format: str = "zip"
-    area: tuple[float, float, float, float] = Field((7.22, 50.75, 3.2, 53.7))
+    area: tuple[float, float, float, float] = (53.7, 3.2, 50.75, 7.22)
 
     @property
     def request_parameters(self) -> dict[str, str | list[str] | tuple[float]]:
@@ -100,6 +100,7 @@ class CDSRequest(BaseModel):
             "area": self.area,
             "data_format": self.data_format,
             "download_format": self.download_format,
+            "grid_resolution": (0.25, 0.25),
         }
 
 
