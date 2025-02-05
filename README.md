@@ -10,6 +10,10 @@ SPDX-License-Identifier: MPL-2.0
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=bugs)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
 <!--[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=coverage)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)-->
 
+> :warning: **Due to changes in the way that CDS delivers data, ERA5 data does not currently process sea level data 
+> for the time being. This will be fixed in a future release.**
+
+
 # Weather Provider Library and API
 
 This API is intended to help you fetch weather data from different data sources in an efficient and uniform way.
