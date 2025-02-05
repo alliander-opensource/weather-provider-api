@@ -349,7 +349,8 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
     files_to_load_in_order = [
         "data_stream-oper_stepType-instant",
         "data_stream-oper_stepType-accum",
-        # "data_stream-wave_stepType-instant",
+        # TODO: Add the following file back in when we can properly handle it
+        # "data_stream-wave_stepType-instant",  # Something about this data doesn't mesh well anymore with the rest...
     ]
 
     # TODO: Load, convert to dataframe, merge, convert back to xarray
