@@ -7,6 +7,7 @@ from loguru import logger
 from pytz import UTC
 
 from weather_provider_api.routers.weather.repository.repository import RepositoryUpdateResult, WeatherRepositoryBase
+from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import CDSDataSets
 from weather_provider_api.routers.weather.sources.cds.client.era5_utils import (
     Era5UpdateSettings,
     era5_repository_update,
@@ -52,7 +53,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         last_day_of_repo = last_day_of_repo.replace(hour=0, minute=0, second=0, microsecond=0)
         return last_day_of_repo
 
-    def update(self) -> RepositoryUpdateResult:
+    def update(self, test_mode: bool = False) -> RepositoryUpdateResult:
         """The update implementation for the ERA5 Land repository.
 
         This function handles all the required actions to update the repository completely, but taking into
@@ -69,14 +70,15 @@ class ERA5LandRepository(WeatherRepositoryBase):
         return era5_repository_update(
             Era5UpdateSettings(
                 filename_prefix=self.file_prefix,
-                era5_dataset_to_update_from="reanalysis-era5-land",
+                era5_dataset_to_update_from=CDSDataSets.ERA5LAND,
                 era5_product_type="reanalysis",
                 factor_dictionary=era5land_factors,
                 factors_to_process=[era5land_factors[x] for x in list(era5land_factors.keys())],
                 maximum_runtime_in_minutes=self.runtime_limit,
                 repository_time_range=(self.first_day_of_repo, self.last_day_of_repo),
                 target_storage_location=self.repository_folder,
-            )
+            ),
+            test_mode=test_mode,
         )
 
     def _delete_files_outside_of_scope(self):

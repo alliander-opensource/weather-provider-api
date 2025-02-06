@@ -52,13 +52,16 @@ class ERA5SLRepository(WeatherRepositoryBase):
         last_day_of_repo = last_day_of_repo.replace(hour=0, minute=0, second=0, microsecond=0)
         return last_day_of_repo
 
-    def update(self) -> RepositoryUpdateResult:
+    def update(self, test_mode: bool) -> RepositoryUpdateResult:
         """The update implementation for the ERA5 Single Levels repository.
 
         This function handles all the required actions to update the repository completely, but taking into
         account its set runtime_limit. If based on the time of completion of other downloaded files this session
         the next file wouldn't complete within the runtime_limit, the update process halts.
         (if no other downloads were made yet, a generous rough estimate is used).
+
+        Args:
+            test_mode: A boolean indicating whether the update process should run in test mode.
 
         Returns:
             A RepositoryUpdateResult value indicating a completion, time-out or failure of the update process
@@ -77,7 +80,8 @@ class ERA5SLRepository(WeatherRepositoryBase):
                 maximum_runtime_in_minutes=self.runtime_limit,
                 repository_time_range=(self.first_day_of_repo, self.last_day_of_repo),
                 target_storage_location=self.repository_folder,
-            )
+            ),
+            test_mode=test_mode,
         )
 
     def _delete_files_outside_of_scope(self):
@@ -130,8 +134,11 @@ class ERA5SLRepository(WeatherRepositoryBase):
             file_month = int(file[len_filename_until_date + 5 : len_filename_until_date + 7])
             date_for_filename = datetime(year=file_year, month=file_month, day=15).astimezone(UTC)
 
-
-            if start.replace(day=1) < date_for_filename < datetime(year=end.year, month=end.month, day=28).astimezone(UTC):
+            if (
+                start.replace(day=1)
+                < date_for_filename
+                < datetime(year=end.year, month=end.month, day=28).astimezone(UTC)
+            ):
                 # If the file is within the requested period, save it to the list of filtered files
                 list_of_filtered_files.append(file)
 
