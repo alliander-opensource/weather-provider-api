@@ -273,7 +273,8 @@ def file_requires_update(file_path: Path, current_month: date, verification_date
         return True  # An update should both clean the UNFORMATTED file and generate a proper one
 
     if not file_path.with_suffix(".nc").exists() or file_path.with_suffix(Era5FileSuffixes.INCOMPLETE).exists():
-        logger.debug(" > No file exists, or it is still incomplete: UPDATE REQUIRED ")
+        logger.debug(" > No file exists, or it is still incomplete: UPDATE REQUIRED")
+        print("File path: ", file_path)
         return True  # No file matching the mask or incomplete files always mean the update is required!
 
     files_in_folder = glob.glob(f"{file_path}*.nc")
@@ -362,6 +363,7 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
             raise FileNotFoundError(f" > Required file {filename}.nc does not exist. Aborting recombination.")
 
         dataset = xr.open_dataset(file_path)
+        dataset = dataset.drop("expver", errors="raise")
 
         if not concatenated_dataset.data_vars:
             concatenated_dataset = dataset.copy(deep=True)
