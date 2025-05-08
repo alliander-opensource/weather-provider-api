@@ -91,7 +91,6 @@ class CDSRequest(BaseModel):
         """Returns the request parameters as a dictionary."""
         return {
             "product_type": self.product_type,
-            "format": self.data_format,
             "variable": self.variables,
             "year": self.year,
             "month": self.month,
