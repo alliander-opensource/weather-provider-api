@@ -200,7 +200,7 @@ class DagGegevensModel(WeatherModelBase):
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
         # Test and account for invalid datetime timeframes or input
-        begin, end = validate_begin_and_end(begin, end, None, datetime.utcnow() - relativedelta(days=1))
+        begin, end = validate_begin_and_end(begin, end, None, datetime.now(UTC) - relativedelta(days=1))
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
         station_id, stns, _ = find_closest_stn_list(stations_history, coords)
 
