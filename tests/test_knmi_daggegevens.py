@@ -20,12 +20,12 @@ inseason_options = {True, False}
 
 @pytest.fixture()
 def start():
-    return datetime(year=2018, month=1, day=1)
+    return datetime(year=2019, month=1, day=1)
 
 
 @pytest.fixture()
 def end():
-    return datetime(year=2018, month=1, day=31)
+    return datetime(year=2019, month=1, day=31)
 
 
 @pytest.mark.parametrize("inseason", inseason_options)
@@ -38,7 +38,7 @@ def test_retrieve_weather(mock_coordinates, start, end, inseason):
     print(ds["time"])
     assert ds is not None
     assert "TN" in ds
-    assert len(ds["TN"]) == 31
+    assert len(ds["TN"]) == 31  # TODO: Evaluate changes in Daggegevens to handle end date differently
     assert isinstance(ds, xr.Dataset)
 
 
