@@ -9,19 +9,14 @@ The weather API provides historical and current weather measurements, and weathe
 Since there are many differences between the sources and models, regarding both naming and the units in which features are described, this API aims to provide a uniform way to access and represent the weather features. In order to do so, where possible, weather factors are given the same label across sources and models. Additionaly, the user of the API can choose between the original variable units, SI units, and units which are easier to read and grasp for humans. Finally, the output format can be chosen and ranges from basic types such as JSON, to more advanced and specialized models like NetCDF.
 
 ## Usage
-### Online client and specifications
-The easiest way to try out the API and browse all available operations, is by using the [interactive online documentation](https://weather.appx.cloud/api/v1/docs). It contains a built-in client, which gives access to the full functionality of the API.
-
-Naturally, the operations can be called from any HTTP-compatible client as well. This allows you to programmatically use the API in your applications. The API's [OpenAPI specification (v3)](https://weather.appx.cloud/api/v1/openapi.json) may come in handy to establish this connection.
-
 ### Retrieving weather data
 To retrieve weather data, whether historical or predictive, a few parameters need to be provided to the API.
 
-The `source_id` and `model_id` tell the API which dataset you want to query. The available sources and models can be retrieved using [this API call](https://weather.appx.cloud/api/v1/weather/sources). Possible values are, for instance, *knmi* as the `source_id` and *daggegevens* as the `model_id`.
+The `source_id` and `model_id` tell the API which dataset you want to query. The available sources and models can be retrieved using the  **"/weather/sources"** endpoint. Possible values are, for instance, *knmi* as the `source_id` and *daggegevens* as the `model_id`.
 
 A measurement or prediction time window must be provided as well. This is done by setting the `begin` and `end` values. Both need to be in the following date time format: `%m-%d-%Y %H:%M`. For example, `2019-01-31 04:00`, `2017-12-25 14:45`, and `2020-02-28 00:00` are valid values.
 
-The location is needed as well and is described in *WGS84* format, by specifying latitude `lat` and longitude `lon`. The API selects the closest weather station or grid in a model for which data is available. The [interactive online documentation](https://weather.appx.cloud/api/v1/docs) is pre-filled with the latitude and longitude for *De Bilt*. In future versions of the API it will be possible to retrieve weather data for multiple locations in a single call.
+The location is needed as well and is described in *WGS84* format, by specifying latitude `lat` and longitude `lon`. The API selects the closest weather station or grid in a model for which data is available. The Swagger UI is pre-filled with the latitude and longitude for *De Bilt*. In future versions of the API it will be possible to retrieve weather data for multiple locations in a single call.
 
 The units and names of the various weather variables can be changed. SI units are returned by default but if preferred the original units and labels can be returned, or units which are easier to read for humans.
 
