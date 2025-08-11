@@ -215,7 +215,7 @@ def _verify_first_day_available_for_era5(update_moment: datetime, update_setting
     return update_moment
 
 
-def _finalize_formatted_file(file_path: Path, current_moment: date, verification_date: date) -> None:
+def _finalize_formatted_file(file_path: Path, current_moment: datetime, verification_date: datetime) -> None:
     """A function to finalize the formatted file."""
     incomplete_month = verification_date.replace(day=1)
     permanent_month = (verification_date - relativedelta(months=3)).replace(day=1)
@@ -233,7 +233,7 @@ def _finalize_formatted_file(file_path: Path, current_moment: date, verification
                 logger.error(f" > Failed to remove temporary file {file_path.with_suffix(file_suffix)}: {e}")
 
     # Rename the file to its proper name:
-    if current_moment == verification_date.replace(day=1):
+    if current_moment.date() == verification_date.replace(day=1).date():
         # Current month means an incomplete file
         file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.INCOMPLETE))
         logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix(Era5FileSuffixes.INCOMPLETE)}")
@@ -249,11 +249,7 @@ def _finalize_formatted_file(file_path: Path, current_moment: date, verification
 
 def file_requires_update(file_path: Path, current_month: date, verification_date: date) -> bool:
     """A function that checks if a file requires an update based on the current state of the repository."""
-    if file_path.with_suffix(".nc").exists():
-        # A regular file exists, no updates required
-        logger.debug(" > A regular file already exists: NO UPDATE REQUIRED")
-        return False
-
+    print("A")
     if file_path.with_suffix(Era5FileSuffixes.TEMP).exists():
         # If a file is temporary we only check for a permanent update if more than 3 months have past since the current
         # most recent date with data.
@@ -264,6 +260,7 @@ def file_requires_update(file_path: Path, current_month: date, verification_date
         logger.debug(" > A temporary file exists within the update range: UPDATE REQUIRED")
         return False
 
+    print("B")
     # A file exists but isn't any regular supported type to be updated
     if (
         file_path.with_suffix(Era5FileSuffixes.UNFORMATTED).exists()
@@ -272,11 +269,18 @@ def file_requires_update(file_path: Path, current_month: date, verification_date
         logger.debug(" > An unformatted file or formatted file exists: UPDATE REQUIRED")
         return True  # An update should both clean the UNFORMATTED file and generate a proper one
 
+    print("C")
     if not file_path.with_suffix(".nc").exists() or file_path.with_suffix(Era5FileSuffixes.INCOMPLETE).exists():
         logger.debug(" > No file exists, or it is still incomplete: UPDATE REQUIRED")
         print("File path: ", file_path)
         return True  # No file matching the mask or incomplete files always mean the update is required!
 
+    print("D")
+    if file_path.with_suffix(".nc").exists():
+        # A regular file exists, no updates required
+        logger.debug(" > A regular file already exists: NO UPDATE REQUIRED")
+        return False
+    print("E")
     files_in_folder = glob.glob(f"{file_path}*.nc")
     logger.warning(
         f" > Unexpected files existed in the repository folder: {files_in_folder}. These should be dealt with."

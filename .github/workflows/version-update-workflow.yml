@@ -2,7 +2,7 @@ name: Version update
 on:
   push:
     branches:
-      main-*
+      - main-*
 jobs:
   # ---------------------------------------------------------------- #
   # |  Coverage and SonarCloud.io upload                           | #
@@ -46,10 +46,10 @@ jobs:
       - if: matrix.version == '3.11'
         name: Generate Coverage XML file
         run: poetry run coverage xml
-      # Upload coverage data to SonarCloud.io
+      # Upload coverage data to Sonar Source
       - if: matrix.version == '3.11'
         name: Update SonarCloud.io
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -152,7 +152,7 @@ jobs:
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
       # Create the image and upload it to Amazon ECR (Uvicorn edition)
       - name: Build, tag, and push image to Amazon ECR - Uvicorn
         run: |
