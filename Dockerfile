@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 
-FROM python:3.10.18-bullseye AS base-image
+FROM python:3.11.13-bullseye AS base-image
 
 RUN apt-get update &&  \
     apt-get -y install libeccodes-dev &&  \
@@ -38,7 +38,6 @@ ENV PATH="$APP_HOME/.venv/bin:$PATH"
 
 # --- DEV image --
 FROM base-image AS dev-image
-# TODO: Hookup SSH interface
 
 USER $APP_USER
 CMD ["ls", "-l"]

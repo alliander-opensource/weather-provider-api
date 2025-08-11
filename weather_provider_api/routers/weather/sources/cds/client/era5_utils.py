@@ -126,7 +126,7 @@ def _era5_update_month(
         month_file_name = month_file.with_suffix(Era5FileSuffixes.UNFORMATTED)
 
         # Only the first day of each month in test mode, otherwise all days:
-        day = [str(i) for i in list(range(1, 32))] if not test_mode else ["1"]
+        day = [str(i) for i in range(1, 32)] if not test_mode else ["1"]
 
         try:
             download_era5_data(
@@ -346,7 +346,6 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
     with zipfile.ZipFile(unformatted_file, "r") as zip_ref:
         zip_ref.extractall(temp_dir)
 
-    concatenated_dataset = xr.Dataset()
     files_to_load_in_order = [
         "data_stream-oper_stepType-instant",
         "data_stream-oper_stepType-accum",
@@ -354,7 +353,6 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
         # "data_stream-wave_stepType-instant",  # Something about this data doesn't mesh well anymore with the rest...
     ]
 
-    # TODO: Load, convert to dataframe, merge, convert back to xarray
     concatenated_dataset = xr.Dataset()
     for filename in files_to_load_in_order:
         file_path = Path(temp_dir).joinpath(f"{filename}.nc")
@@ -373,7 +371,6 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
             )
 
     concatenated_dataset.to_netcdf(unformatted_file, format="NETCDF4", engine="netcdf4")
-    # raise ValueError("This is not working yet")
 
 
 def download_era5_data(
@@ -384,9 +381,9 @@ def download_era5_data(
     """A function to download ERA5 data."""
     try:
         CDS_CLIENT.retrieve(
-            dataset,
-            cds_request.request_parameters,
-            target_location,
+            name=dataset.value,
+            request=cds_request.request_parameters,
+            target=target_location,
         )
 
     except Exception as e:
