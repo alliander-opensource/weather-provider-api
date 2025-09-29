@@ -151,7 +151,7 @@ This package works under at least Linux and Windows environments. (Other Operati
 conda install --file requirements.txt
 ```
 ```
-pip install -r requirements.txt
+pip install -e .
 ```
 4. Ready for use!
 
