@@ -33,6 +33,7 @@ def test_weather_alert_():
     assert output[0][1] in (
         "green",
         "yellow",
+        "orange",
         "red",
         "page didn't match",
         "page was inaccessible",
