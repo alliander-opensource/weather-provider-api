@@ -5,7 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 import tempfile
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 
 import numpy as np
@@ -50,7 +50,7 @@ def mock_dataset(mock_coordinates, mock_factors):
     Returns:
 
     """
-    timeline = pd.date_range(end=datetime.utcnow(), periods=96, freq="1H", inclusive="left")
+    timeline = pd.date_range(end=datetime.now(tz=None), periods=96, freq="1h", inclusive="left")
     coord_indices = coords_to_pd_index([GeoPosition(51.873419, 5.705929), GeoPosition(53.2194, 6.5665)])
     weather_factors = mock_factors
     data_dict = {
@@ -77,9 +77,9 @@ def mock_dataset_era5(mock_coordinates, mock_factors):
 
     """
     timeline = pd.date_range(
-        end=(datetime.utcnow() - relativedelta(days=61)),
+        end=(datetime.now(tz=UTC) - relativedelta(days=61)),
         periods=96,
-        freq="1H",
+        freq="1h",
         inclusive="left",
     )
     coord_indices = coords_to_pd_index([GeoPosition(51.873419, 5.705929), GeoPosition(53.2194, 6.5665)])
@@ -108,9 +108,9 @@ def mock_dataset_arome(mock_coordinates, mock_factors):
 
     """
     timeline = pd.date_range(
-        end=(datetime.utcnow() - relativedelta(days=6)),
+        end=(datetime.now(tz=UTC) - relativedelta(days=6)),
         periods=96,
-        freq="1H",
+        freq="1h",
         inclusive="left",
     )
     coord_indices = coords_to_pd_index([GeoPosition(51.873419, 5.705929), GeoPosition(53.2194, 6.5665)])

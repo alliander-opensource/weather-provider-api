@@ -323,6 +323,7 @@ _stations = {
     380: _Station(number=380, longitude=5.762, latitude=50.906, altitude=114.3, name="MAASTRICHT"),
     385: _Station(number=385, longitude=5.933, latitude=51.55, altitude=9999.9, name="DE PEEL"),
     391: _Station(number=391, longitude=6.197, latitude=51.498, altitude=19.5, name="ARCEN"),
+    392: _Station(number=392, longitude=6.056, latitude=51.487, altitude=21.88, name="HORST"),
     550: _Station(number=550, longitude=3.22, latitude=53.218, altitude=999.9, name="K13"),
     551: _Station(number=551, longitude=2.066, latitude=56.4, altitude=999.9, name="AUK"),
     552: _Station(number=552, longitude=3.213, latitude=56.547, altitude=999.9, name="EKOFISK"),
@@ -458,6 +459,7 @@ _stations_history_idx = np.array(
         377,
         380,
         391,
+        392,
     ],
     dtype=np.int64,
 )
@@ -499,6 +501,7 @@ _stations_actual_idx = np.array(
         375,
         377,
         391,
+        392,
         615,
         917536001,
     ],
