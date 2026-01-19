@@ -10,7 +10,3 @@ def generate_openapi_spec():
     spec = v2_app.openapi()
     with open("openapi.json", "w") as f:
         f.write(json.dumps(spec))
-
-
-if __name__ == "__main__":
-    generate_openapi_spec()
