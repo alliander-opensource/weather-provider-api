@@ -63,6 +63,7 @@ wpla_clear_era5land = "weather_provider_api.scripts.erase_era5land_repository:ma
 wpla_clear_arome = "weather_provider_api.scripts.erase_arome_repository:main"
 wpla_clear_waarnemingen = "weather_provider_api.scripts.erase_waarnemingen_register:main"
 wpla_run_api = "weather_provider_api.main:main"
+generate-openapi = "weather_provider_api.scripts.openapi:generate_openapi_spec"
 
 [[tool.poetry.source]]
 name = "PyPI"
