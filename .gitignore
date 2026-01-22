@@ -346,5 +346,3 @@ Temporary Items
 /pytest-report.xml
 /.pycrunch-config.yaml
 /TESTING_GROUNDS.ipynb
-
-openapi.json
