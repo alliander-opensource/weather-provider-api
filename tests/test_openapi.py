@@ -18,7 +18,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_creates_file(self, tmp_path):
         """Test that generate_openapi_spec creates an openapi.json file."""
-        mock_spec = {
+        mock_spec: dict[str, dict[str, str] | str] = {
             "openapi": "3.0.2",
             "info": {"title": "Weather API (v2)", "version": "2.0.0"},
             "paths": {},

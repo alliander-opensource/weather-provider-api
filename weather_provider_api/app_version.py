@@ -33,7 +33,7 @@ def _get_app_version() -> str:
 
     # Second attempt: Get the version number from the package that was used to install this component, if applicable.
     try:
-        version = metadata.version(__package__)
+        version = metadata.version(str(__package__))
         logger.info(f"Retrieved the project version from package data: {version}")
         return version
     except metadata.PackageNotFoundError as pnf_error:

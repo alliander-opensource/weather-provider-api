@@ -9,12 +9,14 @@
 import locale
 import re
 from datetime import datetime
+from io import StringIO
 from typing import List
 
 import numpy as np
 import pandas as pd
 import requests
 import xarray as xr
+from bs4 import BeautifulSoup
 from geopy.distance import great_circle
 from loguru import logger
 
@@ -65,15 +67,25 @@ def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> 
     return stn_stations.loc[min_ind, "STN"]
 
 
-def download_actuele_waarnemingen_weather() -> xr.Dataset:
-    """ """
+def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
+    """A function that downloads the current weather data from the KNMI site for the Actuele Waarnemingen model and returns it as a Xarray Dataset."""
     raw_ds = None
 
     try:
-        knmi_site_response = requests.get("https://www.knmi.nl/nederland-nu/weer/waarnemingen")
+        knmi_site_response = requests.get("https://www.knmi.nl/nederland-nu/weer/waarnemingen", timeout=10)
 
         if knmi_site_response.ok:
-            knmi_site_df = pd.read_html(knmi_site_response.text)[0]
+            soup = BeautifulSoup(knmi_site_response.text, "lxml")
+            table_wrp_div = soup.find("div", class_="table__wrp")
+            if table_wrp_div is None:
+                logger.error("Could not find div with class 'table__wrp' in KNMI Waarnemingen page.")
+                raise IndexError("Could not find div with class 'table__wrp' in KNMI Waarnemingen page.")
+            # Only parse the table inside the div
+            tables = pd.read_html(StringIO(str(table_wrp_div)))
+            if not tables:
+                logger.error("No tables found inside 'table__wrp' div on KNMI Waarnemingen page.")
+                raise IndexError("No tables found inside 'table__wrp' div on KNMI Waarnemingen page.")
+            knmi_site_df = tables[0]
 
             column_translations = {
                 "Station": "station",
@@ -95,13 +107,13 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
                 else:
                     knmi_site_df = knmi_site_df.drop(dictionary_item, axis="columns")
 
+            
             current_observation_moment = _retrieve_observation_moment(knmi_site_response.text)
             knmi_site_df["time"] = current_observation_moment
             knmi_site_df["time"] = knmi_site_df["time"].astype("datetime64[ns]")
             if "wind_direction" in knmi_site_df:
                 knmi_site_df["wind_direction"] = knmi_site_df["wind_direction"].str.strip("\n")
 
-            # Add a field for the station with its (lat, lon)-coordinates and remove the original station code
             knmi_site_df["STN"] = knmi_site_df["station"].apply(lambda x: stations_actual_reversed[x.upper()])
 
             stations_actual_indexed = stations_actual.set_index("STN")
@@ -121,10 +133,19 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset:
 
             # Generate a Xarray DataSet
             raw_ds = knmi_site_df.to_xarray()
+        else:
+            logger.error(
+                f"Failed to retrieve KNMI Waarnemingen data. Received status code {knmi_site_response.status_code} when trying to access the site."
+            )
 
-    except (requests.exceptions.BaseHTTPError, IndexError) as expected_error:
-        logger.exception(str(expected_error))
+    except (requests.exceptions.RequestException, IndexError) as expected_error:
+        logger.exception(expected_error.__str__())
+        raise expected_error
+    except Exception as e:
+        logger.exception(f"Unexpected error in download_actuele_waarnemingen_weather: {e}")
+        raise e
 
+    logger.info("Successfully retrieved KNMI Waarnemingen data.")
     return raw_ds
 
 
