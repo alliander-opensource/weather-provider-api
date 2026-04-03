@@ -1,6 +1,0 @@
-{
-    "sonarlint.connectedMode.project": {
-        "connectionId": "alliander-opensource",
-        "projectKey": "alliander-opensource_weather-provider-api"
-    }
-}
