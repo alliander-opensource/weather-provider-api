@@ -57,18 +57,20 @@ class WeatherModel(BaseModel):
 class WeatherSource(BaseModel):
     id: str = Field(..., description="Source id")
     name: str = Field(..., description="Source name")
-    url: str = Field(None, description="Source URL")
-    models: List[WeatherModel] = Field(None, description="Synchronous models")
-    async_models: List[WeatherModel] = Field(None, description="Asynchronous models")
+    url: str | None = Field(None, description="Source URL")
+    models: List[WeatherModel] | None = Field(None, description="Synchronous models")
+    async_models: List[WeatherModel] | None = Field(None, description="Asynchronous models")
 
+
+from dataclasses import field
 
 @dataclass
 class WeatherFormattingRequestQuery:
-    units: OutputUnit = Query(OutputUnit.si, description="Unit of weather factors")
-    response_format: ResponseFormat = Query(
+    units: OutputUnit = field(default_factory=lambda: Query(OutputUnit.si, description="Unit of weather factors"))
+    response_format: ResponseFormat = field(default_factory=lambda: Query(
         ResponseFormat.netcdf4,
         description="Response format (overrides mime-types from Accept HTTP header)",
-    )
+    ))
 
 
 # Note: I'd love to combine the (almost) duplicate entries below, but the hybrid solutions don't work in FastAPI 0.30.

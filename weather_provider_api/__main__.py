@@ -18,7 +18,7 @@ initialize_logging()
 from weather_provider_api.config import APP_CONFIG
 
 
-def launch_api(run_mode: str = "uvicorn", host: str = "127.0.0.1", port: int = 8080):
+def launch_api(run_mode: str = "uvicorn", host: str = "127.0.0.1", port: int = 8080) -> None:
     """The main method for running this application directly.
 
     (The Dockerfile uses the WPLA_APPLICATION object in [vbd_memo_api.core.application].)

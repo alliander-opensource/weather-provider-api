@@ -307,10 +307,6 @@ fabric.properties
 .idea/httpRequests
 ### VisualStudioCode template
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 ### NotepadPP template
 # Notepad++ backups #
 *.bak
@@ -346,3 +342,4 @@ Temporary Items
 /pytest-report.xml
 /.pycrunch-config.yaml
 /TESTING_GROUNDS.ipynb
+

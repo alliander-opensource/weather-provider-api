@@ -11,6 +11,7 @@ from typing import List, Optional
 
 import numpy as np
 import xarray as xr
+from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.stations import (
@@ -82,6 +83,9 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         Notes:
             As this model only return the current weather data the 'begin' and 'end' values are not actually used.
         """
+        logger.debug(
+            "Starting retrieval of KNMI Actuele Waarnemingen data for requested coordinates and weather factors."
+        )
         updated_weather_factors = self._request_weather_factors(weather_factors)
 
         # Download the current weather data
@@ -106,6 +110,8 @@ class ActueleWaarnemingenModel(WeatherModelBase):
             coords={"time": timeline, "coord": coords_to_pd_index(coords)},
         )
         ds = ds.unstack("coord")
+        
+        logger.debug("Finished processing KNMI Actuele Waarnemingen data and returning dataset.")
         return ds
 
     def is_async(self):  # pragma: no cover

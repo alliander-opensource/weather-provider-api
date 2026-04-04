@@ -48,8 +48,7 @@ class WeatherAlert:
         )  # The Dutch Provinces. Every province has its own page.
 
     def get_alarm(self):
-        """A function that retrieves the current weather alarm stage for each of the Dutch provinces and puts those
-            together into a formatted list of results (string-based).
+        """A function that retrieves the current weather alarm stage for each of the Dutch provinces and puts those together into a formatted list of results (string-based).
 
         Returns:
             A list of strings holding all the provinces and their retrieved current alarm stages according to KNMI
@@ -74,8 +73,9 @@ class WeatherAlert:
         return alarm_list
 
     @staticmethod
-    def process_page(page_text: str, status_code, province):
-        """A function that parses the weather alert page for a province and retrieves its current alarm stage.
+    def process_page(page_text: str, status_code: int, province: str) -> tuple[str, str]:
+        """
+        Parses the weather alert page for a province and retrieves its current alarm stage by finding the first div with class 'alert' and 'alert--<color>'.
 
         Args:
             page_text:      The response content retrieved while trying to download the page
@@ -84,23 +84,19 @@ class WeatherAlert:
 
         Returns:
             A tuple holding the province and a result-string for that province.
-            A result-string usually hold the alarm stage for that province, but can also hold exceptions when
-            downloading did not succeed as intended.
         """
         if status_code == 200 and page_text is not None:
-            # A page was found and loaded
             soup = BeautifulSoup(page_text, features="lxml")
-
-            classes_first_warning_block = soup.find("div", {"class": "warning-overview"})
-            if classes_first_warning_block is not None:
-                classes_first_warning_block = classes_first_warning_block["class"]
-
-                for class_name in classes_first_warning_block:
-                    if len(class_name) > len("warning-overview") and class_name[len("warning-overview--") :] in set(
-                        item.value for item in WeatherAlertCode
-                    ):
-                        return province, class_name[len("warning-overview--") :]
-
+            # Find the first div with class 'alert' and 'alert--<color>'
+            alert_div = None
+            for div in soup.find_all("div", class_=lambda c: c and "alert" in c):
+                for class_name in div.get("class", []):
+                    if class_name.startswith("alert--"):
+                        color = class_name[len("alert--") :]
+                        # Only accept valid colors
+                        if color in set(item.value for item in WeatherAlertCode):
+                            return province, color
+                # If found a div with 'alert' but no valid color, continue searching
             # If no valid code was found return an invalid data message
             return province, "could not find expected data on page"
         elif status_code == 408:
