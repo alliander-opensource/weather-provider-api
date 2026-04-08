@@ -10,7 +10,7 @@ jobs:
   tests-and-sonarcloud:
     strategy:
       matrix:
-        version: ["3.11"]  # TODO: Get Python versions from the project
+        version: ["3.13"]  # TODO: Get Python versions from the project
     name: Testing and updating SonarCloud
     runs-on: ubuntu-latest
     steps:
@@ -46,11 +46,11 @@ jobs:
           poetry run coverage run -m pytest
           poetry run coverage report
       # Generate XML Coverage result file
-      - if: matrix.version == '3.11'
+      - if: matrix.version == '3.13'
         name: Generate Coverage XML file
         run: poetry run coverage xml
       # Upload coverage data to SonarCloud.io
-      - if: matrix.version == '3.11'
+      - if: matrix.version == '3.13'
         name: Update SonarCloud.io
         uses: SonarSource/sonarqube-scan-action@master
         env:
