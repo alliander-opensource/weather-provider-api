@@ -32,7 +32,12 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
     def _delete_files_outside_of_scope(self):
         logger.info(f"Deleting files outside of scope [{self.first_day_of_repo} - {self.last_day_of_repo}]")
         if self.filename.exists():
-            current_data = xr.load_dataset(self.filename, engine="netcdf4")
+             try:
+                current_data = xr.load_dataset(self.filename, engine="netcdf4")
+            except OSError as os_error:
+                logger.error(f"Could not load file for cleanup: {os_error}. File is likely corrupted and will be deleted.")
+                self.filename.unlink(missing_ok=True)
+                return
             current_data = current_data.sel(time=slice(self.first_day_of_repo, self.last_day_of_repo))
             current_data.to_netcdf(self.filename, format="NETCDF4")
 
