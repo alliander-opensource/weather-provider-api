@@ -260,6 +260,9 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
     def _filter_dataset_by_coordinates(self, coordinates: List[GeoPosition], ds: xr.Dataset) -> xr.Dataset:
         """A function that filters a given Xarray Dataset down to the values matching a given list of locations.
 
+        This method matches requested coordinates to the nearest coordinates available in the dataset,
+        making it robust to grid changes over time.
+
         Args:
             coordinates:    A list of GeoPositions that the data is requested for.
             ds:             An Xarray Dataset containing the data to be filtered.
@@ -268,22 +271,37 @@ class WeatherRepositoryBase(metaclass=ABCMeta):
             An Xarray Dataset containing only the weather data that matched the given list of coordinates.
         """
         ds_selected = xr.Dataset()
-        coordinate_list = self.get_grid_coordinates(coordinates)
 
-        for coordinate in coordinate_list:
-            # First filter a single coordinate in the list
-            ds_single_coord = ds.stack(dimensions={"coord": ["lat", "lon"]})
-            ds_single_coord = ds_single_coord.where(ds_single_coord.lat == coordinate.get_WGS84()[0], drop=True)
-            ds_single_coord = ds_single_coord.where(
-                ds_single_coord.lon.round(3) == coordinate.get_WGS84()[1].round(3),
-                drop=True,
-            )
-            ds_single_coord = ds_single_coord.unstack("coord")
-            # Then append this to a clean list
-            if coordinate == coordinate_list[0]:
-                ds_selected = ds_single_coord
-            else:
-                ds_selected = ds_selected.combine_first(ds_single_coord)
+        for coordinate in coordinates:
+            # Get the WGS84 coordinates (latitude, longitude) for the requested location
+            lat_requested, lon_requested = coordinate.get_WGS84()
+
+            # Use nearest neighbor method to find the closest grid point in the dataset
+            # This is more robust than rounding to a preset grid which may change over time
+            try:
+                # Find the indices of the nearest coordinates in the dataset
+                lat_idx = (ds.coords["lat"] - lat_requested).argmin().item()
+                lon_idx = (ds.coords["lon"] - lon_requested).argmin().item()
+
+                # Get the actual coordinate values from the dataset (not the requested values)
+                lat_nearest = ds.coords["lat"].values[lat_idx]
+                lon_nearest = ds.coords["lon"].values[lon_idx]
+
+                # Select using the actual coordinate values to preserve lat/lon dimensions
+                ds_single_coord = ds.sel(lat=lat_nearest, lon=lon_nearest)
+
+                # Then append this to the result dataset
+                if len(ds_selected.data_vars) == 0:
+                    ds_selected = ds_single_coord
+                else:
+                    ds_selected = ds_selected.combine_first(ds_single_coord)
+            except (KeyError, ValueError, AttributeError, IndexError) as e:
+                # If nearest neighbor selection fails (e.g., dataset has no lat/lon coords),
+                # log a warning and continue
+                logger.warning(
+                    f"Could not find nearest coordinates for location ({lat_requested}, {lon_requested}): {e}"
+                )
+                continue
 
         return ds_selected
 
