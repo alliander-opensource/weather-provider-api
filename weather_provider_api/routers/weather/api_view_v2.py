@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import List
 
 import accept_types
+import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from loguru import logger
 
@@ -155,13 +156,9 @@ async def get_sync_weather(
         source_id, model_id, False, weather_data, fmt_args.units
     )
 
-    coords = [
-        (lat_val, lon_val)
-        for (lat_val, lon_val) in zip(
-            converted_weather_data.coords["lat"].values,
-            converted_weather_data.coords["lon"].values,
-        )
-    ]
+    lat_values = np.atleast_1d(converted_weather_data.coords["lat"].values)
+    lon_values = np.atleast_1d(converted_weather_data.coords["lon"].values)
+    coords = [(lat_val, lon_val) for (lat_val, lon_val) in zip(lat_values, lon_values)]
 
     response, optional_file_path = serializers.file_or_text_response(
         converted_weather_data, response_format, source_id, model_id, ret_args, coords
