@@ -212,7 +212,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             raise e
 
         grib_files_available = glob.glob(
-            str(download_folder.joinpath(f'HA43_N20_{prediction_time.strftime("%Y%m%d%H")}00_*_GB'))
+            str(download_folder.joinpath(f"HA43_N20_{prediction_time.strftime('%Y%m%d%H')}00_*_GB"))
         )
 
         for grib_file in grib_files_available:
@@ -292,9 +292,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
             if arome_factors[parameter_name][0] == "_":
                 # Add level unit to the name if needed
-                field_name = f'{grib_message["stepType"]}{field_name}'
+                field_name = f"{grib_message['stepType']}{field_name}"
         else:
-            field_name = f'unknown_code_{grib_message["parameterName"]}'
+            field_name = f"unknown_code_{grib_message['parameterName']}"
 
         # Add level information
         if msg_level == 0 and msg_level_type == "above_ground":

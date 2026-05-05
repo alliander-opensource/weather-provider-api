@@ -35,9 +35,7 @@ class TestGenerateOpenAPISpec:
 
                 # Verify the spec was written to file
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
                 assert written_content == json.dumps(mock_spec)
 
     def test_generate_openapi_spec_calls_openapi_method(self):
@@ -79,9 +77,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 # Verify the content is valid JSON and matches the spec
                 parsed_json = json.loads(written_content)
@@ -150,9 +146,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 parsed_json = json.loads(written_content)
                 assert parsed_json == mock_spec
@@ -187,9 +181,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 parsed_json = json.loads(written_content)
                 assert parsed_json["paths"] == {}
@@ -208,9 +200,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 # Verify it's compact JSON (no extra whitespace/newlines)
                 expected = json.dumps(mock_spec)

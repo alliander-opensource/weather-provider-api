@@ -1,32 +1,29 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 import json
 import math
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import field
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, List
 
 from fastapi import Query
 from pydantic import Field
+from pydantic.dataclasses import dataclass
 from starlette.responses import Response as StarletteResponse
 
 from weather_provider_api.core.base_model import BaseModel
 
-"""
-    API request models, response models, and examples.
-"""
-
-
-# Note: while this can be done automatically, and for e.g. sources as well,
-# I don't want new OpenAPI specs to be created when e.g. a source is added.
+# Constants for repeated string literals
+FROM_DATE_AND_TIME = "From date and time"
+TO_DATE_AND_TIME = "To date and time"
+FACTORS_DESCRIPTION = "Only return these weather factors (default: all factors)"
 
 
 class OutputUnit(str, Enum):
+    """Enumeration of valid output unit sets for weather data."""
     # Valid output unit sets
     si = "si"
     human = "human"
@@ -34,6 +31,7 @@ class OutputUnit(str, Enum):
 
 
 class ResponseFormat(str, Enum):
+    """Enumeration of valid output file-formats for weather data responses."""
     # Valid output file-formats
     netcdf4 = "netcdf4"
     netcdf3 = "netcdf3"
@@ -42,12 +40,23 @@ class ResponseFormat(str, Enum):
     csv = "csv"
 
 
+
+
+def _yesterday_midnight():
+    return (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d 00:00")
+
+
+def _yesterday_end():
+    return (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d 23:59")
+
+
 class WeatherModel(BaseModel):
+    """Model describing a weather model's metadata and configuration."""
     id: str = Field(..., description="Model id")
     name: str = Field(..., description="Model name")
-    version: str = Field("", description="Model version")
-    url: str = Field("", description="Model URL")
-    description: str = Field("", description="Model description")
+    version: str = Field(default="", description="Model version")
+    url: str = Field(default="", description="Model URL")
+    description: str = Field(default="", description="Model description")
     predictive: bool = Field(..., description="Predictions or measurements")
     async_model: bool = Field(..., description="Whether the model should be called asynchronously")
     time_step_size_minutes: int = Field(..., description="Time between each measurement or prediction")
@@ -55,59 +64,65 @@ class WeatherModel(BaseModel):
 
 
 class WeatherSource(BaseModel):
+    """Model describing a weather data source and its available models."""
     id: str = Field(..., description="Source id")
     name: str = Field(..., description="Source name")
-    url: str | None = Field(None, description="Source URL")
-    models: List[WeatherModel] | None = Field(None, description="Synchronous models")
-    async_models: List[WeatherModel] | None = Field(None, description="Asynchronous models")
+    url: str | None = Field(default=None, description="Source URL")
+    models: List[WeatherModel] | None = Field(default=None, description="Synchronous models")
+    async_models: List[WeatherModel] | None = Field(default=None, description="Asynchronous models")
 
-
-from dataclasses import field
 
 @dataclass
 class WeatherFormattingRequestQuery:
+    """Query parameters for formatting weather data responses."""
     units: OutputUnit = field(default_factory=lambda: Query(OutputUnit.si, description="Unit of weather factors"))
-    response_format: ResponseFormat = field(default_factory=lambda: Query(
-        ResponseFormat.netcdf4,
-        description="Response format (overrides mime-types from Accept HTTP header)",
-    ))
+    response_format: ResponseFormat = field(
+        default_factory=lambda: Query(
+            ResponseFormat.netcdf4,
+            description="Response format (overrides mime-types from Accept HTTP header)",
+        )
+    )
 
 
 # Note: I'd love to combine the (almost) duplicate entries below, but the hybrid solutions don't work in FastAPI 0.30.
 @dataclass
 class WeatherContentRequestQuery:
-    # TODO: Change Example value to current date base values
-    begin: str = Query(None, description="From date and time", example="2019-01-01 00:00")
-    end: str = Query(None, description="To date and time", example="2019-01-31 23:59")
-    lat: float = Query(..., description="GPS Latitude or RD x-coordinate", example=52.10)
-    lon: float = Query(..., description="GPS Longitude or RD y-coordinate", example=5.18)
-    factors: List[str] = Query(None, description="Only return these weather factors (default: all factors)")
+    """Request query model for synchronous weather data requests, containing all necessary parameters for data retrieval and formatting."""
+
+    begin: str = field(default_factory=lambda: Query(None, description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()]))
+    end: str = field(default_factory=lambda: Query(None, description=TO_DATE_AND_TIME, examples=[_yesterday_end()]))
+    lat: float = field(default_factory=lambda: Query(..., description="GPS Latitude or RD x-coordinate", examples=[52.10]))
+    lon: float = field(default_factory=lambda: Query(..., description="GPS Longitude or RD y-coordinate", examples=[5.18]))
+    factors: list[str] | None = field(default_factory=lambda: Query(None, description=FACTORS_DESCRIPTION))
 
 
 @dataclass
 class WeatherContentRequestMultiLocationQuery:
-    begin: str = Query(None, description="From date and time", example="2019-01-01 00:00")
-    end: str = Query(None, description="To date and time", example="2019-01-31 23:59")
-    locations: str = Query(
-        None,
-        description="Locations in either WGS84 (lat,lon) or RD (x,y) format, " "in parentheses, separated by a comma",
-        example="(52.1, 5.18), (52.2, 5.22)",
-    )
-    factors: List[str] = Query(None, description="Only return these weather factors (default: all factors)")
+    """Request query model for synchronous weather data requests with multiple locations, containing all necessary parameters for data retrieval and formatting."""
+
+    begin: str = field(default_factory=lambda: Query(None, description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()]))
+    end: str = field(default_factory=lambda: Query(None, description=TO_DATE_AND_TIME, examples=[_yesterday_end()]))
+    locations: str = field(default_factory=lambda: Query(None, description="Locations in either WGS84 (lat,lon) or RD (x,y) format, in parentheses, separated by a comma", examples=["(52.1, 5.18), (52.2, 5.22)"]))
+    factors: list[str] | None = field(default_factory=lambda: Query(None, description=FACTORS_DESCRIPTION))
 
 
 class WeatherContentRequestBody(BaseModel):
-    begin: str = Field(None, description="From date and time", example="2019-01-01 00:00")
-    end: str = Field(None, description="To date and time", example="2019-01-31 23:59")
-    lat: float = Field(..., description="GPS Latitude or RD x-coordinate", example=52.10)
-    lon: float = Field(..., description="GPS Longitude or RD y-coordinate", example=5.18)
-    factors: List[str] = Field(None, description="Only return these weather factors (default: all factors)")
+    """Request body model for asynchronous weather data requests, containing all necessary parameters for data retrieval and formatting."""
+
+    begin: str | None = Field(..., description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()])
+    end: str | None = Field(..., description=TO_DATE_AND_TIME, examples=[_yesterday_end()])
+    lat: float = Field(..., description="GPS Latitude or RD x-coordinate", examples=[52.10])
+    lon: float = Field(..., description="GPS Longitude or RD y-coordinate", examples=[5.18])
+    factors: list[str] | None = Field(default=None, description=FACTORS_DESCRIPTION)
 
 
 class ScientificJSONResponse(StarletteResponse):
+    """Custom response class for returning scientific data in JSON format, with specific handling for float formatting and special float values."""
+
     media_type = "application/json"
 
     def render(self, content: Any) -> bytes:
+        """Render the content as JSON, ensuring that floats are formatted to a maximum of 4 decimal places and that NaN and Infinity values are handled appropriately."""
         return json.dumps(
             content,
             ensure_ascii=False,
@@ -120,42 +135,22 @@ class ScientificJSONResponse(StarletteResponse):
 
 
 class FloatEncoder(json.JSONEncoder):
+    """Custom JSON encoder that formats floats to a maximum of 4 decimal places and handles NaN and Infinity values."""
+
     INFINITY = float("inf")
 
-    def iterencode(self, obj, **kwargs):
-        if isinstance(obj, float):
-            if math.isnan(obj):  # This checks for NaNs ;-)
-                yield "null"
-            elif obj == FloatEncoder.INFINITY:
-                yield "Infinity"
-            elif obj == -FloatEncoder.INFINITY:
-                yield "-Infinity"
+    def default(self, o: Any) -> Any:
+        """Override the default method to format floats and handle special float values."""
+        if isinstance(o, float):
+            if math.isnan(o):
+                return None
+            elif o == FloatEncoder.INFINITY:
+                return "Infinity"
+            elif o == -FloatEncoder.INFINITY:
+                return "-Infinity"
             else:
-                yield format(obj, ".4f")
-        elif isinstance(obj, dict):
-            last_index = len(obj) - 1
-            yield "{"
-            i = 0
-            for key, value in obj.items():
-                yield '"' + key + '": '
-                for chunk in FloatEncoder.iterencode(self, value):
-                    yield chunk
-                if i != last_index:
-                    yield ", "
-                i += 1
-            yield "}"
-        elif isinstance(obj, list):
-            last_index = len(obj) - 1
-            yield "["
-            for i, o in enumerate(obj):
-                for chunk in FloatEncoder.iterencode(self, o):
-                    yield chunk
-                if i != last_index:
-                    yield ", "
-            yield "]"
-        else:
-            for chunk in json.JSONEncoder.iterencode(self, obj):
-                yield chunk
+                return float(format(o, ".4f"))
+        return super().default(o)
 
 
 result_mime_types = defaultdict(

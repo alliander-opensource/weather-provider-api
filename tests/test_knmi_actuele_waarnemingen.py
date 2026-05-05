@@ -62,5 +62,6 @@ def test__download_weather(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(requests, "get", mock_request_get)
     # The function now raises the exception, so we check for it
     import pytest
+
     with pytest.raises(requests.exceptions.RequestException):
         download_actuele_waarnemingen_weather()

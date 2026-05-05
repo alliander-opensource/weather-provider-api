@@ -1,18 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 import tempfile
-from datetime import datetime, UTC
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
@@ -77,7 +73,7 @@ def mock_dataset_era5(mock_coordinates, mock_factors):
 
     """
     timeline = pd.date_range(
-        end=(datetime.now(tz=UTC) - relativedelta(days=61)),
+        end=(datetime.now(tz=UTC) - timedelta(days=61)),
         periods=96,
         freq="1h",
         inclusive="left",
@@ -108,7 +104,7 @@ def mock_dataset_arome(mock_coordinates, mock_factors):
 
     """
     timeline = pd.date_range(
-        end=(datetime.now(tz=UTC) - relativedelta(days=6)),
+        end=(datetime.now(tz=UTC) - timedelta(days=6)),
         periods=96,
         freq="1h",
         inclusive="left",

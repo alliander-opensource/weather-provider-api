@@ -1,9 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
+import asyncio
 import os
 import site
 from pathlib import Path
@@ -11,20 +9,18 @@ from pathlib import Path
 from loguru import logger
 
 
-async def remove_file(file_path):  # pragma: no cover
+async def remove_file(file_path: str | Path | None) -> bool:  # pragma: no cover
+    """Remove a file asynchronously."""
     if file_path is not None:
-        try:
-            file_to_rm = Path(file_path).resolve()
-            logger.info("Removing temporary file", file_path=file_to_rm)
-            if file_to_rm.exists() and file_to_rm.is_file():
-                file_to_rm.unlink()
-        except FileNotFoundError as e:
-            logger.exception(e)
-            raise
+        file_to_rm = Path(file_path).resolve()
+        logger.info("Removing temporary file", file_path=file_to_rm)
+        if file_to_rm.exists() and file_to_rm.is_file():
+            await asyncio.to_thread(file_to_rm.unlink)
     return True
 
 
 def get_var_map_file_location(filename: str) -> Path:
+    """Get the location of a variable map file."""
     var_map_folder = "var_maps"
 
     possible_main_folders = [

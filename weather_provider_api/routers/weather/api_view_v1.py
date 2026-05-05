@@ -14,8 +14,8 @@
 
 from typing import List
 
-import accept_types
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
+import accept_types  # type: ignore
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Response
 
 from weather_provider_api.routers.weather.api_models import (
     WeatherContentRequestQuery,
@@ -73,7 +73,7 @@ async def get_sync_weather(
     ret_args: WeatherContentRequestQuery = Depends(),
     fmt_args: WeatherFormattingRequestQuery = Depends(),
     accept: str = Depends(header_accept_type),
-):  # pragma: no cover
+) -> Response:  # pragma: no cover
     """Function to gather data for a specific model using specific settings (location, period, factors, e.g.).
         The function then formats this data into the requested output format (file-format and selected output unit) and
         returns it.
@@ -135,7 +135,7 @@ async def get_sync_weather(
         )
     ]
 
-    response, optional_file_path = serializers.file_or_text_response(
+    response, optional_file_path = serializers.return_file_or_text_response(
         converted_weather_data, response_format, source_id, model_id, ret_args, coords
     )
     cleanup_tasks.add_task(remove_file, optional_file_path)

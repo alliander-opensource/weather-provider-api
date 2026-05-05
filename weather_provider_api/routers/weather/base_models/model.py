@@ -5,6 +5,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 from typing import List, Optional
 
 import numpy as np
@@ -21,6 +22,7 @@ class WeatherModelBase(metaclass=ABCMeta):
     """Base class for all Weather Models. All new models should use this base class!"""
 
     def __init__(self):
+        """Initialize the WeatherModelBase with default conversion dictionaries."""
         self.to_si = None
         self.to_human = None
         self.human_to_model_specific = None
@@ -28,20 +30,22 @@ class WeatherModelBase(metaclass=ABCMeta):
     @abstractmethod
     def get_weather(
         self,
-        coords: List[GeoPosition],
-        begin: Optional[np.datetime64],
-        end: Optional[np.datetime64],
-        weather_factors: List[str] = None,
+        coords: list[GeoPosition],
+        begin: datetime | None = None,
+        end: datetime | None = None,
+        weather_factors: list[str] | None = None,
     ) -> xr.Dataset:  # pragma: no cover
+        """Abstract method to get weather data for the specified coordinates and time range."""
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     @abstractmethod
-    def is_async(self):  # pragma: no cover
+    def is_async(self) -> bool:  # pragma: no cover
+        """Abstract method to determine if the model is asynchronous."""
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
-    def convert_names_and_units(self, weather_data: xr.Dataset, unit: OutputUnit):
-        """Function to convert all names and units in a dataset according to the required translations set in the
-            to_xxxx values for the model itself
+    def convert_names_and_units(self, weather_data: xr.Dataset, unit: OutputUnit) -> xr.Dataset:
+        """Convert the names and units of the weather data to match the requested output unit format.
+
         Args:
             weather_data:   A Xarray Dataset containing
             unit:           The requested output unit format

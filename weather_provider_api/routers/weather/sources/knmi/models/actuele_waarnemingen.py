@@ -110,7 +110,7 @@ class ActueleWaarnemingenModel(WeatherModelBase):
             coords={"time": timeline, "coord": coords_to_pd_index(coords)},
         )
         ds = ds.unstack("coord")
-        
+
         logger.debug("Finished processing KNMI Actuele Waarnemingen data and returning dataset.")
         return ds
 

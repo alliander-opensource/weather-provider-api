@@ -118,7 +118,7 @@ def test_repo_get_month_filename(_get_mock_repository_dir: Path):
     ]
     assert len(result) == 1
     assert result[0] == Path(
-        f'{arome_repo.repository_folder.joinpath("AROME_")}{existing_dates[0].strftime("%Y%m%d_%H00")}.nc'
+        f"{arome_repo.repository_folder.joinpath('AROME_')}{existing_dates[0].strftime('%Y%m%d_%H00')}.nc"
     )
 
 

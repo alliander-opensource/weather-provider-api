@@ -10,13 +10,11 @@ import locale
 import re
 from datetime import datetime
 from io import StringIO
-from typing import List
 
 import numpy as np
 import pandas as pd
 import requests
 import xarray as xr
-from bs4 import BeautifulSoup
 from geopy.distance import great_circle
 from loguru import logger
 
@@ -28,9 +26,10 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 def find_closest_stn_list(
-    stn_stations: pd.DataFrame, coords: List[GeoPosition]
+    stn_stations: pd.DataFrame, coords: list[GeoPosition]
 ) -> tuple[list[np.int64], list[np.int64], list[int]]:
-    """A function that finds the closest stations to the locations in the given list of GeoPositions
+    """Find the closest stations to the locations in the given list of GeoPositions.
+
     Args:
             stn_stations:   A Pandas Dataframe containing all the station data for the KNMI stations
             coords:         A list of GeoPositions with locations to find the nearest stations to.
@@ -50,7 +49,8 @@ def find_closest_stn_list(
 
 
 def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> np.int64:
-    """A function that finds the closest station to a single GeoPosition
+    """Find the closest station to a single GeoPosition.
+
     Args:
         stn_stations:   A Pandas Dataframe containing all the station data for the KNMI stations
         coord:          A GeoPosition to find the nearest station for
@@ -75,17 +75,17 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
         knmi_site_response = requests.get("https://www.knmi.nl/nederland-nu/weer/waarnemingen", timeout=10)
 
         if knmi_site_response.ok:
-            soup = BeautifulSoup(knmi_site_response.text, "lxml")
-            table_wrp_div = soup.find("div", class_="table__wrp")
-            if table_wrp_div is None:
-                logger.error("Could not find div with class 'table__wrp' in KNMI Waarnemingen page.")
-                raise IndexError("Could not find div with class 'table__wrp' in KNMI Waarnemingen page.")
-            # Only parse the table inside the div
-            tables = pd.read_html(StringIO(str(table_wrp_div)))
-            if not tables:
-                logger.error("No tables found inside 'table__wrp' div on KNMI Waarnemingen page.")
-                raise IndexError("No tables found inside 'table__wrp' div on KNMI Waarnemingen page.")
-            knmi_site_df = tables[0]
+            # Use pandas.read_html to extract all tables from the HTML
+            tables = pd.read_html(StringIO(knmi_site_response.text))
+            # Find the table that contains the expected columns (e.g., 'Station')
+            knmi_site_df = None
+            for table in tables:
+                if "Station" in table.columns:
+                    knmi_site_df = table
+                    break
+            if knmi_site_df is None:
+                logger.error("No table with 'Station' column found in KNMI Waarnemingen page.")
+                raise IndexError("No table with 'Station' column found in KNMI Waarnemingen page.")
 
             column_translations = {
                 "Station": "station",
@@ -107,7 +107,6 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
                 else:
                     knmi_site_df = knmi_site_df.drop(dictionary_item, axis="columns")
 
-            
             current_observation_moment = _retrieve_observation_moment(knmi_site_response.text)
             knmi_site_df["time"] = current_observation_moment
             knmi_site_df["time"] = knmi_site_df["time"].astype("datetime64[ns]")
@@ -158,33 +157,30 @@ def _retrieve_observation_moment(html_body: str) -> datetime:
     Returns:
         Either the matching datetime if it can be extracted, or the current datetime if it cannot.
     """
-    try:
-        re_match = re.search(
-            r"Waarnemingen\s(\d+\s\w+\s\d{4}\s\d{2}:\d{2})\suur",
-            html_body,
-        )
-        if re_match:
-            dt_str = re_match.group(1)
+    re_match = re.search(
+        r"Waarnemingen\s(\d+\s\w+\s\d{4}\s\d{2}:\d{2})\suur",
+        html_body,
+    )
+    if re_match:
+        dt_str = re_match.group(1)
+        try:
             current_locale = locale.getlocale(locale.LC_TIME)
             locale.setlocale(locale.LC_TIME, "dutch")
             dt = datetime.strptime(dt_str, "%d %B %Y %H:%M")
             locale.setlocale(locale.LC_TIME, current_locale)
             return dt
-    except locale.Error:
-        logger.warning(
-            "No locale could be determined for KNMI Waarnemingen datetime transformation. "
-            "Using local datetime instead."
-        )
-        return datetime.now()
-    except Exception as e:
-        logger.error(
-            "An unknown exception occurred while retrieving the KNMI Waarnemingen datetime for use in the response."
-            f" Using local datetime instead. Error: {e}"
-        )
-        return datetime.now()
-
-    current_locale = locale.getlocale(locale.LC_TIME)
-    locale.setlocale(locale.LC_TIME, "dutch")
-    dt = datetime.now()
-    locale.setlocale(locale.LC_TIME, current_locale)
-    return dt
+        except locale.Error:
+            logger.warning(
+                "No locale could be determined for KNMI Waarnemingen datetime transformation. Using local datetime instead."
+            )
+            return datetime.now()
+        except (ValueError, AttributeError, TypeError) as e:
+            logger.error(f"Error parsing KNMI Waarnemingen datetime: {e}. Using local datetime instead.")
+            return datetime.now()
+    else:
+        logger.warning("No date match found in KNMI Waarnemingen HTML. Using local datetime instead.")
+        current_locale = locale.getlocale(locale.LC_TIME)
+        locale.setlocale(locale.LC_TIME, "dutch")
+        dt = datetime.now()
+        locale.setlocale(locale.LC_TIME, current_locale)
+        return dt

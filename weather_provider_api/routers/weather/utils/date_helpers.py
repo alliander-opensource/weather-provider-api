@@ -1,26 +1,23 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-from datetime import datetime, timedelta
-from typing import Optional, Union
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import numpy as np
 import pandas as pd
-from fastapi import HTTPException
 from loguru import logger
-from pytz import UTC
+from starlette.exceptions import HTTPException
 
 
 def parse_datetime(
-    datetime_string,
-    round_missing_time_up=False,
-    round_to_days=False,
-    raise_errors=False,
-    loc=None,
-) -> Optional[datetime]:
+    datetime_string: str | None,
+    round_missing_time_up: bool = False,
+    round_to_days: bool = False,
+    raise_errors: bool = False,
+    loc: list[str] | None = None,
+) -> datetime | None:
+    """Parse a datetime string into a datetime object, with options to round up missing time and raise errors."""
     if datetime_string is None:
         return None
 
@@ -31,12 +28,12 @@ def parse_datetime(
         if raise_errors:
             # Note: replace when FastAPI supports Pydantic models to define query parameters
             # (meaning Validators can be used)
-            error_msg = {
+            error_msg: dict[str, Any] = {
                 "loc": loc,
                 "msg": "invalid datetime format",
                 "type": "type_error.datetime",
             }
-            raise HTTPException(status_code=422, detail=[error_msg])
+            raise HTTPException(status_code=422, detail=str(error_msg))
 
         dt = None
 
@@ -52,7 +49,8 @@ def parse_datetime(
     return dt
 
 
-def time_unknown(dt: datetime, datetime_string: str):  # pragma: no cover
+def time_unknown(dt: datetime, datetime_string: str) -> bool:  # pragma: no cover
+    """Check if the time part of a datetime is unknown (i.e., not specified in the string)."""
     if dt.hour == 0 and dt.minute == 0 and dt.second == 0 and ":" not in datetime_string:
         return True
     return False
@@ -61,43 +59,50 @@ def time_unknown(dt: datetime, datetime_string: str):  # pragma: no cover
 def validate_begin_and_end(
     start: datetime,
     end: datetime,
-    data_start: Union[datetime, None] = None,
-    data_end: Union[datetime, None] = None,
-):
-    """Checks the given date parameters and replaces them with default values if they aren't valid.
-    The resulting values are then returned.
-    """
-    start = start.astimezone(UTC) if start else None
-    end = end.astimezone(UTC) if end else None
+    data_start: datetime | None = None,
+    data_end: datetime | None = None,
+) -> tuple[datetime, datetime]:
+    """Check the given date parameters and replace them with default values if they aren't valid."""
+    if not start or not end:
+        raise HTTPException(status_code=422, detail="Both [start] and [end] parameters must be provided")
+
+    # Normalize to UTC
+    start = start.astimezone(UTC)
+    end = end.astimezone(UTC)
     data_start = data_start.astimezone(UTC) if data_start else None
-    data_end = data_end.astimezone(UTC) if data_end else None
+    data_end = data_end.astimezone(UTC) if data_end else datetime.now(UTC)
 
-    if data_end is None:
-        # Assuming predictions fill in this value, the most recent value for the past is before "now".
-        data_end = datetime.now(UTC)
-
-    if data_start is not None and data_start > start:
-        # If the starting moment lies before what can be requested, put it at the moment from which it can be requested
+    # Clamp start and end to available data range
+    if data_start and start < data_start:
         start = data_start
-
-    if data_end is not None and data_end < end:
+    if end > data_end:
         end = data_end
 
+    # Validation checks
     if start >= data_end:
         raise HTTPException(
             422,
-            f"Invalid [start] value [{start}]: value lies after last available moment for model ({data_end})",
+            f"[start] ({start}) is after the last available model time ({data_end})",
         )
-    if data_start is not None and end <= data_start:
+    if data_start and end <= data_start:
         raise HTTPException(
             422,
-            f"Invalid [end] value [{end}]: value lies before first available moment for model ({data_start})",
+            f"[end] ({end}) is before the first available model time ({data_start})",
         )
-
     if end < start:
         raise HTTPException(
             422,
-            f"Invalid [start] and [end] values: [end]({end}) lies before [start]({start})",
+            f"[end] ({end}) is before [start] ({start})",
         )
 
     return start, end
+
+
+def subtract_months(dt: datetime, months: int) -> datetime:
+    """Subtract a number of months from a datetime, correctly handling year changes and varying month lengths."""
+    year = dt.year
+    month = dt.month - months
+    while month <= 0:
+        month += 12
+        year -= 1
+    return dt.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)

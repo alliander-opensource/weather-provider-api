@@ -1,22 +1,19 @@
-#!/usr/bin/env python
-
-#  SPDX-FileCopyrightText: 2019-2025 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 import glob
 import tempfile
 import zipfile
-from datetime import date, datetime
+from datetime import UTC, date, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 
 import xarray as xr
-from dateutil.relativedelta import relativedelta
 from loguru import logger
 from pydantic import BaseModel
-from pytz import UTC
 
 from weather_provider_api.routers.weather.repository.repository import RepositoryUpdateResult
 from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import CDS_CLIENT, CDSDataSets, CDSRequest
+from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
 
 
 class Era5FileSuffixes(str, Enum):
@@ -44,7 +41,7 @@ class Era5UpdateSettings(BaseModel):
 def era5_repository_update(update_settings: Era5UpdateSettings, test_mode: bool) -> RepositoryUpdateResult:
     """A function to update a variant of ERA5 data into the repository."""
     starting_moment_of_update = datetime.now(UTC)
-    cutoff_time = starting_moment_of_update + relativedelta(minutes=update_settings.maximum_runtime_in_minutes)
+    cutoff_time = starting_moment_of_update + timedelta(minutes=update_settings.maximum_runtime_in_minutes)
     logger.info(
         f"Starting update of ERA5 data for {update_settings.era5_dataset_to_update_from} "
         f"to: {update_settings.target_storage_location}"
@@ -80,11 +77,11 @@ def _era5_update_month_by_month(
 
     while update_month > target_update_month:
         logger.info(f" > Processing month: {update_month.year}-{update_month.month}")
-        if datetime.now(UTC) + relativedelta(minutes=average_time_per_month_in_minutes) > cutoff_time:
+        if datetime.now(UTC) + timedelta(minutes=average_time_per_month_in_minutes) > cutoff_time:
             logger.warning(
                 "MAXIMUM RUNTIME REACHED: ",
                 cutoff_time,
-                datetime.now(UTC) + relativedelta(minutes=average_time_per_month_in_minutes),
+                datetime.now(UTC) + timedelta(minutes=average_time_per_month_in_minutes),
                 average_time_per_month_in_minutes,
             )
             logger.warning("Maximum runtime reached. Stopping update.")
@@ -103,7 +100,7 @@ def _era5_update_month_by_month(
             (datetime.now(UTC) - starting_moment_of_update).total_seconds() / 60 / amount_of_months_processed
         )
 
-        update_month = update_month - relativedelta(months=1)
+        update_month = subtract_months(update_month, 1)
 
     logger.info(
         f"Processed {amount_of_months_processed} months, {amount_of_months_not_processable} months failed to process."
@@ -119,7 +116,7 @@ def _era5_update_month(
 
     month_file_base = f"{update_settings.filename_prefix}_{update_month.year}_{update_month.month:02d}"
     month_file = update_settings.target_storage_location / f"{month_file_base}"
-    threshold_date = (datetime.now(UTC) - relativedelta(days=5)).replace(day=1)
+    threshold_date = (datetime.now(UTC) - timedelta(days=5)).replace(day=1)
 
     if file_requires_update(month_file, update_month, threshold_date):
         logger.debug(f" > File {month_file} requires update.")
@@ -160,7 +157,7 @@ def _era5_update_month(
 
 
 def _get_update_month(update_settings: Era5UpdateSettings) -> datetime:
-    NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5 = (datetime.now(UTC) - relativedelta(days=5)).replace(
+    NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5 = (datetime.now(UTC) - timedelta(days=5)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
     update_moment = update_settings.repository_time_range[1]
@@ -204,9 +201,9 @@ def _verify_first_day_available_for_era5(update_moment: datetime, update_setting
             break
         except Exception as e:
             logger.debug(f" > Failed to download ERA5 data for {update_moment}. Reason: {e}")
-            update_moment = update_moment - relativedelta(days=1)
+            update_moment = update_moment - timedelta(days=1)
 
-            if update_moment < update_settings.repository_time_range[1] - relativedelta(days=45):
+            if update_moment < update_settings.repository_time_range[1] - timedelta(days=45):
                 raise ValueError(
                     "The first day available for ERA5 data could not be found within 40 days of the target date. "
                     "Aborting update."
@@ -217,8 +214,10 @@ def _verify_first_day_available_for_era5(update_moment: datetime, update_setting
 
 def _finalize_formatted_file(file_path: Path, current_moment: datetime, verification_date: datetime) -> None:
     """A function to finalize the formatted file."""
-    incomplete_month = verification_date.replace(day=1)
-    permanent_month = (verification_date - relativedelta(months=3)).replace(day=1)
+    # Ensure verification_date is a datetime (if it's a date, convert to datetime)
+    verification_datetime = datetime.combine(verification_date, datetime.min.time(), tzinfo=UTC)
+    incomplete_month = verification_datetime.replace(day=1)
+    permanent_month = subtract_months(verification_datetime, 3)
 
     if not file_path.with_suffix(Era5FileSuffixes.FORMATTED).exists():
         logger.error(f"Formatted file {file_path} does not exist. Aborting finalization.")
@@ -233,7 +232,7 @@ def _finalize_formatted_file(file_path: Path, current_moment: datetime, verifica
                 logger.error(f" > Failed to remove temporary file {file_path.with_suffix(file_suffix)}: {e}")
 
     # Rename the file to its proper name:
-    if current_moment.date() == verification_date.replace(day=1).date():
+    if current_moment.date() == verification_datetime.replace(day=1).date():
         # Current month means an incomplete file
         file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.INCOMPLETE))
         logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix(Era5FileSuffixes.INCOMPLETE)}")
@@ -244,23 +243,22 @@ def _finalize_formatted_file(file_path: Path, current_moment: datetime, verifica
     else:
         # Permanent file
         file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(".nc"))
-        logger.debug(f'Month [{current_moment}] was renamed to: {file_path.with_suffix(".nc")}')
+        logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix('.nc')}")
 
 
 def file_requires_update(file_path: Path, current_month: date, verification_date: date) -> bool:
     """A function that checks if a file requires an update based on the current state of the repository."""
-    print("A")
+    verification_datetime = datetime.combine(verification_date, datetime.min.time(), tzinfo=UTC)
     if file_path.with_suffix(Era5FileSuffixes.TEMP).exists():
         # If a file is temporary we only check for a permanent update if more than 3 months have past since the current
         # most recent date with data.
-        threshold_date = (verification_date - relativedelta(months=3)).replace(day=1)
+        threshold_date = subtract_months(verification_datetime, 3)
         if current_month < threshold_date:
             logger.debug(" > A temporary file exists within the update range: UPDATE REQUIRED")
             return True
         logger.debug(" > A temporary file exists within the update range: UPDATE REQUIRED")
         return False
 
-    print("B")
     # A file exists but isn't any regular supported type to be updated
     if (
         file_path.with_suffix(Era5FileSuffixes.UNFORMATTED).exists()
@@ -269,18 +267,14 @@ def file_requires_update(file_path: Path, current_month: date, verification_date
         logger.debug(" > An unformatted file or formatted file exists: UPDATE REQUIRED")
         return True  # An update should both clean the UNFORMATTED file and generate a proper one
 
-    print("C")
     if not file_path.with_suffix(".nc").exists() or file_path.with_suffix(Era5FileSuffixes.INCOMPLETE).exists():
         logger.debug(" > No file exists, or it is still incomplete: UPDATE REQUIRED")
-        print("File path: ", file_path)
         return True  # No file matching the mask or incomplete files always mean the update is required!
 
-    print("D")
     if file_path.with_suffix(".nc").exists():
         # A regular file exists, no updates required
         logger.debug(" > A regular file already exists: NO UPDATE REQUIRED")
         return False
-    print("E")
     files_in_folder = glob.glob(f"{file_path}*.nc")
     logger.warning(
         f" > Unexpected files existed in the repository folder: {files_in_folder}. These should be dealt with."

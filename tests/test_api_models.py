@@ -4,7 +4,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from weather_provider_api.routers.weather.api_models import ScientificJSONResponse
 
@@ -18,7 +18,7 @@ def test_custom_json_float_encoder():
                 "time": {
                     "dims": ("time",),
                     "attrs": {"long_name": "time"},
-                    "data": [datetime.utcnow()],
+                    "data": [datetime.now(UTC)],
                     "coord": {"dims": ("coord",), "attrs": {}, "data": [(5.25, 52.0)]},
                 },
                 "attrs": {},

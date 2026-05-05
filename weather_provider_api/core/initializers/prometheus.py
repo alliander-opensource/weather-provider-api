@@ -32,5 +32,5 @@ def initialize_prometheus_interface(application: FastAPI, metrics_endpoint: str 
     application.add_middleware(PrometheusMiddleware, filter_unhandled_paths=True)
     application.add_route(metrics_endpoint, metrics)
     logger.info(
-        "Attached Prometheus Middleware to the application and opened metrics endpoint at " f"[{metrics_endpoint}]..."
+        f"Attached Prometheus Middleware to the application and opened metrics endpoint at [{metrics_endpoint}]..."
     )

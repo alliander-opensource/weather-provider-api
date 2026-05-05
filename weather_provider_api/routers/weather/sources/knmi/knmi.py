@@ -1,9 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
+from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.base_models.source import WeatherSourceBase
 from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import (
     ActueleWaarnemingenModel,
@@ -24,8 +22,11 @@ from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import
 
 
 class KNMI(WeatherSourceBase):
+    """Class representing the KNMI as a weather source, containing all the models that are available from the KNMI."""
+
     def __init__(self):
-        model_instances = [
+        """Initialize the KNMI source and set up its models."""
+        model_instances: list[WeatherModelBase] = [
             UurgegevensModel(),
             DagGegevensModel(),
             HarmonieAromeModel(),
@@ -34,10 +35,9 @@ class KNMI(WeatherSourceBase):
             ActueleWaarnemingenRegisterModel(),
         ]
 
-        self.id = "knmi"
-        self.name = "Koninklijk Nederlands Meteorologisch Instituut (KNMI)"
-        self.url = "https://knmi.nl/"
-        self._models = None
-        self._async_models = None
-
-        self.setup_models(model_instances)
+        super().__init__(
+            source_id="knmi",
+            name="Koninklijk Nederlands Meteorologisch Instituut (KNMI)",
+            url="https://knmi.nl/",
+            model_instances=model_instances,
+        )

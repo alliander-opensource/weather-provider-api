@@ -40,7 +40,6 @@ def _build_api_application() -> FastAPI:
     app_title = APP_CONFIG["base"]["title"]
     app_description = APP_CONFIG["base"]["description"]
 
-
     # Define lifespan context manager for startup/shutdown events
     @asynccontextmanager
     async def lifespan(app: FastAPI):
