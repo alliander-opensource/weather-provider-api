@@ -61,21 +61,21 @@ def test_weather_alert_errors(monkeypatch):
 
     output = wa.get_alarm()
     assert len(output) == 12  # Still 12 responses, but with proper error description inside..
-    assert output[0][1] == "proxy error on loading page"
+    assert output[0][1] == "There was a proxy error while loading the page"
 
     # Testing Timeout Response
     monkeypatch.setattr(WeatherAlert, "_requests_retry_session", TimeoutSessionMock)
 
     output = wa.get_alarm()
     assert len(output) == 12  # Still 12 responses, but with proper error description inside..
-    assert output[0][1] == "time out op loading page"
+    assert output[0][1] == "There was a timeout while loading the page"
 
     # Testing TooManyRedirects Response
     monkeypatch.setattr(WeatherAlert, "_requests_retry_session", TooManyRedirectsSessionMock)
 
     output = wa.get_alarm()
     assert len(output) == 12  # Still 12 responses, but with proper error description inside..
-    assert output[0][1] == "page proved inaccessible"
+    assert output[0][1] == "The page proved inaccessible"
 
 
 # @pytest.mark.skip(reason="Monkeypatch for Response content not working properly. ")  # TODO: FIX
@@ -93,4 +93,4 @@ def test_weather_alert_wrongly_formatted_page(monkeypatch):
     output = wa.get_alarm()
 
     assert len(output) == 12  # Still 12 responses, but with proper error description inside..
-    assert output[0][1] == "could not find expected data on page"
+    assert output[0][1] == "No weather alert code could be found on the page"

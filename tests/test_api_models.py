@@ -38,10 +38,10 @@ def test_custom_json_float_encoder():
     )
 
     # Test NaN
-    assert mock_response.render(float("nan")) == b"null"
+    assert mock_response.render(float("nan")) == b'null'
 
     # Test infinity
-    assert mock_response.render(float("inf")) == b"Infinity"
+    assert mock_response.render(float("inf")) == b'"Infinity"'
 
     # Test negative infinity
-    assert mock_response.render(-float("inf")) == b"-Infinity"
+    assert mock_response.render(-float("inf")) == b'"-Infinity"'

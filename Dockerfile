@@ -1,9 +1,9 @@
 #
-# SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+# SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 # SPDX-License-Identifier: MPL-2.0
 #
 
-FROM python:3.13.12-slim-bookworm AS base-image
+FROM python:3.13.13-slim-bookworm AS base-image
 
 RUN apt-get update &&  \
     apt-get -y install libeccodes-dev &&  \
@@ -47,7 +47,7 @@ FROM base-image AS uvicorn-image
 
 USER $APP_USER
 EXPOSE 8000
-CMD ["uvicorn", "--reload", "--host", "0.0.0.0", "--port", "8000", "weather_provider_api.core.application:WPLA_APPLICATION" ]
+CMD ["uvicorn", "--host", "0.0.0.0", "--port", "8000", "weather_provider_api.core.application:WPLA_APPLICATION" ]
 
 # --- GUNICORN image --
 FROM base-image AS gunicorn-image

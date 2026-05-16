@@ -1,310 +1,332 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-import glob
+"""Weather repository module."""
+
+import re
 import shutil
-from abc import ABCMeta, abstractmethod
-from datetime import datetime
-from enum import Enum
+from abc import ABC, abstractmethod
+from datetime import date, datetime
+from enum import StrEnum
 from pathlib import Path
-from typing import List
 
 import xarray as xr
-from fastapi import HTTPException
 from loguru import logger
+from pydantic import BaseModel
 
 from weather_provider_api.config import APP_STORAGE_FOLDER
-from weather_provider_api.core.initializers.exception_handling import (
-    NOT_IMPLEMENTED_ERROR,
-)
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.routers.weather.utils.date_helpers import strftime_to_regex
 
 
-class RepositoryUpdateResult(Enum):
-    failure = 0
-    completed = 1
-    timed_out = 2
+class RepoUpdateResult(StrEnum):
+    """Enum representing the result of a repository update."""
+
+    SUCCESS = "Update successful"
+    PARTIAL_SUCCESS = "Update partially successful"
+    FAILURE = "Update failed"
+    TIMEOUT = "Update timed out"
+
+class RepoDataFetchResult(StrEnum):
+    """Enum representing the result of a repository data fetch operation."""
+
+    SUCCESS = "Data fetch successful"
+    PARTIAL_SUCCESS = "Data fetch partially successful"
+    FAILURE = "Data fetch failed"
+    NO_DATA_AVAILABLE = "No data available for the specified parameters"
 
 
-class WeatherRepositoryBase(metaclass=ABCMeta):
-    """This is the base class for all weather data storage repositories. Any new repositories should implement this
-    as their base class.
-    All valid stored repository files are named as follows:
-    {file_prefix}_{file_identifier}.nc
-    or
-    {file_prefix}_{file_identifier}_{permanent_suffix}.nc
-    Any files found not matching this pattern shall be deleted as being temporary in nature.
+class WeatherRepositoryConfiguration(BaseModel):
+    """Configuration for the weather repository.
+
+    Args:
+        identifier (str):
+                Unique identifier for the repository.
+        storage_path (Path):
+                Path where the weather data will be stored.
+        storage_states (set[str], optional):
+                Set of states for which data should be stored. Defaults to an empty set.
+        maximum_runtime_seconds (float, optional):
+                Maximum allowed runtime for repository updates in seconds. Defaults to 2 hours.
+        temporal_file_identifier (str, optional):
+                Format string for temporal file identifiers. Defaults to "%Y%m%d_%H%M%S".
+        affiliated_source_and_model (tuple[str, str]):
+                Tuple containing the source and model name affiliated with this repository.
+        netcdf_time_encoding (str, optional):
+                Time encoding format for NetCDF files. Defaults to "hours since 2018-01-01 00:00:00".
     """
 
-    def __init__(self):
-        """Specification of required fields for a weather data storage repository:
-        - repository_folder:    Contains the folder where the repository will be saved. Is set inside a main
-                                repository folder, and based on a sub-folder passed by the repository itself
-                                through the _get_repo_subfolder() function.
-        - file_prefix:          Contains a string with the file_prefix to use for all files within the
-                                repository. Is set from the repository itself.
-        - runtime_limit:        Contains the maximum time the update function of the repository is allowed to be
-                                running, in seconds.
-        - first_day_of_repo:    Contains a datetime indicating the oldest moment allowed to be stored in the
-                                repository.
-        - last_day_of_repo:     Contains a datetime indicating the newest moment allowed to be stored in the
-                                repository.
-        - permanent_suffixes:   Contains a list of suffixes that can be added to the repository files to
-                                indicate that the file should not be deleted. Any file not matching the prefix
-                                or having a suffix not matching this list will be deleted upon cleanup.
-        - file_identifier_length:   This is the length in characters that the unique identifier part of the
-                                    filename takes up. Usually this is based on a datetime.
-        """
-        self.repository_folder = Path(APP_STORAGE_FOLDER).joinpath(self._get_repo_sub_folder())
-        self.repository_name = None
-        self.file_prefix = None
-        self.runtime_limit = 60 * 60 * 2  # seconds * minutes * hours (2 hours default)
-        self.permanent_suffixes = None
-        self.file_identifier_length = None
+    identifier: str
+    storage_path: Path
+    storage_states: set[str] = set()
+    maximum_runtime_seconds: float = 60 * 60 * 2  # Default: 2 hours
+    temporal_file_identifier: str = "%Y%m%d%H"
+    affiliated_source_and_model: tuple[str, str]
+    netcdf_time_encoding: str = "hours since 2018-01-01 00:00:00"
+
+
+class WeatherRepositoryBase(ABC):
+    """Base class for weather repositories."""
+
+    def __init__(self, config: WeatherRepositoryConfiguration):
+        """Initialize the repository."""
+        self.config = config
+        # Attach the default storage states to the configuration if not already set
+        self.config.storage_states.update(["raw", "processed"])
+
+        # Make sure the storage path exists
+        absolute_storage_path = self.absolute_storage_path
+        if not absolute_storage_path.exists():
+            absolute_storage_path.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Created storage directory at: {absolute_storage_path}")
 
     @property
-    def first_day_of_repo(self):
-        raise NotImplementedError()
+    def metadata(self) -> str:
+        """Get the metadata of the repository."""
+        return (
+            f"Repository Identifier: {self.identifier}\n"
+            f"Storage Path: {self.storage_path}\n"
+            f"Storage States: {', '.join(self.config.storage_states)}\n"
+            f"Maximum Runtime (seconds): {self.config.maximum_runtime_seconds}\n"
+            f"Temporal File Identifier: {self.config.temporal_file_identifier}\n"
+            f"Affiliated Source and Model: {self.source_and_model['source']} (( {self.source_and_model['model']} ))\n"
+            f"NetCDF Time Encoding: {self.config.netcdf_time_encoding}"
+        )
 
     @property
-    def last_day_of_repo(self):
-        raise NotImplementedError()
+    def identifier(self) -> str:
+        """Get the unique identifier for the repository."""
+        return self.config.identifier
 
-    @staticmethod
-    @abstractmethod
-    def _get_repo_sub_folder():
-        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
+    @property
+    def storage_path(self) -> Path:
+        """Get the path where the weather data will be stored."""
+        return self.config.storage_path
 
-    def _validate_repo_folder(self):
-        """This function checks whether the repository folder already exists (starting from its parent folder)
-        and creates it, if it (or its parent folder) don't exist yet.
-        """
-        if not Path(self.repository_folder).exists():  # If the folder doesn't exist yet, create it
-            logger.debug(f"Attempting to create folder[{self.repository_folder}]")
-            try:
-                # If the main folder for all repositories doesn't exist yet, create it
-                if not Path(self.repository_folder).parent.exists():
-                    Path(self.repository_folder).parent.mkdir()
-                Path(self.repository_folder).mkdir()
-            except OSError as e:
-                logger.error(f"An error occurred creating the directory: {e}")
-                raise e
+    @property
+    def absolute_storage_path(self) -> Path:
+        """Get the absolute path where the weather data will be stored."""
+        return APP_STORAGE_FOLDER / self.storage_path
 
-    def cleanup(self):
-        """This is the cleanup function for any Weather Repository.
-        Any files not matching the pattern required for the Repository shall be deleted.
-        """
-        self._validate_repo_folder()
-        logger.debug(f"Verifying existing files for {self.repository_name} in [{self.repository_folder}]")
+    @property
+    def source_and_model(self) -> dict[str, str]:
+        """Get the source and model name affiliated with this repository."""
+        return {
+            "source": self.config.affiliated_source_and_model[0],
+            "model": self.config.affiliated_source_and_model[1],
+        }
 
-        # Delete any files that aren't of a permanent type
-        self._delete_non_permanent_files()
+    @property
+    def oldest_date_available(self) -> date:
+        """Get the oldest date for which weather data is available in the repository."""
+        raise NotImplementedError("Subclasses must implement the oldest_date_available property.")
 
-        # First we delete any files that are too old or new to be valid
-        self._delete_files_outside_of_scope()
-
-        # Only one file may exist per month. Select the proper file to remain and remove any others
-        self._delete_excess_files()
+    @property
+    def newest_date_available(self) -> date:
+        """Get the newest date for which weather data is available in the repository."""
+        raise NotImplementedError("Subclasses must implement the newest_date_available property.")
 
     @abstractmethod
-    def update(self, test_mode: bool = False) -> RepositoryUpdateResult:
-        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
+    def update(self, *, run_in_testmode: bool = False) -> tuple[RepoUpdateResult, str]:
+        """Update the repository with new weather data up to the specified date.
 
-    def gather_period(self, begin: datetime, end: datetime, coordinates: List[GeoPosition]) -> xr.Dataset:
-        """A function that gathers the repository files associated with a requested period, and then returns the full
-            weather data that matches both that period as the requested locations from those files, as a Xarray Dataset
         Args:
-            begin:          A datetime holding the starting moment for the requested period to gather data for
-            end:            A datetime holding the ending moment for the requested period to gather data for
-            coordinates:    A list of GeoPositions holding the coordinates that the data request is for
+            run_in_testmode (bool, optional): Whether to run the update in test mode. Defaults to False.
+
         Returns:
-            A Xarray Dataset containing all the repository data that matches both the requested period, and
-            the requested coordinates.
+            RepoUpdateResult:
+                    The result of the update operation.
+            str:
+                    An optional message providing additional information about the update result.
         """
-        self.cleanup()
-        logger.debug(f"Gathering repository data for the period of {begin} to {end}")
-
-        # Get a list of files matching the requested period
-        file_list = self._get_file_list_for_period(begin, end)
-
-        if len(file_list) == 0:
-            logger.error(f"No files were found for the period of {begin} to {end}")
-            raise HTTPException(
-                404,
-                f"No data was found for the period of [{begin.date()}] to [{end.date()}] in "
-                f"repository [{self.repository_name}]. As this range lies within the repository's "
-                f"storage timeframe of [{self.first_day_of_repo}] to [{self.last_day_of_repo}], "
-                f"we suggest retrying in a couple of days. If still no data is found at that time,"
-                f"please contact us at [weather.provider@alliander.com].",
-            )
-
-        # Load files into datasets, select the requested data and aggregate that into a single dataset
-        ds = xr.Dataset()
-        for file in file_list:
-            logger.debug(f"Processing file: {file}")
-            ds_temp = xr.open_dataset(file).load()
-
-            ds_temp = self._filter_dataset_by_coordinates(coordinates, ds_temp)
-            if file == file_list[0]:
-                ds = ds_temp
-            else:
-                ds = ds.combine_first(ds_temp)
-        return ds
-
-    @staticmethod
-    def load_file(file: Path) -> xr.Dataset:
-        """A function that loads and returns the full data for a specific repository file as a Xarray Dataset
-        Args:
-            file:   The filename (in the Path format by PathLib) specifying the file to load
-        Returns:
-            An Xarray Dataset containing all the weather data held within the specified file.
-        """
-        if file.exists():
-            with xr.open_dataset(file) as ds:
-                ds.load()
-            return ds
-
-        # Raise a FileNotFoundError if the file doesn't exist
-        logger.error(f"File [{file!s} does not exist]")
-        raise FileNotFoundError
-
-    def purge_repository(self):
-        """Function to fully delete the repository's folder and create a new clean one. Use with care!"""
-        logger.warning(f"Purging the entire repository folder for {self.repository_name}!")
-        shutil.rmtree(self.repository_folder, ignore_errors=True)
-        self._validate_repo_folder()  # Rebuild the folder after deletion
-
-    def _delete_non_permanent_files(self):
-        """A function that deletes any and all files in the repository's folder that are not considered permanent in
-        nature. Only the files matching either repository files without a suffix or those with suffix listed in the
-        permanent_suffixes field are allowed.
-        Every other file should be deleted from the repository immediately.
-        """
-        # TODO: Enhance the detection of files that do not belong in the folder.
-        #       A repository folder should only have repository files..
-        len_filename_until_after_date = (
-            len(str(self.repository_folder.joinpath(self.file_prefix))) + self.file_identifier_length + 2
-        )
-        for file_name in glob.glob(str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"):
-            file_suffix = file_name[len_filename_until_after_date:-3]
-            if len(file_suffix) != 0 and file_suffix not in self.permanent_suffixes:
-                logger.debug(
-                    f"File [{file_name}] is not a permanent file for {self.repository_name} and needs to be deleted"
-                )
-                self._safely_delete_file(file_name)
+        raise NotImplementedError("Subclasses must implement the update method.")
 
     @abstractmethod
-    def _delete_files_outside_of_scope(self):
-        pass
+    def cleanup_storage(self) -> RepoUpdateResult:
+        """Clean up the storage by removing outdated or unnecessary data.
 
-    def _delete_excess_files(self):
-        """A function that selects the proper file to keep when more than one permanent file exists for a given
-        identifier. The other files are deleted.
+        Returns:
+            RepoUpdateResult:
+                    The result of the cleanup operation.
         """
-        len_filename_until_date = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
-        file_list = glob.glob(str(self.repository_folder.joinpath(self.file_prefix)) + "*.*")
-        identifier_list = list(
-            set(
-                [
-                    file[len_filename_until_date : len_filename_until_date + self.file_identifier_length]
-                    for file in file_list
-                ]
+        raise NotImplementedError("Subclasses must implement the cleanup_storage method.")
+
+    @abstractmethod
+    def retrieve_data(
+        self, from_date: date, to_date: date, locations: list[tuple[float, float]], factors: list[str]
+    ) -> tuple[xr.Dataset | None, RepoDataFetchResult]:
+        """Retrieve weather data for the specified date range.
+
+        Args:
+            from_date (date):
+                    The start date of the data retrieval range.
+            to_date (date):
+                    The end date of the data retrieval range.
+            locations (list[tuple[float, float]]):
+                    A list of WGS84 location coordinates (latitude, longitude) for which to retrieve weather data.
+            factors (list[str]):
+                    A list of weather factors to retrieve (e.g., temperature, precipitation).
+
+        Returns:
+            xr.Dataset | None:
+                    The retrieved weather data as an xarray Dataset, or None if no data is available.
+            RepoDataFetchResult:
+                    The result of the data fetch operation, indicating success, partial success, failure, 
+                    or no data available.
+        """
+        raise NotImplementedError("Subclasses must implement the retrieve_data method.")
+
+    def purge_repository(self, identifier: str) -> RepoUpdateResult:
+        """Permanently delete all data from the repository.
+
+        Args:
+            identifier (str):
+                    The unique identifier of the repository to be purged.
+
+        Returns:
+            RepoUpdateResult:
+                    The result of the purge operation.
+        """
+        # Verify that the provided identifier matches the repository's identifier to prevent accidental purging of the wrong repository
+        if identifier != self.identifier:
+            logger.error(
+                f"Identifier mismatch: provided '{identifier}' does not match repository identifier "
+                f"'{self.identifier}'. Purge operation aborted."
             )
-        )
+            return RepoUpdateResult.FAILURE  # Identifier mismatch, purge operation failed
 
-        for identifier in identifier_list:
-            files_with_specific_identifier = glob.glob(
-                str(self.repository_folder.joinpath(self.file_prefix)) + "_" + identifier + "*.nc"
-            )
-
-            if len(files_with_specific_identifier) > 1:
-                logger.debug(f"More than one file was found for identifier [{identifier}]")
-                file_to_retain = None
-                highest_ranking_suffix = None
-
-                for file in files_with_specific_identifier:
-                    suffix = file[len_filename_until_date + self.file_identifier_length + 1 : -3]
-
-                    if highest_ranking_suffix is None or suffix == "":
-                        highest_ranking_suffix = suffix
-                        file_to_retain = file
-
-                    # TEMP trumps INCOMPLETE because in the normal process incomplete files will always be replaced with
-                    # temporary files
-                    if highest_ranking_suffix == "INCOMPLETE" and suffix == "TEMP":
-                        highest_ranking_suffix = suffix
-                        file_to_retain = file
-
-                for file in files_with_specific_identifier:
-                    if file != file_to_retain:
-                        self._safely_delete_file(str(Path(file)))
-
-    @staticmethod
-    def _safely_delete_file(file: str):
-        """Basic function to safely remove files from the repository if possible, and supply errors if not"""
+        # Proceed with the purge operation if the identifier matches
         try:
-            logger.debug(f"Safely deleting file [{file}]")
-            Path(file).unlink()
+            # Implement the logic to permanently delete all data from the repository
+            # This is a placeholder implementation and should be replaced with actual deletion logic
+            logger.info(f"Purging repository '{self.identifier}' at path '{self.storage_path}'...")
+            shutil.rmtree(self.storage_path)  # Remove the entire storage directory and its contents
+            logger.info(f"Repository '{self.identifier}' purged successfully.")
+            return RepoUpdateResult.SUCCESS
+        except FileNotFoundError:
+            logger.warning(f"Repository '{self.identifier}' not found at path '{self.storage_path}'. Nothing to purge.")
+            return RepoUpdateResult.SUCCESS  # Consider it a success if the repository is already absent
+        except PermissionError as e:
+            logger.error(f"Permission error while purging repository '{self.identifier}': {e}")
+            return RepoUpdateResult.FAILURE  # Permission error, purge operation failed
         except OSError as e:
-            logger.error(f"Could not safely delete file: {e}")
-            raise OSError(f"Could not safely delete file: {file}")
-        return True
+            logger.error(f"OS error while purging repository '{self.identifier}': {e}")
+            return RepoUpdateResult.FAILURE  # OS error, purge operation failed
 
-    @abstractmethod
-    def _get_file_list_for_period(self, start: datetime, end: datetime):
-        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
-
-    def _filter_dataset_by_coordinates(self, coordinates: List[GeoPosition], ds: xr.Dataset) -> xr.Dataset:
-        """A function that filters a given Xarray Dataset down to the values matching a given list of locations.
-
-        This method matches requested coordinates to the nearest coordinates available in the dataset,
-        making it robust to grid changes over time.
+    @classmethod
+    def safely_delete_file(cls, file_path: Path) -> bool:
+        """Safely delete a file from the repository storage.
 
         Args:
-            coordinates:    A list of GeoPositions that the data is requested for.
-            ds:             An Xarray Dataset containing the data to be filtered.
+            file_path (Path): The path of the file to be deleted.
 
         Returns:
-            An Xarray Dataset containing only the weather data that matched the given list of coordinates.
+            bool: True if the file was successfully deleted, False otherwise.
         """
-        ds_selected = xr.Dataset()
+        try:
+            if file_path.is_file():
+                file_path.unlink()  # Delete the file
+                logger.info(f"File '{file_path}' deleted successfully.")
+                return True
 
-        for coordinate in coordinates:
-            # Get the WGS84 coordinates (latitude, longitude) for the requested location
-            lat_requested, lon_requested = coordinate.get_WGS84()
+            logger.warning(f"File '{file_path}' does not exist or is not a regular file. Deletion skipped.")
+            return False  # File does not exist or is not a regular file
+        except PermissionError as e:
+            logger.error(f"Permission error while deleting file '{file_path}': {e}")
+            return False  # Permission error, deletion failed
+        except OSError as e:
+            logger.error(f"OS error while deleting file '{file_path}': {e}")
+            return False  # OS error, deletion failed
 
-            # Use nearest neighbor method to find the closest grid point in the dataset
-            # This is more robust than rounding to a preset grid which may change over time
+    def _retrieve_files_matching_period(self, from_date: date, to_date: date) -> list[Path]:
+        """Helper method to retrieve files from the storage that match the specified date range.
+
+        Args:
+            from_date (date): The start date of the period for which to retrieve files.
+            to_date (date): The end date of the period for which to retrieve files.
+
+        Returns:
+            list[Path]: A list of file paths that match the specified date range.
+        """
+        # Implement the logic to retrieve files from the storage that match the specified date range
+        # This is a placeholder implementation and should be replaced with actual file retrieval logic
+        matching_files: list[Path] = []
+        for file in self.storage_path.glob("*.nc"):  # Assuming NetCDF files with .nc extension
+            # Extract the date from the filename using the temporal_file_identifier format
             try:
-                # Find the indices of the nearest coordinates in the dataset
-                lat_idx = (ds.coords["lat"] - lat_requested).argmin().item()
-                lon_idx = (ds.coords["lon"] - lon_requested).argmin().item()
+                file_date_str = file.stem  # Get the filename without extension
+                file_date: date = datetime.strptime(file_date_str, self.config.temporal_file_identifier).date()
+                if from_date <= file_date <= to_date:
+                    matching_files.append(file)
+            except ValueError:
+                logger.warning(f"Filename '{file.name}' does not match the expected date format. Skipping file.")
+                continue  # Skip files that do not match the expected date format
 
-                # Get the actual coordinate values from the dataset (not the requested values)
-                lat_nearest = ds.coords["lat"].values[lat_idx]
-                lon_nearest = ds.coords["lon"].values[lon_idx]
+        logger.info(f"Found {len(matching_files)} files matching the period from {from_date} to {to_date}.")
+        return matching_files
 
-                # Select using the actual coordinate values to preserve lat/lon dimensions
-                ds_single_coord = ds.sel(lat=lat_nearest, lon=lon_nearest)
+    @classmethod
+    def _filter_dataset(
+        cls, dataset: xr.Dataset, locations: list[tuple[float, float]], factors: list[str]
+    ) -> xr.Dataset:
+        """Helper method to filter the retrieved dataset based on the specified weather factors.
 
-                # Then append this to the result dataset
-                if len(ds_selected.data_vars) == 0:
-                    ds_selected = ds_single_coord
-                else:
-                    ds_selected = ds_selected.combine_first(ds_single_coord)
-            except (KeyError, ValueError, AttributeError, IndexError) as e:
-                # If nearest neighbor selection fails (e.g., dataset has no lat/lon coords),
-                # log a warning and continue
-                logger.warning(
-                    f"Could not find nearest coordinates for location ({lat_requested}, {lon_requested}): {e}"
+        Args:
+            dataset (xr.Dataset):
+                    The dataset to be filtered.
+            locations (list[tuple[float, float]]):
+                    A list of WGS84 location coordinates (latitude, longitude) to filter the dataset by.
+            factors (list[str]):
+                    A list of weather factors to retain in the dataset.
+
+        Returns:
+            xr.Dataset:
+                    The filtered dataset containing only the specified weather factors.
+        """
+        # Select only the specified factors from the dataset
+        factor_filtered_dataset = dataset[factors]  # Select only the specified factors from the dataset
+        logger.info(f"Filtered dataset to include only factors: {factors}.")
+
+        # Filter the dataset based on the specified locations
+        filtered_dataset: xr.Dataset | None = None
+        for location in locations:
+            lat, lon = location
+
+            if not filtered_dataset:
+                # For the first location, initialize the filtered dataset
+                filtered_dataset = factor_filtered_dataset.sel(latitude=lat, longitude=lon, method="nearest")
+            else:
+                filtered_dataset = xr.concat(
+                    [filtered_dataset, factor_filtered_dataset.sel(latitude=lat, longitude=lon, method="nearest")],
+                    dim="location",
                 )
-                continue
+            logger.info(f"Filtered dataset to include data for location: (latitude={lat}, longitude={lon}).")
 
-        return ds_selected
+        if not filtered_dataset:
+            logger.warning("No data available for the specified locations. Returning an empty dataset.")
+            filtered_dataset = (
+                xr.Dataset()
+            )  # Return an empty dataset if no data is available for the specified locations
 
-    @abstractmethod
-    def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
-        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
+        return filtered_dataset
+
+    def _extract_datetime_tag_from_file_name(self, file_name: str) -> str | None:
+        """Extract a datetime tag from the file name if it matches the expected format.
+
+        By transforming the temporal_file_identifier format string into a regular expression, 
+        this method checks if the file name contains a valid datetime tag and extracts it if present.
+
+        Arguments:
+            file_name:
+                    The name of the file from which to extract the datetime tag.
+
+        Returns:
+            str | None:
+                    The extracted datetime tag if it is present in the file name, None otherwise.
+        """
+        regex_pattern = strftime_to_regex(self.config.temporal_file_identifier)
+        match = re.search(regex_pattern, file_name)
+        if match:
+            return match.group(0)
+        
+        logger.warning(f"File [{file_name}] does not contain a valid datetime tag.")
+        return None

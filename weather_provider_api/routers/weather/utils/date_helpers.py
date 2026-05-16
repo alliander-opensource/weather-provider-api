@@ -1,7 +1,7 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -9,6 +9,7 @@ import pandas as pd
 from loguru import logger
 from starlette.exceptions import HTTPException
 
+_TWO_DIGITS_REGEX = r"\d{2}"
 
 def parse_datetime(
     datetime_string: str | None,
@@ -98,11 +99,28 @@ def validate_begin_and_end(
     return start, end
 
 
-def subtract_months(dt: datetime, months: int) -> datetime:
+def subtract_months(dt: date, months: int) -> date:
     """Subtract a number of months from a datetime, correctly handling year changes and varying month lengths."""
     year = dt.year
     month = dt.month - months
     while month <= 0:
         month += 12
         year -= 1
-    return dt.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
+    return dt.replace(year=year, month=month, day=1)
+
+
+def strftime_to_regex(fmt: str) -> str:
+    """Convert a strftime format string to a regex pattern."""
+    # Regex pattern for two digits
+    replacements = {
+        "%Y": r"\d{4}",
+        "%m": _TWO_DIGITS_REGEX,
+        "%d": _TWO_DIGITS_REGEX,
+        "%H": _TWO_DIGITS_REGEX,
+        "%M": _TWO_DIGITS_REGEX,
+        "%S": _TWO_DIGITS_REGEX,
+    }
+    regex = fmt
+    for k, v in replacements.items():
+        regex = regex.replace(k, v)
+    return regex

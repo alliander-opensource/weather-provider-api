@@ -6,15 +6,11 @@ from enum import Enum
 import pytest
 import xarray as xr
 
-from weather_provider_api.routers.weather import api_models
 from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
     WeatherContentRequestQuery,
 )
-from weather_provider_api.routers.weather.utils.serializers import (
-    file_response,
-    return_file_or_text_response,
-)
+from weather_provider_api.routers.weather.utils.serializers import return_file_or_text_response
 
 
 class MockResponseFormat(str, Enum):
@@ -23,7 +19,7 @@ class MockResponseFormat(str, Enum):
 
 @pytest.fixture()
 def mock_response_query(mock_factors: list[str]) -> WeatherContentRequestQuery:
-    result = WeatherContentRequestQuery("2020-01-01", "2020-02-02", 51.873419, 5.705929, mock_factors)
+    result = WeatherContentRequestQuery(begin="2020-01-01", end="2020-02-02", lat=51.873419, lon=5.705929, factors=mock_factors)
     return result
 
 
@@ -57,16 +53,3 @@ def test_file_or_text_response_forged_response_format(
             mock_coordinates,
         )
     assert str(e.value.args[0]) == "'mock_format' is not a valid ResponseFormat"
-
-    # TEST 2: Forged non-existing ResponseFormat should be intercepted by file_response
-    monkeypatch.setattr(api_models, "ResponseFormat", MockResponseFormat)
-    with pytest.raises(NotImplementedError) as e:
-        file_response(
-            "dummy/file/path",
-            api_models.ResponseFormat.mock_format,
-            "knmi",
-            "pluim",
-            mock_response_query,
-            ".nc",
-        )
-    assert str(e.value.args[0]) == "Cannot create file response for the mock_format response format"

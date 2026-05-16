@@ -6,8 +6,9 @@
 
 """Main Application."""
 
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
 from weather_provider_api.app_version import APP_VERSION

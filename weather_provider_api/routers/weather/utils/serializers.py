@@ -5,6 +5,7 @@ import tempfile
 from typing import Any
 
 import xarray as xr
+from loguru import logger
 from starlette.responses import FileResponse
 
 from weather_provider_api.routers.weather.api_models import (
@@ -44,7 +45,10 @@ def return_file_or_text_response(
     match response_format:
         case ResponseFormat.csv:
             # Implement CSV response or call the appropriate function
-            raise NotImplementedError("CSV response not implemented yet")
+            file_path = to_csv(patched_unserialized_data, coords)
+            mime = "text/csv"
+            extension = ".csv"
+            return file_response(file_path, mime, source_id, model_id, request, extension), file_path
         case ResponseFormat.json:
             return json_response(patched_unserialized_data, coords)
         case ResponseFormat.json_dataset:
@@ -54,16 +58,24 @@ def return_file_or_text_response(
             mime = "application/x-netcdf4"
             extension = ".v4.nc"
             return file_response(file_path, mime, source_id, model_id, request, extension), file_path
-
         case _:
             raise NotImplementedError(f"Cannot create response for the {response_format.name} response format")
 
-def file_response(file_path: str, mime: str, source_id: str, model_id: str, request: WeatherContentRequestQuery | WeatherContentRequestMultiLocationQuery, extension: str) -> FileResponse:
+
+def file_response(
+    file_path: str,
+    mime: str,
+    source_id: str,
+    model_id: str,
+    request: WeatherContentRequestQuery | WeatherContentRequestMultiLocationQuery,
+    extension: str,
+) -> FileResponse:
     """Create a FileResponse for the given file path, MIME type, and file name."""
     file_name = f"weather_{source_id}_{model_id}_{request.begin}-{request.end}{extension}".replace(" ", "T").replace(
         ":", ""
     )
     return FileResponse(file_path, media_type=mime, filename=file_name)
+
 
 def patch_unserialized_data(unserialized_data: xr.Dataset) -> xr.Dataset:
     """Patch the unserialized data to ensure it is in the correct format for response generation."""
@@ -94,6 +106,7 @@ def json_response(
         serialized_data.append(data_point)
     return ScientificJSONResponse(content=serialized_data), None
 
+
 def json_dataset_response(unserialized_data: xr.Dataset) -> tuple[ScientificJSONResponse, None]:
     """Convert the unserialized data to a JSON dataset response format."""
     serialized_data: dict[str, Any] = unserialized_data.to_dict()
@@ -112,22 +125,37 @@ def to_netcdf(unserialized_data: xr.Dataset, response_format: ResponseFormat) ->
         raise NotImplementedError(f"Unsupported NetCDF format: {response_format.name}")
     return file_path
 
+
 def to_csv(unserialized_data: xr.Dataset, coords: list[tuple[float, float]]) -> str:
     """Convert the unserialized data to a CSV file and return the file path."""
     csv_data: dict[str, Any] = {}
     columns: list[str] = []
+
     for i, coordinate in enumerate(coords):
         sliced_data = unserialized_data.sel(lat=coordinate[0], lon=coordinate[1], method="nearest")
 
-        # Extract variable names and values
+        # Convert to DataFrame and then to CSV string (without header)
+        df = sliced_data.to_dataframe().reset_index()
+        # Add lat/lon columns if not present
+        if "lat" not in df.columns:
+            df["lat"] = coordinate[0]
+        if "lon" not in df.columns:
+            df["lon"] = coordinate[1]
+        # Ensure 'time' is included if present
         if i == 0:
-            columns = list(sliced_data.data_vars)  # type: ignore
-            columns = ["lat", "lon", *columns]  # Attach lat and lon to the front of the columns list
+            # Start with all columns in the DataFrame
+            columns = list(df.columns)
+            # Ensure 'time', 'lat', 'lon' are at the front in order
+            for col in ["time", "lat", "lon"]:
+                if col in columns:
+                    columns.remove(col)
+            # Attach 'time', 'lat', 'lon' to the front
+            columns = [col for col in ["time", "lat", "lon"] if col in df.columns] + columns
 
-        coordinate_data_as_csv = sliced_data.to_csv(columns=columns, header=False, float_format="%.4f")
-        csv_data[serialize_coords(coordinate)] = coordinate_data_as_csv
-
-    columns = ["time", *columns]
+        # Reorder columns
+        df = df[[col for col in columns if col in df.columns]]
+        coordinate_data_as_csv = df.to_csv(index=False, header=False, float_format="%.4f")
+        csv_data[serialize_coords(coordinate)] = coordinate_data_as_csv.strip()
 
     # Construct the CSV content
     header = ",".join(columns)
@@ -139,6 +167,7 @@ def to_csv(unserialized_data: xr.Dataset, coords: list[tuple[float, float]]) -> 
         file_path = temp_file.name
 
     return file_path
+
 
 def serialize_coords(coord: tuple[float, float]) -> str:
     """Serialize the coordinates into a string format for use as a key in the CSV data dictionary."""

@@ -6,21 +6,11 @@ from typing import Annotated, List
 
 import accept_types  # type: ignore
 import numpy as np
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request, Response
 from loguru import logger
-from starlette.responses import FileResponse, Response
 
 from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
-from weather_provider_api.routers.weather.api_models import (
-    ResponseFormat,
-    ScientificJSONResponse,
-    WeatherContentRequestMultiLocationQuery,
-    WeatherContentRequestQuery,
-    WeatherFormattingRequestQuery,
-    WeatherModel,
-    WeatherSource,
-    result_mime_types,
-)
+from weather_provider_api.routers.weather.api_models import ResponseFormat, ScientificJSONResponse, WeatherContentRequestMultiLocationQuery, WeatherContentRequestQuery, WeatherFormattingRequestQuery, WeatherModel, WeatherSource, get_weather_content_request_query, get_weather_formatting_request_query, result_mime_types
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.base_models.source import WeatherSourceBase
 from weather_provider_api.routers.weather.controller import WeatherController
@@ -105,8 +95,8 @@ async def get_sync_weather(
     source_id: str,
     model_id: str,
     cleanup_tasks: BackgroundTasks,
-    ret_args: Annotated[WeatherContentRequestQuery, Depends()],
-    fmt_args: Annotated[WeatherFormattingRequestQuery, Depends()],
+    ret_args: Annotated[WeatherContentRequestQuery, Depends(get_weather_content_request_query)],
+    fmt_args: Annotated[WeatherFormattingRequestQuery, Depends(get_weather_formatting_request_query)],
     accept: Annotated[ResponseFormat, Depends(header_accept_type)],
 ) -> Response:  # pragma: no cover
     """Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.).

@@ -96,7 +96,7 @@ class WeatherAlert:
         elif status_code == 407:
             return province, "There was a proxy error while loading the page"
         else:
-            return province, "page proved inaccessible"
+            return province, "The page proved inaccessible"
 
     @staticmethod
     def _requests_retry_session(

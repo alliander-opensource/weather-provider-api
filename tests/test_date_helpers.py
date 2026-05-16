@@ -1,16 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime
 
 import pytest
-from fastapi import HTTPException
+from starlette.exceptions import HTTPException
 
 import weather_provider_api.routers.weather.utils.date_helpers as dh
-
 
 # The function time_unknown() isn't tested as it only verifies that no time may have been set in the datetime conversion
 # and that the datetime string didn't contain a colon.
@@ -38,12 +34,12 @@ import weather_provider_api.routers.weather.utils.date_helpers as dh
     ],
 )
 def test_parse_datetime(
-    test_datetime,
-    test_round_time,
-    test_round_days,
-    test_raise_errors,
-    test_loc,
-    test_result,
+    test_datetime: str,
+    test_round_time: bool,
+    test_round_days: bool,
+    test_raise_errors: bool,
+    test_loc: list[str] | None,
+    test_result: datetime,
 ):
     assert (
         dh.parse_datetime(
@@ -59,14 +55,15 @@ def test_parse_datetime(
 
 def test_parse_datetime_error_handling():
     with pytest.raises(HTTPException) as e:
-        assert dh.parse_datetime(
+        dh.parse_datetime(
             datetime_string="2019-01-0Z",
             round_missing_time_up=False,
             round_to_days=False,
             raise_errors=True,
-            loc="Oh no",
+            loc=["Oh no"],
         )
-    assert e is not None
+    assert e.value.status_code == 422
+    assert e.value.detail == "{'loc': ['Oh no'], 'msg': 'invalid datetime format', 'type': 'type_error.datetime'}"
 
     assert (
         dh.parse_datetime(
@@ -74,7 +71,7 @@ def test_parse_datetime_error_handling():
             round_missing_time_up=False,
             round_to_days=False,
             raise_errors=False,
-            loc="Oh no",
+            loc=["Oh no"],
         )
         is None
     )
@@ -85,32 +82,7 @@ def test_parse_datetime_error_handling():
             round_missing_time_up=False,
             round_to_days=False,
             raise_errors=False,
-            loc="Oh no",
+            loc=["Oh no"],
         )
         is None
     )
-
-
-"""
-@pytest.mark.parametrize("starting_date, ending_date, result", [
-    # VALIDATION TEST 1: Date range lies within scope. Expected results: identical to input
-    (datetime(2019, 4, 13), datetime(2019, 4, 18), (datetime(2019, 4, 13), datetime(2019, 4, 18))),
-    # VALIDATION TEST 2: Starting time before scope. Expected results: move start to repo start
-    (datetime(2019, 3, 1), datetime(2019, 3, 10), (datetime(2019, 3, 3), datetime(2019, 3, 10))),
-    # VALIDATION TEST 3: Ending time after scope. Expected results: move end to repo end
-    (datetime(2020, 3, 11), datetime(2020, 8, 12), (datetime(2020, 3, 11), datetime(2020, 8, 8))),
-    # VALIDATION TEST 4: Range before scope. Expected results: end at 7 days after starting time, start at starting time
-    (datetime(2019, 1, 1), datetime(2019, 1, 12), (datetime(2019, 3, 3), datetime(2019, 3, 10))),
-    # VALIDATION TEST 5: Range after scope. Expected results: end at ending time, start seven days before that
-    (datetime(2021, 1, 1), datetime(2021, 1, 12), (datetime(2020, 8, 1), datetime(2020, 8, 8))),
-    # VALIDATION TEST 6: No starting time. Expected results: starting time at 7 days before ending time
-    (None, datetime(2019, 4, 18), (datetime(2019, 4, 11), datetime(2019, 4, 18))),
-    # VALIDATION TEST 7: No ending time. Expected results: ending time at repo ending time
-    (datetime(2019, 4, 13), None, (datetime(2019, 4, 13), datetime(2020, 8, 8))),
-    # VALIDATION TEST 8: No times at all. Expected results: ending time at repo ending, starting time 7 days before that
-    (None, None, (datetime(2020, 8, 1), datetime(2020, 8, 8))),
-])
-def test_validate_begin_and_end(starting_date, ending_date, result):
-    # Testing assumes a repo starting date of 2019-03-03 and an ending date of 2020-08-08
-    assert dh.validate_begin_and_end(starting_date, ending_date, datetime(2019, 3, 3), datetime(2020, 8, 8)) == result
-"""  # Temporarily disabled due to fixes for this function

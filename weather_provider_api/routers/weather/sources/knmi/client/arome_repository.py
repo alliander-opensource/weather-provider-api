@@ -1,529 +1,559 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
-import glob
-import os
-import re
-import sys
-import tarfile
-import tempfile
-from datetime import datetime
-from pathlib import Path
-from typing import List, Tuple
 
-import cfgrib
-import numpy as np
-import pandas as pd
-import pytz
+import re
+from datetime import UTC, date, datetime
+from enum import StrEnum
+from importlib.util import find_spec
+from pathlib import Path
+
 import xarray as xr
-from dateutil.relativedelta import relativedelta
 from loguru import logger
 
 from weather_provider_api.routers.weather.repository.repository import (
-    RepositoryUpdateResult,
+    RepoDataFetchResult,
+    RepoUpdateResult,
     WeatherRepositoryBase,
+    WeatherRepositoryConfiguration,
 )
-from weather_provider_api.routers.weather.sources.knmi.client.knmi_downloader import (
-    KNMIDownloader,
+from weather_provider_api.routers.weather.sources.knmi.client.knmi_data_platform_downloader import (
+    KNMIDataPlatformDownloader,
 )
-from weather_provider_api.routers.weather.sources.knmi.knmi_factors import arome_factors
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-from weather_provider_api.routers.weather.utils.grid_helpers import (
-    round_coordinates_to_wgs84_grid,
+from weather_provider_api.routers.weather.sources.knmi.utils.knmi_arome_process_tar_file import (
+    process_knmi_arome_cy43_p1_tar_file_into_netcdf,
 )
+from weather_provider_api.routers.weather.utils.date_helpers import strftime_to_regex, subtract_months
+
+
+class AromeSuggestedFileHandling(StrEnum):
+    """Enum representing the update status of a file in the repository."""
+
+    LEAVE_AS_IS = "Leave the file as it is, no update needed"
+    DEPRECATE = "Deprecate the existing file in the repository and download the new file to replace it"
+    UPDATE_DEPRECATED = "Update the deprecated file in the repository"
+    UPDATE = "Update the file in the repository"
 
 
 class HarmonieAromeRepository(WeatherRepositoryBase):
-    """The Weather Repository class for the 'KNMI - Harmonie Arome' dataset"""
+    """Repository for the KNMI Harmonie Arome weather model."""
 
     def __init__(self):
-        # Pre-work
-        super().__init__()
-
-        self.repository_name = "KNMI Harmonie (Arome)"
-        logger.debug(f"Initialized {self.repository_name} repository")
-
-        # Repository settings
-        self.file_prefix = "AROME"
-        self.runtime_limit = 60 * 60 * 3  # 3 hours maximum runtime
-        self.permanent_suffixes = ["0000", "0600", "1200", "1800"]
-        self.dataset_name = "harmonie_arome_cy43_p1"
-        self.dataset_version = "1.0"
-        self.file_identifier_length = 13
-        self.time_encoding = "hours since 2018-01-01"  # Used to keep values usable for at least the upcoming decennium
-
-        # Verify if cfgrib is properly installed
-        try:
-            pass
-        except RuntimeError as e:
-            logger.warning(f"CFGRIB could not properly be initialized: {e}")
-            logger.warning(
-                "Due to problems with CFGRIB, this repository will only be able to access existing "
-                "data. The repository will not be able to update"
+        """Initialize the repository."""
+        super().__init__(
+            WeatherRepositoryConfiguration(
+                identifier="KNMI Harmonie Arome",
+                storage_path=Path("knmi/arome"),
+                storage_states={"raw", "processed", "deprecated"},
+                maximum_runtime_seconds=60 * 60 * 3,  # 3 hours
+                temporal_file_identifier="%Y%m%d%H",
+                affiliated_source_and_model=("knmi", "arome"),
             )
+        )
+        self.knmi_dataset_name = "harmonie_arome_cy43_p1"
+        self.knmi_dataset_version = "1.0"
+        self.knmi_data_platform_downloader = KNMIDataPlatformDownloader()
+        logger.info(f"Initialized {self.__class__.__name__} with configuration:\n{self.metadata}")
 
     @property
-    def repository_sub_folder(self):
-        return "AROME"
-
-    def _get_repo_sub_folder(self):
-        return self.repository_sub_folder
-
-    @property
-    def first_day_of_repo(self):
-        first_day_of_repo = datetime.utcnow() - relativedelta(years=3)  # Three years back
-        first_day_of_repo = first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)  # Start of day
-        return first_day_of_repo
+    def oldest_date_available(self) -> date:
+        """Return the oldest date for which data is available."""
+        oldest_datetime = subtract_months(datetime.now(UTC).date(), 36)  # Three years back
+        return oldest_datetime
 
     @property
-    def last_day_of_repo(self):
-        last_day_of_repo = datetime.utcnow().replace(minute=0, second=0, microsecond=0)  # Start of today
-        return last_day_of_repo
+    def newest_date_available(self) -> date:
+        """Return the newest date for which data is available."""
+        return date.today()
 
-    def update(self):
-        """The implementation of the WeatherRepository update function.
+    def update(self, *, run_in_testmode: bool = False) -> tuple[RepoUpdateResult, str]:
+        """Update the repository with new data."""
+        msg = f"Updating {self.identifier} repository"
+        if run_in_testmode:
+            msg += " (test mode)"
+        logger.info(msg)
 
-        This function gathers any new 'KNMI - Harmonie Arome' files and processes them into the repository. A
-         RepositoryUpdateResult object if returned indication success, time-out or failure.
+        # Check if the cfgrib library is installed before attempting to read any GRIB files
+        self._verify_cfgrib_installation()
+
+        # Determine which files can be updated
+        files_available_for_download: list[dict[str, str | int]] = self.get_files_available_for_download()
+
+        # Get a list of the currently already downloaded files in the repository
+        existing_files_in_repository = self.get_existing_files_in_repository()
+
+        update_result, update_details = self._process_file_updates(
+            available_files=files_available_for_download,
+            existing_files=existing_files_in_repository,
+            run_in_testmode=run_in_testmode,
+        )
+
+        return update_result, update_details
+
+    def _verify_cfgrib_installation(self) -> None:
+        """Verify that the cfgrib library is installed."""
+        if find_spec("cfgrib") is None:
+            error_msg = "The cfgrib library is required to read GRIB files. Please install it and verify it is working."
+            logger.error(error_msg)
+            raise ImportError(error_msg)
+
+    def get_files_available_for_download(self) -> list[dict[str, str | int]]:
+        """Determine which files could be updated via the KNMI Data Platform.
+
+        Return:
+            list[dict[str, str | int]]:
+                    A list of dictionaries containing information about the files that can be updated,
+                    including 'name' and 'size'.
+        """
+        # Placeholder implementation: In a real implementation, this would check the remote source for new files
+        kdp_downloader = KNMIDataPlatformDownloader()
+
+        # Retrieve the list of all available files for the relevant dataset and version from the KNMI Data Platform
+        all_files_available_on_knmi_data_platform = kdp_downloader.retrieve_file_and_size_list_for_dataset(
+            dataset_name=self.knmi_dataset_name,
+            dataset_version=self.knmi_dataset_version,
+        )
+
+        # Filter the list of files to those that match the targeted download pattern
+        filtered_file_list = self._filter_file_list_down_to_wanted_files(all_files_available_on_knmi_data_platform)
+
+        return filtered_file_list
+
+    def cleanup_storage(self) -> RepoUpdateResult:
+        """Clean up the storage by removing or archiving old or deprecated files."""
+        result = RepoUpdateResult.SUCCESS
+        for file in self.get_existing_files_in_repository():
+            file_path = Path(file["path"]) if isinstance(file["path"], str) else file["path"]
+            datetime_tag = self._extract_datetime_tag_from_file_name(file_name=str(file["name"]))
+            if datetime_tag is None:
+                self.safely_delete_file(file_path=file_path)
+                continue
+            file_date = datetime.strptime(datetime_tag, self.config.temporal_file_identifier).date()
+            if file_date < self.oldest_date_available or file_date > self.newest_date_available:
+                if not self.safely_delete_file(file_path=file_path):
+                    logger.error(f"Failed to delete file [{file_path}] that is outside the date range of interest.")
+                    result = RepoUpdateResult.FAILURE
+                elif result == RepoUpdateResult.SUCCESS:
+                    result = RepoUpdateResult.PARTIAL_SUCCESS
+        return result
+
+    def retrieve_data(
+        self, from_date: date, to_date: date, locations: list[tuple[float, float]], factors: list[str]
+    ) -> tuple[xr.Dataset | None, RepoDataFetchResult]:
+        """Retrieve data from the repository for the specified date range, locations, and factors."""
+        # We start by determining which files in the repository match the specified date range
+        required_files_for_data = self._retrieve_files_matching_period(from_date=from_date, to_date=to_date)
+
+        # Then we check each file for the requested factors and locations, and read the data from the file if it
+        # matches the request. If multiple files match the request, we combine the data from the files into a single
+        # Dataset and return it.
+        try:
+            filtered_dataset = self._gather_data_from_files_and_combine_into_dataset(
+                required_files_for_data, locations, factors
+            )
+        except Exception as e:
+            logger.error(f"An error occurred while retrieving data from the repository: {e}")
+            return None, RepoDataFetchResult.FAILURE
+
+        return filtered_dataset, RepoDataFetchResult.SUCCESS
+
+    def _filter_file_list_down_to_wanted_files(
+        self, file_list: list[dict[str, str | int]]
+    ) -> list[dict[str, str | int]]:
+        """Filter the list of files to those that match the expected download pattern.
+
+        Files only need to be downloaded when match the set time pattern (e.g., 00:00, 06:00, 12:00, 18:00) and are not
+          already present in the repository. They also need to be within the date range of interest
+          (between oldest_date_available and newest_date_available).
+
+        Arguments:
+            file_list:
+                    A list of dictionaries containing file information, including 'name' and 'size'.
+
+        Returns:
+            A filtered list of dictionaries containing only the files that match the expected download pattern.
 
         """
-        # Stop if cfgrib wasn't added into the system modules during boot.
-        if "cfgrib" not in sys.modules:
-            logger.error('CANNOT PERFORM UPDATE: No valid "cfgrib" installation available.')
-            logger.info('Please properly install "cfgrib" and restart the system to enable updates.')
-            quit()
+        filtered_filed: list[dict[str, str | int]] = []
 
-        # Cleanup the repository
-        self.cleanup()
-
-        logger.info(f"KNMI Arome Update - Storage in: {self.repository_folder} ")
-
-        # Configure initial settings for the update
-        start_of_update = datetime.utcnow()
-        no_of_items_processed = 0
-        average_seconds_per_item = 1500  # Assuming 25 minutes of processing time per month for the first item
-        forced_end_of_update = start_of_update + relativedelta(seconds=self.runtime_limit)
-
-        logger.info(f"Update of [{self.repository_name}] started")
-        logger.info(f"- A forced end time of [{forced_end_of_update}] was set.")
-
-        prediction_to_evaluate = self.get_most_recent_prediction_moment
-        download_folder = Path(tempfile.gettempdir()).joinpath(self.dataset_name)
-        knmi_downloader = KNMIDownloader(self.dataset_name, self.dataset_version, str(download_folder), True)
-        files_in_dataset = {item["filename"]: item["size"] for item in knmi_downloader.get_all_available_files()}
-
-        while prediction_to_evaluate >= self.first_day_of_repo:
-            if no_of_items_processed != 0:
-                average_seconds_per_item = (datetime.utcnow() - start_of_update).total_seconds() / no_of_items_processed
-
-            if forced_end_of_update < (datetime.utcnow() + relativedelta(seconds=average_seconds_per_item)):
-                logger.info(f"- Not enough time left to update before [{forced_end_of_update}]")
-                logger.info(f"Update of [{self.repository_name}] ended...")
-                return RepositoryUpdateResult.timed_out
-
-            if not self._prediction_already_available(prediction_to_evaluate):
-                logger.debug(f"- Gathering the prediction for: {prediction_to_evaluate}")
-                file_to_download = (
-                    f"HARM43_V1_P1_{prediction_to_evaluate.year}"
-                    f"{str(prediction_to_evaluate.month).zfill(2)}"
-                    f"{str(prediction_to_evaluate.day).zfill(2)}"
-                    f"{str(prediction_to_evaluate.hour).zfill(2)}.tar"
-                )
-
-                if file_to_download in files_in_dataset.keys():
-                    # File exists
-                    knmi_downloader.download_specific_file(file_to_download, files_in_dataset[file_to_download])
-                    self._process_downloaded_file(download_folder, file_to_download, prediction_to_evaluate)
-                    no_of_items_processed += 1
-                else:
-                    logger.info(
-                        f"The expected file [{file_to_download}] was not found within the KNMI dataset. "
-                        f"Moving on to the next file!"
-                    )
-            else:
-                logger.debug(f"The prediction for [{prediction_to_evaluate}] is already stored in the repository.")
-
-            prediction_to_evaluate -= relativedelta(hours=6)
-
-        logger.info(f"Update of [{self.repository_name}] ended...")
-        return RepositoryUpdateResult.completed
-
-    def _prediction_already_available(self, prediction_moment: datetime):
-        """Function to evaluate if a prediction is already available within the repository."""
-        if self.repository_folder.joinpath(
-            f"{self.file_prefix}_{prediction_moment.year}{str(prediction_moment.month).zfill(2)}"
-            f"{str(prediction_moment.day).zfill(2)}_{str(prediction_moment.hour).zfill(2)}00.nc"
-        ).exists():
-            return True
-
-        return False
-
-    def _process_downloaded_file(self, download_folder: Path, filename: str, prediction_time: datetime):
-        """The function that processes a number of downloaded files into repository files."""
-        stage = "Started unpacking files.."
-        try:
-            self._unpack_downloaded_file(download_folder, filename)
-            stage = "Files were unpacked"
-            self._convert_unpacked_data_to_netcdf4_files(download_folder, prediction_time)
-            stage = "Data was converted to NetCDF4"
-            self._fuse_hourly_netcdf4_files(download_folder, prediction_time)
-            stage = "NetCDF4 files were properly fused together"
-            self._clear_temp_folder(download_folder)
-        except Exception as e:
-            logger.warning(f"Processing did not get past stage: {stage}")
-            logger.warning(f"The downloaded data could not be properly downloaded: {e}")
-
-    @staticmethod
-    def _clear_temp_folder(download_folder: Path):
-        """A function that cleans up the temporary download folder to prevent issues with partially written files."""
-        logger.debug(f"Emptying the download folder: {download_folder}")
-        file_filter = f"{download_folder}/*.*" if str(download_folder)[-1] != "/" else f"{download_folder}*.*"
-        for existing_file in glob.glob(file_filter):
+        for file in file_list:
+            file_name: str = str(file["filename"])
+            # First we verify that the file name contains a date and time in the expected format, and extract
+            # the date and time from the file name
             try:
-                # Try to delete:
-                Path(existing_file).unlink()
-            except Exception as e:
-                logger.info(f"An error occurred while deleting the file [{existing_file}]: {e}")
-                logger.warning("There may be issues while updating using a file with an identical name...")
+                filename_datetime_part = self._extract_datetime_tag_from_file_name(file_name=file_name)
+                if not filename_datetime_part:
+                    logger.error(f"File name [{file_name}] does not contain a valid datetime tag and will be skipped.")
+                    continue
+                file_datetime = datetime.strptime(filename_datetime_part, self.config.temporal_file_identifier)
+            except ValueError:
+                logger.debug(f"File [{file_name}] does not match the expected temporal pattern and will be skipped.")
+                continue
 
-    @staticmethod
-    def _unpack_downloaded_file(download_folder: Path, file_name: str):
-        """The function that unpacks downloaded files to prediction files."""
-        logger.info(f"Unpacking file: {file_name}")
-        try:
-            tar = tarfile.open(download_folder.joinpath(file_name))
-            for member in tar.getmembers():
-                if member.isreg():  # Only process files
-                    member.name = os.path.basename(member.name)  # Remove the path to setting it to only the filename.
-                    tar.extract(member, download_folder)  # Extract the file to the download folder
-            tar.close()
-        except Exception as e:
-            logger.error(f"The tarfile [{file_name}] could not be unpacked!")
-            raise e
+            # Then we check if the file datetime is within the date range of interest
+            if not self.oldest_date_available <= file_datetime.date() <= self.newest_date_available:
+                logger.debug(f"File [{file_name}] is outside the date range of interest and will be skipped.")
+                continue
 
-    def _convert_unpacked_data_to_netcdf4_files(self, download_folder: Path, prediction_time: datetime):
-        """This function converts any unpacked data files into NetCDF4 files"""
-        try:
-            logger.debug("Import of cfgrib was successful")
-        except RuntimeError as e:
-            logger.error("CFGRIB was not properly installed. Cannot access GRIB files.")
-            raise e
+            # Finally we check if the file_datetime matches the expected time pattern (e.g., 00:00, 06:00, 12:00, 18:00)
+            if file_datetime.hour not in {0, 6, 12, 18}:
+                continue
 
-        grib_files_available = glob.glob(
-            str(download_folder.joinpath(f"HA43_N20_{prediction_time.strftime('%Y%m%d%H')}00_*_GB"))
-        )
+            # If the file passed all checks, we add it to the list of files to download
+            filtered_filed.append(file)
+        return filtered_filed
 
-        for grib_file in grib_files_available:
-            logger.debug(f"Processing GRIB file: {grib_file}")
-            self._convert_grib_file_to_NetCDF(Path(grib_file))
-
-        logger.info("All Partial datasets were successfully processed.")
-
-    def _convert_grib_file_to_NetCDF(self, grib_file: Path):
-        """A function that converts a Harmonie Arome GRIB-file into a NetCDF4 file
-
-        Args:
-            grib_file (Path):   The Path to the GRIB file to convert
+    def get_existing_files_in_repository(self) -> list[dict[str, str | Path]]:
+        """Get a set of the currently already downloaded files in the repository.
 
         Returns:
-            Nothing
+            list[dict[str, str | Path]]:
+                    A list of dictionaries containing information about the files that are already present in the
+                    repository, including 'name', 'datetime_tag', 'state', and 'path'.
 
         """
-        prediction_moment, predicted_hour = self._get_times_from_filename(grib_file.name)
-        grib_filestream = cfgrib.FileStream(str(grib_file))
-        file_dataset = xr.Dataset()
+        existing_files: list[dict[str, str | Path]] = []
 
-        for item in grib_filestream.items():
-            grib_message = item[1]
-            # We skip the rotated grid data of the first file in each file-set and only process the regular_ll grids.
-            if grib_message["gridType"] == "regular_ll":
-                (
-                    field_name,
-                    message_dataset,
-                ) = self._process_grib_message_to_message_dataset(
-                    grib_message=grib_message,
-                    prediction_moment=prediction_moment,
-                    predicted_hour=predicted_hour,
+        # List all files with .nc or .deprecated.nc suffixes
+        all_files_in_storage_folder = list(self.absolute_storage_path.glob("*.nc")) + list(
+            self.absolute_storage_path.glob("*.deprecated.nc")
+        )
+
+        for file in all_files_in_storage_folder:
+            file_path = Path(file)
+            file_name: str = file_path.name
+
+            # Remove both suffixes if present
+            if file_name.endswith(".deprecated.nc"):
+                base_name = file_name[: -len(".deprecated.nc")]
+                file_state = "deprecated"
+            elif file_name.endswith(".raw.nc"):
+                base_name = file_name[: -len(".raw.nc")]
+                file_state = "raw"
+            elif file_name.endswith(".nc"):
+                base_name = file_name[: -len(".nc")]
+                file_state = "processed"
+            else:
+                logger.warning(
+                    f"File [{file_name}] in repository does not have a recognized suffix and will be skipped."
                 )
-                if message_dataset:
-                    if not file_dataset:
-                        file_dataset = message_dataset
-                    else:
-                        file_dataset[field_name] = message_dataset[field_name]
+                continue
 
-        filename_to_save_to = Path(grib_file.parents[0]).joinpath(
-            f"{self.file_prefix}_{prediction_moment.year}{str(prediction_moment.month).zfill(2)}"
-            f"{str(prediction_moment.day).zfill(2)}_{str(prediction_moment.hour).zfill(2)}"
-            f"00_prediction_for_{str(predicted_hour).zfill(2)}00.nc"
-        )
+            # Extract the datetime tag (YYYYMMDD_HH00) from the base name
+            # The pattern is always preceded by an underscore and at the end of the base name
+            match = re.search(strftime_to_regex(self.config.temporal_file_identifier), base_name)
+            if match:
+                datetime_tag = match.group(0)
+            else:
+                logger.warning(f"File [{file_name}] does not contain a valid datetime tag and will be skipped.")
+                continue
 
-        file_dataset = file_dataset.unstack("coord")
-        file_dataset.time.encoding["units"] = "hours since 2018-01-01"
+            existing_files.append(
+                {"name": base_name, "datetime_tag": datetime_tag, "state": file_state, "path": file_path}
+            )
 
-        file_dataset.to_netcdf(path=filename_to_save_to, format="NETCDF4")
-        logger.info(f"Saved partial dataset as: {filename_to_save_to}")
+        return existing_files
 
-    def _process_grib_message_to_message_dataset(
+    def _process_file_updates(
         self,
-        grib_message: cfgrib.Message,
-        prediction_moment: datetime,
-        predicted_hour: int,
-    ) -> (str, xr.Dataset):
-        """Args:
-            grib_message (grib.Message):    A GRIB message holding the data to process
-            prediction_moment (datetime):   The datetime moment the data was generated
-            predicted_hour (int):           The hour it is predicting
+        available_files: list[dict[str, str | int]],
+        existing_files: list[dict[str, str | Path]],
+        run_in_testmode: bool,
+    ) -> tuple[RepoUpdateResult, str]:
+        """Process the file updates by determining which files need to be updated and performing the necessary updates.
+
+        Arguments:
+            available_files:
+                    A list of dictionaries containing information about the files that can be updated,
+                    including 'name' and 'size'.
+            existing_files:
+                    A list of dictionaries containing information about the files that are already present in the
+                    repository, including 'name' and 'state'.
+            run_in_testmode:
+                    A boolean indicating whether the update is being run in test mode. If True, no actual downloading
+                    or file operations will be performed.
 
         Returns:
-            (str, xarray.Dataset): A string holding the parameter name and a Xarray Dataset holding the data that was
-            converted a dataset.
-
+            RepoUpdateResult:
+                    An enum indicating the result of the update operation 
+                    (e.g., SUCCESS, FAILURE, NO_UPDATES_AVAILABLE).
+            str:
+                    A message providing additional details about the update result.
         """
-        # Gather the message's level type and the level it was set to
-        msg_level_type = "_".join(re.findall("[A-Z][^A-Z]*", grib_message["typeOfLevel"])).lower()
-        msg_level = grib_message["level"]
+        update_result = RepoUpdateResult.SUCCESS
+        update_message = "File updates processed successfully."
+        processed_files_count = 0
+        successfully_processed_files_count = 0
 
-        # Process the supported factors
-        parameter_name = grib_message["parameterName"]
-        if parameter_name in arome_factors:
-            field_name = arome_factors[parameter_name]
+        # Step through each available file and determine if it needs to be (re-)downloaded and processed
+        for file in available_files:
+            datetime_tag_for_file = self._extract_datetime_tag_from_file_name(file_name=str(file["filename"]))
 
-            if arome_factors[parameter_name][0] == "_":
-                # Add level unit to the name if needed
-                field_name = f"{grib_message['stepType']}{field_name}"
-        else:
-            field_name = f"unknown_code_{grib_message['parameterName']}"
+            existing_files_with_same_datetime_tag = [
+                existing_file
+                for existing_file in existing_files
+                if existing_file["datetime_tag"] == datetime_tag_for_file
+            ]
 
-        # Add level information
-        if msg_level == 0 and msg_level_type == "above_ground":
-            field_name = f"surface_{field_name}"
-        else:
-            field_name = f"{msg_level}m_{msg_level_type}_{field_name}"
+            file_update_result = self._process_file_update(file, existing_files_with_same_datetime_tag, run_in_testmode)
 
-        # Prepare data for dataset creation
-        field_name = field_name.strip()  # Strip any excess spaces
-        lats, lons = self._build_lat_lon_grid(grib_message)  # Get the dimensions of the message
-        field_values = np.reshape(grib_message["values"], len(lats) * len(lons))
+            processed_files_count += 1
+            if file_update_result == RepoUpdateResult.SUCCESS:
+                successfully_processed_files_count += 1
+            elif file_update_result == RepoUpdateResult.FAILURE:
+                logger.error(f"Failed to process file [{file['filename']}].")
+                update_result = RepoUpdateResult.PARTIAL_SUCCESS
 
-        data_dict = {field_name: (["time", "coord"], [field_values])}
-        predicted_moment = np.datetime64((prediction_moment + relativedelta(hours=predicted_hour))).astype(
-            "datetime64[ns]"
+            if processed_files_count > 2 and successfully_processed_files_count / processed_files_count < 0.5:
+                update_result = RepoUpdateResult.FAILURE
+                update_message = (
+                    "More than 50% of the available files could not be processed successfully, which "
+                    "may indicate an issue with the update process. Please check the logs for more "
+                    "details."
+                )
+                break
+
+        if update_result == RepoUpdateResult.PARTIAL_SUCCESS:
+            update_message = (
+                f"Some files could not be processed successfully. {successfully_processed_files_count} "
+                f"out of {processed_files_count} files were processed successfully. Please check the "
+                "logs for more details."
+            )
+
+        return update_result, update_message
+
+    def _process_file_update(
+        self,
+        file: dict[str, str | int],
+        existing_files_with_same_datetime_tag: list[dict[str, str | Path]],
+        run_in_testmode: bool,
+    ) -> RepoUpdateResult:
+        """Process a single file update by determining if it needs an update and performing the update operations.
+
+        Arguments:
+            file:
+                    A dictionary containing information about the file that can be updated, including 'filename' and 'size'.
+            existing_files_with_same_datetime_tag:
+                    A list of dictionaries containing information about the files that are already present in the
+                     repository and have the same datetime tag as the file being processed, including
+                     'name' and 'state'.
+            run_in_testmode:
+                    A boolean indicating whether the update is being run in test mode. If True, no actual downloading
+                     or file operations will be performed.
+
+        Returns:
+            RepoUpdateResult:
+                    An enum indicating the result of the file update operation (e.g., SUCCESS, FAILURE).
+        """
+        # First we determine the suggested file handling action based on the existing files with the same datetime tag
+        if run_in_testmode:
+            logger.info(
+                f"Test mode: Simulating processing of file [{file['name']}]. "
+                "No actual download or file operations will be performed."
+            )
+            return RepoUpdateResult.SUCCESS
+
+        suggested_file_handling = self._determine_suggested_file_handling(file, existing_files_with_same_datetime_tag)
+
+        if suggested_file_handling == AromeSuggestedFileHandling.LEAVE_AS_IS:
+            logger.info(f"File [{file['filename']}] is already present in the repository and does not require an update.")
+            return RepoUpdateResult.SUCCESS
+
+        if suggested_file_handling == AromeSuggestedFileHandling.DEPRECATE:
+            # Rename the existing file to deprecate it
+            for existing_file in existing_files_with_same_datetime_tag:
+                if existing_file["state"] == "processed":
+                    self._deprecate_existing_file(existing_file["path"])  # type: ignore
+            return RepoUpdateResult.SUCCESS
+
+        if suggested_file_handling in {AromeSuggestedFileHandling.UPDATE, AromeSuggestedFileHandling.UPDATE_DEPRECATED}:
+            download_url, _ = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
+                dataset_name=self.knmi_dataset_name,
+                dataset_version=self.knmi_dataset_version,
+                file_name=str(file["filename"]),
+            )
+            tar_file: Path = self.knmi_data_platform_downloader.retrieve_file(
+                file_name=str(file["filename"]),
+                file_size=int(file["size"]),
+                download_url=download_url,
+            )
+
+            try:
+                process_knmi_arome_cy43_p1_tar_file_into_netcdf(
+                    tar_file_path=tar_file,
+                    target_netcdf_file_path=self.absolute_storage_path,
+                    target_netcdf_file_name=f"{self.source_and_model['source']}_{self.source_and_model['model']}_{self._extract_datetime_tag_from_file_name(file_name=str(file['filename']))}.nc",
+                    datetime_tag=str(self._extract_datetime_tag_from_file_name(file_name=str(file["filename"]))),
+                )
+            except Exception as e:
+                logger.error(f"An error occurred while processing file [{file['filename']}]: {e}")
+                return RepoUpdateResult.FAILURE
+
+        return RepoUpdateResult.SUCCESS
+
+    def _determine_suggested_file_handling(
+        self, file: dict[str, str | int], existing_files_with_same_datetime_tag: list[dict[str, str | Path]]
+    ) -> AromeSuggestedFileHandling:
+        """Determine the suggested file handling action based on the existing files with the same datetime tag.
+
+        Arguments:
+            file:
+                    A dictionary containing information about the file that can be updated, including 'name' and 'size'.
+            existing_files_with_same_datetime_tag:
+                    A list of dictionaries containing information about the files that are already present in the
+                     repository and have the same datetime tag as the file being processed,
+                     including 'name', 'state', and 'path'.
+
+        Returns:
+            AromeSuggestedFileHandling:
+                    An enum indicating the suggested file handling action
+                     (e.g., LEAVE_AS_IS, DEPRECATE, UPDATE_DEPRECATED, UPDATE).
+        """
+        if len(existing_files_with_same_datetime_tag) == 0:
+            logger.info(
+                f"No existing file with the same datetime tag as file [{file['filename']}] was found in the repository. "
+                "The file can be downloaded and added to the repository without deprecating any existing files."
+            )
+            return AromeSuggestedFileHandling.UPDATE
+
+        if len(existing_files_with_same_datetime_tag) != 1:
+            logger.warning(
+                f"Multiple existing files with the same datetime tag as file [{file['filename']}] were found in the "
+                "repository. This is unexpected and may indicate an issue with the repository state. The file will "
+                "be left as is to avoid potential data integrity issues, but the repository state should be "
+                "investigated and cleaned up if necessary."
+            )
+            return AromeSuggestedFileHandling.LEAVE_AS_IS
+
+        if existing_files_with_same_datetime_tag[0]["state"] == "deprecated":
+            # An existing deprecated file with the same datetime tag is present, so if a new non-deprecated file with
+            # the same datetime tag is available, we can update the deprecated file with the new file
+            _, deprecation_message = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
+                dataset_name=self.knmi_dataset_name,
+                dataset_version=self.knmi_dataset_version,
+                file_name=str(file["filename"]),
+            )
+            if deprecation_message:
+                logger.warning(
+                    f"File [{file['filename']}] is available for download and can be used to update the existing "
+                    f"deprecated file with the same datetime tag, but a deprecation message was found: "
+                    f"{deprecation_message}. The file will be left as is to avoid potential data integrity issues, "
+                    "but the deprecation message should be investigated to determine if the file can be updated or "
+                    "if the deprecation message indicates an issue with the file."
+                )
+                return AromeSuggestedFileHandling.LEAVE_AS_IS
+            logger.info(
+                f"File [{file['filename']}] is available for download and can be used to update the existing deprecated "
+                "file with the same datetime tag. The existing deprecated file will be updated with the new file."
+            )
+            return AromeSuggestedFileHandling.UPDATE_DEPRECATED
+
+        if existing_files_with_same_datetime_tag[0]["state"] == "processed":
+            # A processed file exists and can be left as is unless the file has since been labeled as deprecated.
+            _, deprecation_message = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
+                dataset_name=self.knmi_dataset_name,
+                dataset_version=self.knmi_dataset_version,
+                file_name=str(file["filename"]),
+            )
+            if deprecation_message:
+                logger.warning(
+                    f"File [{file['filename']}] is available for download and has the same datetime tag as an existing "
+                    f"processed file in the repository, but a deprecation message was found: {deprecation_message}. "
+                    "The existing file will be deprecated."
+                )
+                return AromeSuggestedFileHandling.DEPRECATE
+
+            logger.info(
+                f"File [{file['filename']}] is available for download and has the same datetime tag as an existing "
+                "processed file in the repository, but no deprecation message was found. The existing file will be "
+                "left as is to avoid potential data integrity issues, but the file and its metadata should be "
+                "investigated to determine if the file can be updated or if there are any issues with the file."
+            )
+            return AromeSuggestedFileHandling.LEAVE_AS_IS
+
+        logger.warning(
+            f"File [{file['filename']}] is available for download and has the same datetime tag as an existing file in "
+            f"the repository with an unexpected state [{existing_files_with_same_datetime_tag[0]['state']}]. The "
+            "file will be updated in an attempt to fix the repository state."
         )
+        return AromeSuggestedFileHandling.UPDATE
 
-        dataset_coords = {
-            "time_of_prediction": [prediction_moment],
-            "time": [predicted_moment],
-            "coord": pd.MultiIndex.from_product([lats, lons], names=["lat", "lon"]),
-        }
+    def _gather_data_from_files_and_combine_into_dataset(
+        self,
+        required_files_for_data: list[Path],
+        locations: list[tuple[float, float]],
+        factors: list[str],
+    ) -> xr.Dataset | None:
+        """Gather data from the required files and combine it into a single Dataset.
 
-        message_dataset = xr.Dataset(data_vars=data_dict, coords=dataset_coords)
-        message_dataset.time.encoding["units"] = self.time_encoding
-
-        return field_name, message_dataset
-
-    @property
-    def get_most_recent_prediction_moment(self):
-        """Return the most recent prediction moment, based the current time in the Netherlands
-
-        Returns:
-            A datetime holding the most recent available prediction moment
-
+        Arguments:
+            required_files_for_data:
+                    A list of Path objects representing the files that match the specified date range.
+            locations:
+                    A list of tuples containing the latitude and longitude of the locations for which data is requested.
+            factors:
+                    A list of strings representing the factors to be included in the dataset.
         """
-        knmi_lag_time = 5  # There is a known 5-hour calculation lag to take into account
+        combined_dataset: xr.Dataset | None = None
 
-        # Determine the current CET time (the KNMI works from the Netherlands, and this project from UTC)
-        time_cet = self.last_day_of_repo.astimezone(pytz.timezone("Europe/Amsterdam"))
-        time_cet += time_cet.utcoffset()  # We add the UTC offset to change the actual values to those hours
-        time_cet = time_cet.replace(tzinfo=None, microsecond=0)  # Finish formatting
-
-        time_cet -= relativedelta(hours=knmi_lag_time)  # Subtract the KNMI lag
-        rounded_hour = (time_cet.hour // 6) * 6  # Get the nearest preceding hours divisible by six
-        time_cet = time_cet.replace(hour=rounded_hour, minute=0, second=0)
-        return time_cet
-
-    def _fuse_hourly_netcdf4_files(self, download_folder: Path, prediction_moment: datetime):
-        """Args:
-            download_folder:
-            prediction_moment:
-
-        Returns:
-
-        """
-        logger.info(f"Starting merge of all files for: {prediction_moment}")
-        existing_prediction_files = sorted(glob.glob(str(Path(download_folder).joinpath(f"{self.file_prefix}*.nc"))))
-
-        fused_dataset = None
-
-        for prediction_file in existing_prediction_files:
-            logger.debug(f"- Starting merge of: {prediction_file}")
-            with xr.open_dataset(prediction_file) as prediction_file_dataset:
-                prediction_file_dataset.load()
-                if not fused_dataset:
-                    fused_dataset = prediction_file_dataset
+        for file in required_files_for_data:
+            try:
+                dataset: xr.Dataset = xr.open_dataset(file, engine="netcdf4", mode="r")  # type: ignore
+                filtered_dataset = self._filter_dataset_by_locations_and_factors(dataset, locations, factors)
+                if combined_dataset is None:
+                    combined_dataset = filtered_dataset
                 else:
-                    fused_dataset = xr.merge([fused_dataset, prediction_file_dataset], compat="no_conflicts")
+                    combined_dataset = xr.concat([combined_dataset, filtered_dataset], dim="time")
+            except Exception as e:
+                logger.error(f"An error occurred while reading file [{file}]: {e}")
+                raise e
 
-        filename_to_save_to = self.repository_folder.joinpath(
-            f"{self.file_prefix}_{prediction_moment.year}{str(prediction_moment.month).zfill(2)}"
-            f"{str(prediction_moment.day).zfill(2)}_{str(prediction_moment.hour).zfill(2)}00.nc"
-        )
+        if not combined_dataset:
+            logger.warning("No data could be read from the required files. Returning None.")
+            return None
+        return combined_dataset
 
-        logger.debug(f"- Saving prediction [{prediction_moment}] to: {filename_to_save_to}")
+    def _filter_dataset_by_locations_and_factors(
+        self, dataset: xr.Dataset, locations: list[tuple[float, float]], factors: list[str]
+    ) -> xr.Dataset:
+        """Filter the dataset based on the requested locations and factors.
 
-        encoding = {v: {"zlib": True, "complevel": 4} for v in fused_dataset.variables}
-        fused_dataset.to_netcdf(filename_to_save_to, format="NETCDF4", engine="netcdf4", encoding=encoding)
-
-    @staticmethod
-    def _build_lat_lon_grid(
-        grib_message: cfgrib.Message,
-    ) -> Tuple[List[float], List[float]]:
-        """This function uses an existing GRIB file to extract the dimensions of the 'regular_ll' grid and format
-         those into a list of latitudes and a list of longitudes that together make up the grid.
-
-        Args:
-            grib_message:  The GRIB file to use to
-
-        Returns:
-            Tuple[List[float], List[float]]: Two lists of float values, the first holding latitudes, and the second
-                                              longitudes
-
-        """
-        # Try to import cfgrib and raise an error if it isn't properly installed.
-        # Set the boundaries
-        minimum_latitude = float(grib_message["latitudeOfFirstGridPointInDegrees"])
-        maximum_latitude = float(grib_message["latitudeOfLastGridPointInDegrees"])
-
-        minimum_longitude = float(grib_message["longitudeOfFirstGridPointInDegrees"])
-        maximum_longitude = float(grib_message["longitudeOfLastGridPointInDegrees"])
-
-        # And the step value needed to get all the inbetween values
-        step_for_latitude = int(grib_message["jDirectionIncrement"])
-        step_for_longitude = int(grib_message["iDirectionIncrement"])
-
-        # Build the lists
-        latitudes = list(
-            range(  # We add the step-value to the max-value to include it itself.
-                int(minimum_latitude * 1_000),
-                int(maximum_latitude * 1_000 + step_for_latitude),
-                step_for_latitude,
-            )
-        )
-        longitudes = list(
-            range(  # We add the step-value to the max-value to include it itself.
-                int(minimum_longitude * 1_000),
-                int(maximum_longitude * 1_000 + step_for_longitude),
-                step_for_longitude,
-            )
-        )
-
-        latitudes = [x / 1_000 for x in latitudes]
-        longitudes = [y / 1_000 for y in longitudes]
-
-        return latitudes, longitudes
-
-    @staticmethod
-    def _get_times_from_filename(filename: str) -> Tuple[datetime, int]:
-        """This function extracts the timeframe a file represents from its name and translates that into the datetime
-         that the prediction was made, and the exact hour it represents of that prediction.
-
-        Args:
-            filename:   The filename to parse
+        Arguments:
+            dataset:
+                    An xarray Dataset containing the data read from a file.
+            locations:
+                    A list of tuples containing the latitude and longitude of the locations for which data is requested.
+            factors:
+                    A list of strings representing the factors to be included in the dataset.
 
         Returns:
-            A datetime and an int value indicating the prediction datetime and the predicted hour respectively
-
+            An xarray Dataset containing only the data for the requested locations and factors.
         """
+        # We start by filtering for locations
+        latitudes = [location[0] for location in locations]
+        longitudes = [location[1] for location in locations]
+        location_trimmed_dataset = dataset.sel(latitude=latitudes, longitude=longitudes, method="nearest")
+
+        # Then we filter for factors
+        available_factors = set(dataset.data_vars.keys())
+        factors_to_keep = [factor for factor in factors if factor in available_factors]
+        factor_trimmed_dataset = location_trimmed_dataset[factors_to_keep]
+
+        return factor_trimmed_dataset
+
+    def _deprecate_existing_file(self, filename: Path) -> RepoUpdateResult:
+        """Deprecate the existing file by renaming it with a .deprecated.nc suffix.
+
+        Arguments:
+            filename:
+                    The name of the file to be deprecated.
+        """
+        existing_file_path = self.config.storage_path / filename
+        deprecated_file_path = self.config.storage_path / f"{filename.stem}.deprecated{filename.suffix}"
         try:
-            prediction_year = int(filename[9:13])
-            prediction_month = int(filename[13:15])
-            prediction_day = int(filename[15:17])
-            prediction_hour = int(filename[17:19])
-
-            predicted_hour = int(filename[-7:-5])
+            existing_file_path.rename(deprecated_file_path)
+            logger.info(f"File [{existing_file_path}] has been deprecated and renamed to [{deprecated_file_path}].")
         except Exception as e:
-            raise ValueError(f"Could not properly obtain the prediction from the title of the file: {filename} [{e}]")
+            logger.error(f"An error occurred while deprecating file [{existing_file_path}]: {e}")
+            return RepoUpdateResult.FAILURE
 
-        prediction_moment = datetime(
-            year=prediction_year,
-            month=prediction_month,
-            day=prediction_day,
-            hour=prediction_hour,
-        )
-        logger.debug(
-            f"File [{filename}] was parsed to prediction moment and hour: [{prediction_moment}],[{predicted_hour}]"
-        )
-        return prediction_moment, predicted_hour
-
-    def _delete_files_outside_of_scope(self):
-        """The function that delete all out-of-scope files.
-
-        This means that any file that does no longer exist within scope (either by existing before it, or by existing
-         past it) will be removed.
-
-        Returns:
-            Nothing.
-
-        Raises:
-
-
-        """
-        counter_until_date_in_filename = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
-
-        for file_name in glob.glob(f"{self.repository_folder.joinpath(self.file_prefix)}*.nc"):
-            file_date = datetime(
-                year=int(file_name[counter_until_date_in_filename : counter_until_date_in_filename + 4]),
-                month=int(file_name[counter_until_date_in_filename + 4 : counter_until_date_in_filename + 6]),
-                day=int(file_name[counter_until_date_in_filename + 6 : counter_until_date_in_filename + 8]),
-                hour=0,
-                minute=0,
-                second=0,
-                microsecond=0,
-            ).date()
-
-            if file_date < self.first_day_of_repo.date() or file_date > self.last_day_of_repo.date():
-                logger.debug(f"The current scope is [{self.first_day_of_repo.date()}-{self.last_day_of_repo.date()}]")
-                logger.debug(f"The file [{file_name}] resolved to [{file_date}], which lies out of scope.")
-                logger.debug(f"The file [{file_name}] will therefor be deleted.")
-
-                self._safely_delete_file(file_name)
-
-    def _get_file_list_for_period(self, start: datetime, end: datetime) -> List[Path]:
-        """This function creates a list of the files associated with the requested timeframe.
-
-        Args:
-            start (datetime):    The start of the timeframe to use
-            end (datetime):       The end of the timeframe to use
-
-        Returns:
-            List[Path]: A list of the files associated with the given timeframe
-
-        """
-        logger.debug(f"Finding files for the timeframe: [({start})-({end})]")
-        logger.debug(f"Searching folder: [{self.repository_folder}]")
-        counter_until_date_in_filename = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
-
-        list_of_all_netcdf4_files_in_repo = glob.glob(str(self.repository_folder.joinpath(f"{self.file_prefix}*.nc")))
-        list_of_files_in_timeframe = []
-
-        for file_name in list_of_all_netcdf4_files_in_repo:
-            file_date = datetime(
-                year=int(file_name[counter_until_date_in_filename : counter_until_date_in_filename + 4]),
-                month=int(file_name[counter_until_date_in_filename + 4 : counter_until_date_in_filename + 6]),
-                day=int(file_name[counter_until_date_in_filename + 6 : counter_until_date_in_filename + 8]),
-                hour=0,
-                minute=0,
-                second=0,
-                microsecond=0,
-            ).date()
-
-            # Add to the list if within the timeframe
-            if start.date() <= file_date <= end.date():
-                list_of_files_in_timeframe.append(Path(file_name))
-
-        return list_of_files_in_timeframe
-
-    def get_grid_coordinates(self, coordinates: List[GeoPosition]) -> List[GeoPosition]:
-        """Rounds a list of GeoPositions to the resolution set through grid_resolution"""
-        return round_coordinates_to_wgs84_grid(coordinates, (0.023, 0.037), (49, 0))
+        return RepoUpdateResult.SUCCESS

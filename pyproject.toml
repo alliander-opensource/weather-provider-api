@@ -31,7 +31,8 @@ dependencies = [
 "urllib3 (>=2.6.3,<3.0.0)",
 "requests (>=2.33.1,<3.0.0)",
 "gunicorn (>=25.3.0,<26.0.0)",
-"cdsapi (>=0.7.7,<0.8.0)"
+"cdsapi (>=0.7.7,<0.8.0)",
+"dask (>=2026.3.0,<2027.0.0)"
 ]
 
 [project.scripts]
