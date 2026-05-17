@@ -1,27 +1,19 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 """KNMI current weather data aggregate fetcher."""
 
 import copy
-from datetime import datetime
-from typing import List, Optional
+from datetime import UTC, datetime, timedelta
 
-import numpy as np
 import xarray as xr
-from dateutil.relativedelta import relativedelta
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.client.actuele_waarnemingen_register_repository import (
     ActueleWaarnemingenRegisterRepository,
 )
 from weather_provider_api.routers.weather.sources.knmi.stations import stations_actual
-from weather_provider_api.routers.weather.sources.knmi.utils import (
-    find_closest_stn_list,
-)
+from weather_provider_api.routers.weather.sources.knmi.utils.commons import find_closest_stn_list
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
 
@@ -29,9 +21,7 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 class ActueleWaarnemingenRegisterModel(WeatherModelBase):
     """A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset."""
 
-    def is_async(self):
-        return self.async_model
-
+    
     def __init__(self):
         super().__init__()
         self.id = "waarnemingen_register"
@@ -45,7 +35,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         self.async_model = False
         self.repository = ActueleWaarnemingenRegisterRepository()
 
-        self.to_si = {
+        self.to_si = {  # type: ignore
             "weather_description": {
                 "name": "weather_description",
                 "convert": self.no_conversion,
@@ -55,21 +45,23 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
             "wind_direction": {"convert": self.dutch_wind_direction_to_degrees},
             "wind_speed": {"convert": self.no_conversion},  # m/s
             "visibility": {"convert": self.no_conversion},  # m
-            "air_pressure": {"convert": lambda x: x * 100},  # hPa to Pa
+            "air_pressure": {"convert": lambda x: x * 100},  # hPa to Pa  # type: ignore
         }
-        self.to_human = copy.deepcopy(self.to_si)
-        self.to_human["temperature"]["convert"] = self.no_conversion  # C
+        self.to_human = copy.deepcopy(self.to_si)  # type: ignore
+        self.to_human["temperature"]["convert"] = self.no_conversion  # C  # type: ignore
 
-        self.human_to_model_specific = self._create_reverse_lookup(self.to_si)
+        self.human_to_model_specific = self._create_reverse_lookup(self.to_si)  # type: ignore
 
     def get_weather(
         self,
-        coords: List[GeoPosition],
-        begin: Optional[np.datetime64],
-        end: Optional[np.datetime64],
-        weather_factors: List[str] = None,
+        coords: list[GeoPosition],
+        begin: datetime | None = None,
+        end: datetime | None = None,
+        weather_factors: list[str] | None = None,
     ) -> xr.Dataset:
-        """The function that gathers and processes the requested Actuele Waarnemingen Register weather data from the
+        """Get the weather data for the specified coordinates and time range from the KNMI Actuele Waarnemingen 48-hour register.
+
+        The function that gathers and processes the requested Actuele Waarnemingen Register weather data from the
         48-hour register and returns it as a Xarray Dataset.
         (The register for this model interprets directly from an HTML page, but the information is also available from
         the data platform. Due to it being rather impractically handled, we stick to the site for now.)
@@ -87,10 +79,9 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
             As this model only return the current weather data the 'begin' and 'end' values are not actually used.
         """
         updated_weather_factors = self._request_weather_factors(weather_factors)
-        coords_stn, _, _ = find_closest_stn_list(stations_actual, coords)
-
-        now = datetime.utcnow()
-        if now - relativedelta(days=1) > begin:
+        
+        raw_ds = self.repository.retrieve_data()
+        if begin is not None and now - timedelta(days=1) > begin:
             raw_ds = self.repository.get_48_hour_registry_for_station(station=coords_stn)
         else:
             raw_ds = self.repository.get_24_hour_registry_for_station(station=coords_stn)
@@ -110,16 +101,20 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         output_ds = output_ds.unstack("coord")
         return output_ds
 
-    def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
+    def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
         # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
         if factors is None:
-            return list(self.to_si.keys())
+            return list(self.to_si.keys())  # type: ignore
 
         new_factors = []
 
         for f in factors:
             f_low = f.lower()
-            if f_low in self.to_si:
-                new_factors.append(f_low)
+            if f_low in self.to_si:  # type: ignore
+                new_factors.append(f_low)  # type: ignore
 
-        return list(set(new_factors))  # Cleanup any duplicate values and return
+        return list(set(new_factors))  # Cleanup any duplicate values and return  # type: ignore
+
+    def is_async(self) -> bool:  # pragma: no cover
+        """Determine if the model is asynchronous."""
+        return self.async_model

@@ -6,6 +6,7 @@
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+import numpy as np
 import xarray as xr
 from loguru import logger
 
@@ -15,8 +16,12 @@ from weather_provider_api.routers.weather.repository.repository import (
     WeatherRepositoryBase,
     WeatherRepositoryConfiguration,
 )
-from weather_provider_api.routers.weather.sources.knmi.utils.commons import download_actuele_waarnemingen_weather
-from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
+from weather_provider_api.routers.weather.sources.knmi.stations import stations_actual
+from weather_provider_api.routers.weather.sources.knmi.utils.commons import (
+    download_actuele_waarnemingen_weather,
+    find_closest_stn_list,
+)
+from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
@@ -35,7 +40,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
                 affiliated_source_and_model=("knmi", "actueel48"),
             )
         )
-        self.storage_filename: Path = (
+        self.storage_filename = (
             self.absolute_storage_path
             / f"{self.source_and_model['source']}_{self.source_and_model['model']}_registry.nc"
         )
@@ -66,6 +71,8 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
 
         """
         raw_weather_dataset = download_actuele_waarnemingen_weather()
+        if not raw_weather_dataset:
+            return RepoUpdateResult.FAILURE, "Failed to download new data for Actuele Waarnemingen Register Repository."
         current_moment = datetime.now(UTC).replace(second=0, microsecond=0)
 
         # Cleanup any old data
@@ -97,7 +104,7 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         """
         storage_dataset: xr.Dataset | None = None
         if self.storage_filename.exists():
-            logger.info(f"Trying to load ")
+            logger.info(f"Trying to load existing file at [{self.storage_filename}] to update with new data.")
             try:
                 storage_dataset = xr.load_dataset(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
             except Exception as e:
@@ -107,91 +114,76 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
                 storage_dataset = None
 
         logger.info(f"Storing new data retrieved at [{update_moment}] into file")
-        
+
         if storage_dataset is None:
             # New file
-            new_data_ds.to_netcdf(self.storage_filename, engine="netcdf4", format="NETCDF4")
+            new_data_ds.to_netcdf(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
             return RepoDataFetchResult.SUCCESS
-        
+
         # Existing file
-         
+        # Check if the latest time in the stored data is at least 5 minutes older than update_moment
+        if "time" in storage_dataset:
+            latest_time = storage_dataset["time"].values.max()
+            # Convert numpy.datetime64 or similar to Python datetime
+            if hasattr(latest_time, "astype"):
+                latest_time = latest_time.astype("M8[ms]").astype("O")
+            if isinstance(latest_time, (list, tuple)):
+                latest_time = latest_time[0]  # type: ignore
+            if isinstance(latest_time, np.datetime64):
+                latest_time = latest_time.astype("M8[ms]").astype(datetime)
+            if isinstance(latest_time, datetime):
+                time_diff = update_moment - latest_time
+                if time_diff < timedelta(minutes=5):
+                    logger.info(
+                        f"Latest stored time {latest_time} is less than 5 minutes older than update moment {update_moment}. Not updating file to avoid duplicates."
+                    )
+                    return RepoDataFetchResult.NO_DATA_AVAILABLE
+                else:
+                    logger.info(
+                        f"Latest stored time {latest_time} is at least 5 minutes older than update moment {update_moment}."
+                    )
+                    new_dataset_to_store = xr.merge([storage_dataset, new_data_ds], compat="override")  # type: ignore
+                    new_dataset_to_store.to_netcdf(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
+                    logger.info("File updated successfully with new data.")
+                    return RepoDataFetchResult.SUCCESS
+            else:
+                logger.warning(f"Could not parse latest_time from storage_dataset: {latest_time}")
 
-            # Check if time not already in system
-    #         try:
-    #             new_stored_data_ds = xr.merge([new_data_ds, stored_data_ds])
+        logger.warning('No "time" variable found in storage_dataset.')
+        raise ValueError('No "time" variable found in storage_dataset. Please check the contents of the existing file.')
 
-    #             new_stored_data_ds.to_netcdf(self.filename, format="NETCDF4")
-    #         except ValueError as value_error:
-    #             logger.error(f"Could not update file: {value_error}")
+    def get_24_hour_registry_for_station(self, station: int) -> xr.Dataset:
+        """Obtain the last 24 hours of data of Actuele Waarnemingen and returns it for single station.
 
-        return RepoDataFetchResult.SUCCESS
+        Args:
+            station (int):  An integer representing the station to gather data for
 
-    # def _update_file_with_new_data(self, new_data_ds: xr.Dataset, update_moment: datetime):
-    #     """This method updates any existing data file with new data or creates a new from scratch if needed, using the
-    #      given dataset.
+        Returns:
+            xr.Dataset: A Xarray Dataset holding last 24 hours of data for the requested station
 
-    #     Args:
-    #         new_data_ds (xr.Dataset):   A Xarray Dataset holding the data to append / create the data file with.
-    #         update_moment (datetime):   A datetime holding the moment of update. Note that this doesn't need to be the
-    #                                      moment that the data is from.
+        """
+        stored_data_ds = xr.load_dataset(self.storage_filename, engine="netcdf4")  # type: ignore
+        return stored_data_ds.sel(
+            STN=station,
+            time=slice(self.newest_date_available + timedelta(days=1), self.oldest_date_available),
+        )
 
-    #     Returns:
-    #         Nothing. The file is just updated.
+    def get_48_hour_registry_for_station(self, station: int) -> xr.Dataset:
+        """This method obtains the last 48 hours of data of Actuele Waarnemingen and returns it for single station.
 
-    #     """
-    #     # Opening the file:
-    #     if self.filename.exists():
-    #         stored_data_ds = xr.load_dataset(self.filename, engine="netcdf4")
-    #     else:
-    #         stored_data_ds = None
+        Args:
+            station (int):  An integer representing the station to gather data for
 
-    #     logger.info(
-    #         f"Storing data at [{update_moment.strftime('%m-%d-%Y %H:%M:%S')}] for "
-    #         f"[{new_data_ds.isel(STN=0, time=0)['time'].values}]"
-    #     )
-    #     if stored_data_ds is None:
-    #         new_data_ds.to_netcdf(self.filename, format="NETCDF4")
-    #     else:
-    #         # Check if time not already in system
-    #         try:
-    #             new_stored_data_ds = xr.merge([new_data_ds, stored_data_ds])
+        Returns:
+            xr.Dataset: A Xarray Dataset holding last 48 hours of data for the requested station
 
-    #             new_stored_data_ds.to_netcdf(self.filename, format="NETCDF4")
-    #         except ValueError as value_error:
-    #             logger.error(f"Could not update file: {value_error}")
-
-    # def get_24_hour_registry_for_station(self, station: int) -> xr.Dataset:
-    #     """This method obtains the last 24 hours of data of Actuele Waarnemingen and returns it for single station.
-
-    #     Args:
-    #         station (int):  An integer representing the station to gather data for
-
-    #     Returns:
-    #         xr.Dataset: A Xarray Dataset holding last 24 hours of data for the requested station
-
-    #     """
-    #     stored_data_ds = xr.load_dataset(self.filename, engine="netcdf4")
-    #     return stored_data_ds.sel(
-    #         STN=station,
-    #         time=slice(self.first_day_of_repo + relativedelta(days=1), self.last_day_of_repo),
-    #     )
-
-    # def get_48_hour_registry_for_station(self, station: int) -> xr.Dataset:
-    #     """This method obtains the last 48 hours of data of Actuele Waarnemingen and returns it for single station.
-
-    #     Args:
-    #         station (int):  An integer representing the station to gather data for
-
-    #     Returns:
-    #         xr.Dataset: A Xarray Dataset holding last 48 hours of data for the requested station
-
-    #     """
-    #     stored_data_ds = xr.load_dataset(self.filename, engine="netcdf4")
-    #     stored_data_ds = stored_data_ds.sel(
-    #         STN=station,
-    #         time=slice(self.first_day_of_repo, self.last_day_of_repo),
-    #     )
-    #     return stored_data_ds
+        """
+        stored_data_ds = xr.load_dataset(self.storage_filename, engine="netcdf4")  # type: ignore
+        stored_data_ds = stored_data_ds.sel(
+            STN=station,
+            time=slice(self.oldest_date_available, self.newest_date_available),
+        )
+        return stored_data_ds
 
     def _delete_files_outside_of_scope(self) -> RepoUpdateResult:
         logger.info(f"Deleting files outside of scope [{self.oldest_date_available} - {self.newest_date_available}]")
@@ -238,5 +230,32 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         else:
             return []
 
-    # def _get_file_list_for_period(self, start: datetime, end: datetime):
-    #     return self.storage_filename
+    def retrieve_data(
+        self, from_date: date, to_date: date, locations: list[tuple[float, float]], factors: list[str]
+    ) -> tuple[xr.Dataset | None, RepoDataFetchResult]:
+        """This method retrieves data from the repository for the specified date range, locations, and factors."""
+        _ = to_date  # to_date is not used as the repository only returns either 24 or 48 hours of data,
+        # but we keep it in the function signature for consistency with the base class and future use.
+        _ = factors  # factors are not used as the repository returns all available factors for the requested stations,
+        # but we keep it in the function signature for consistency with the base class and future use.
+
+        # convert locations to GeoPositions
+        geo_positions = [GeoPosition(loc[0], loc[1]) for loc in locations]
+
+        # Convert GeoPositions to closest stations
+        coords_stn, _, _ = find_closest_stn_list(stations_actual, geo_positions)
+        today = datetime.now(UTC).date()
+
+        raw_ds: xr.Dataset | None = None
+        for station in coords_stn:
+            if today - timedelta(days=1) > from_date:
+                station_ds = self.get_48_hour_registry_for_station(station=station)
+            else:
+                station_ds = self.get_24_hour_registry_for_station(station=station)
+
+            if raw_ds is None:
+                raw_ds = station_ds
+            else:
+                raw_ds = xr.merge([raw_ds, station_ds], compat="override")  # type: ignore
+
+        return raw_ds, RepoDataFetchResult.SUCCESS

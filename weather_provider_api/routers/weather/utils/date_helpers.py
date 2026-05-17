@@ -58,10 +58,10 @@ def time_unknown(dt: datetime, datetime_string: str) -> bool:  # pragma: no cove
 
 
 def validate_begin_and_end(
-    start: datetime,
-    end: datetime,
-    data_start: datetime | None = None,
-    data_end: datetime | None = None,
+    start: datetime | None,
+    end: datetime | None,
+    data_start: date | None = None,
+    data_end: date | None = None,
 ) -> tuple[datetime, datetime]:
     """Check the given date parameters and replace them with default values if they aren't valid."""
     if not start or not end:
@@ -70,8 +70,8 @@ def validate_begin_and_end(
     # Normalize to UTC
     start = start.astimezone(UTC)
     end = end.astimezone(UTC)
-    data_start = data_start.astimezone(UTC) if data_start else None
-    data_end = data_end.astimezone(UTC) if data_end else datetime.now(UTC)
+    data_start = datetime.combine(data_start, datetime.min.time()).astimezone(UTC) if data_start else None
+    data_end = datetime.combine(data_end, datetime.max.time()).astimezone(UTC) if data_end else datetime.now(UTC)
 
     # Clamp start and end to available data range
     if data_start and start < data_start:

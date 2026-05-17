@@ -41,6 +41,7 @@ def test_parse_datetime(
     test_loc: list[str] | None,
     test_result: datetime,
 ):
+    """Test the parse_datetime function for various datetime string formats and rounding options."""
     assert (
         dh.parse_datetime(
             datetime_string=test_datetime,
@@ -54,6 +55,7 @@ def test_parse_datetime(
 
 
 def test_parse_datetime_error_handling():
+    """Test the error handling of the parse_datetime function for invalid datetime strings."""
     with pytest.raises(HTTPException) as e:
         dh.parse_datetime(
             datetime_string="2019-01-0Z",

@@ -1,29 +1,21 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 """KNMI hour models data fetcher."""
 
 import copy
 import json
-from datetime import datetime
-from typing import List, Optional
+from datetime import UTC, datetime, timedelta
 
 import numpy as np
 import pandas as pd
-import requests
+import requests  # type: ignore
 import xarray as xr
-from dateutil.relativedelta import relativedelta
 from loguru import logger
-from pytz import UTC
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.stations import stations_history
-from weather_provider_api.routers.weather.sources.knmi.utils import (
-    find_closest_stn_list,
-)
+from weather_provider_api.routers.weather.sources.knmi.utils.commons import find_closest_stn_list
 from weather_provider_api.routers.weather.utils.date_helpers import (
     validate_begin_and_end,
 )
@@ -35,6 +27,7 @@ class UurgegevensModel(WeatherModelBase):
     """A Weather Model that incorporates the: KNMI Uurgegevens dataset into the Weather Provider API."""
 
     def __init__(self):
+        """Initialize the UurgegevensModel with the proper settings and conversion dictionaries."""
         super().__init__()
         self.id = "uurgegevens"
         self.name = "KNMI uurgegevens"
@@ -50,7 +43,7 @@ class UurgegevensModel(WeatherModelBase):
         self.async_model = False
         self.download_url = "https://daggegevens.knmi.nl/klimatologie/uurgegevens"
 
-        self.to_si = {
+        self.to_si = {  # type: ignore
             "DD": {"convert": self.no_conversion},
             "DDVEC": {
                 "name": "wind_direction",
@@ -80,7 +73,7 @@ class UurgegevensModel(WeatherModelBase):
             },  # 0.1 hour -> hour
             "Q": {
                 "name": "global_radiation",
-                "convert": lambda x: x * 1e4,
+                "convert": lambda x: x * 1e4,  # type: ignore
             },  # J/cm**2 -> J/m**2
             "DR": {
                 "name": "precipitation_duration",
@@ -88,11 +81,11 @@ class UurgegevensModel(WeatherModelBase):
             },  # 0.1 hour -> hour
             "RH": {
                 "name": "precipitation",
-                "convert": lambda x: x / 10 / 1000,
+                "convert": lambda x: x / 10 / 1000,  # type: ignore
             },  # 0.1 mm -> m
             "P": {
                 "name": "air_pressure",
-                "convert": lambda x: x / 10 * 100,
+                "convert": lambda x: x / 10 * 100,  # type: ignore
             },  # 0.1 hPa -> Pa
             "VV": {
                 "name": "visibility",
@@ -115,13 +108,13 @@ class UurgegevensModel(WeatherModelBase):
             "Y": {"name": "icing_occurred", "convert": self.no_conversion},
         }
 
-        self.to_human = copy.deepcopy(self.to_si)
-        self.to_human["T"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C
-        self.to_human["T10N"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C
-        self.to_human["TD"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C
-        self.to_human["RH"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm
+        self.to_human = copy.deepcopy(self.to_si)  # type: ignore
+        self.to_human["T"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C  # type: ignore
+        self.to_human["T10N"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C  # type: ignore
+        self.to_human["TD"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C  # type: ignore
+        self.to_human["RH"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm  # type: ignore
 
-        self.human_to_model_specific = self._create_reverse_lookup(self.to_si)
+        self.human_to_model_specific = self._create_reverse_lookup(self.to_si)  # type: ignore
 
         self.knmi_aliases = [
             "WIND",
@@ -138,14 +131,15 @@ class UurgegevensModel(WeatherModelBase):
 
     def get_weather(
         self,
-        coords: List[GeoPosition],
-        begin: datetime,
-        end: datetime,
-        weather_factors: List[str] | None = None,
+        coords: list[GeoPosition],
+        begin: datetime | None = None,
+        end: datetime | None = None,
+        weather_factors: list[str] | None = None,
     ) -> xr.Dataset:
-        """The function that gathers and processes the requested Daggegevens weather data from the KNMI site
-        and returns it as a Xarray Dataset.
+        """Gather and process the requested Uurgegevens weather data from the KNMI site and return it as a Xarray Dataset.
 
+        The function that gathers and processes the requested Daggegevens weather data from the KNMI site
+        and returns it as a Xarray Dataset.
         (Though this model downloads from a specific download url, the question remains whether this source is also
         listed on the new KNMI Data Platform).
 
@@ -159,12 +153,12 @@ class UurgegevensModel(WeatherModelBase):
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
         # Test and account for invalid datetime timeframes or input
-        begin, end = validate_begin_and_end(begin, end, None, datetime.utcnow() - relativedelta(days=1))
+        begin, end = validate_begin_and_end(begin, end, None, datetime.now(UTC) - timedelta(days=1))
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
         station_id, stns, _ = find_closest_stn_list(stations_history, coords)
 
         # Download the weather data for the relevant STNs
-        raw_data = self._download_weather(
+        raw_data: str = self._download_weather(
             stations=stns,
             start=begin,
             end=end,
@@ -175,23 +169,25 @@ class UurgegevensModel(WeatherModelBase):
         raw_ds = self._parse_raw_weather_data(raw_data)
 
         # Prepare and format the weather data for output
-        ds = self._prepare_weather_data(coords, station_id, raw_ds)
+        ds: xr.Dataset = self._prepare_weather_data(coords, station_id, raw_ds)
 
         # The KNMI model isn't working properly yet, so we have to cut out any overflow time-wise
         ds = ds.sel(time=slice(begin.astimezone(UTC).replace(tzinfo=None), end.astimezone(UTC).replace(tzinfo=None)))
         return ds
 
-    def is_async(self):  # pragma: no cover
+    def is_async(self) -> bool:  # pragma: no cover
+        """Determine if the model is asynchronous."""
         return self.async_model
 
     def _download_weather(
         self,
-        stations: List[int],
+        stations: list[int],
         start: datetime,
         end: datetime,
-        weather_factors: List[str] | None = None,
-    ):
-        """A function that downloads the weather from the KNMI download location and returns it as a text
+        weather_factors: list[str] | None = None,
+    ) -> str:
+        """Download the weather from the KNMI download location and returns it as text.
+
         Args:
             stations:           A list containing the requested stations
             start:              A datetime containing the start of the period to request data for.
@@ -224,7 +220,7 @@ class UurgegevensModel(WeatherModelBase):
         start: datetime,
         end: datetime,
         stations: list[int],
-        weather_factors: list[str],
+        weather_factors: list[str] | None = None,
     ):
         """A Function that transforms the request settings into parameters usable for the KMNI download request.
 
@@ -256,17 +252,17 @@ class UurgegevensModel(WeatherModelBase):
         json_data = json.loads(raw_data)
         dataframe_data = pd.DataFrame.from_dict(json_data, orient="columns")
 
-        conversion_dict = {
+        conversion_dict: dict[str, type] = {
             "hour": str,
             "station_code": int,
         }
-        for weather_factor in self.to_si.keys():
+        for weather_factor in self.to_si.keys():  # type: ignore
             if weather_factor in dataframe_data.keys():
                 conversion_dict[weather_factor] = np.float64
 
         # KNMI measures the -th hour. (The 24th hour is from 23:00 to 00:00 the next day) We use 23:00 to indicate that.
         dataframe_data["hour"] = dataframe_data["hour"] - 1
-        dataframe_data = dataframe_data.astype(conversion_dict)
+        dataframe_data = dataframe_data.astype(conversion_dict)  # type: ignore
         dataframe_data["date"] = pd.to_datetime(dataframe_data["date"])
 
         # Convert hours from time to timestamp
@@ -281,8 +277,10 @@ class UurgegevensModel(WeatherModelBase):
         return dataframe_data.to_xarray()
 
     @staticmethod
-    def _prepare_weather_data(coordinates: List[GeoPosition], station_id: list[np.int64], raw_ds: xr.Dataset):
-        """A function that prepares the weather data for return by the API, by replacing the matching station with the
+    def _prepare_weather_data(coordinates: list[GeoPosition], station_id: list[int], raw_ds: xr.Dataset) -> xr.Dataset:
+        """Prepare the weather data for return by the API, by replacing the matching station with the requested lat/lon location.
+
+        A function that prepares the weather data for return by the API, by replacing the matching station with the
         lat/lon location that was requested, and properly formatting the dimensions.
 
         """
@@ -300,12 +298,10 @@ class UurgegevensModel(WeatherModelBase):
         ds = ds.unstack("coord")
         return ds
 
-    def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
-        """Implementation of the Base Weather Model function that returns a list of known weather factors for the
-        model.
-        """
+    def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
+        """A function that transforms the requested weather factors into a list of weather factors."""
         if factors is None:
-            return list(self.to_si.keys())
+            return list(self.to_si.keys())  # type: ignore
 
         new_factors = []
 
@@ -313,17 +309,17 @@ class UurgegevensModel(WeatherModelBase):
             f_up = f.upper()
             f_low = f.lower()
 
-            if f_up in self.to_si:
+            if f_up in self.to_si:  # type: ignore
                 # KNMI daggegevens and uurgegevens (TD, TG, FHX, ...)
-                new_factors.append(f_up)
+                new_factors.append(f_up)  # type: ignore
             elif f_low in self.human_to_model_specific:
                 # KNMI daggegevens and uurgegevens with human names
-                new_factors.append(self.human_to_model_specific[f_low])
+                new_factors.append(self.human_to_model_specific[f_low])  # type: ignore
             else:
                 try:
                     if f_up in self.knmi_aliases:
-                        new_factors.append(f_up)
+                        new_factors.append(f_up)  # type: ignore
                 except AttributeError:
                     continue
 
-        return list(set(new_factors))  # Cleanup any duplicate values and return
+        return list(set(new_factors))  # Cleanup any duplicate values and return  # type: ignore

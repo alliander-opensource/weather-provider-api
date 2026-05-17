@@ -10,7 +10,18 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, 
 from loguru import logger
 
 from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
-from weather_provider_api.routers.weather.api_models import ResponseFormat, ScientificJSONResponse, WeatherContentRequestMultiLocationQuery, WeatherContentRequestQuery, WeatherFormattingRequestQuery, WeatherModel, WeatherSource, get_weather_content_request_query, get_weather_formatting_request_query, result_mime_types
+from weather_provider_api.routers.weather.api_models import (
+    ResponseFormat,
+    ScientificJSONResponse,
+    WeatherContentRequestMultiLocationQuery,
+    WeatherContentRequestQuery,
+    WeatherFormattingRequestQuery,
+    WeatherModel,
+    WeatherSource,
+    get_weather_content_request_query,
+    get_weather_formatting_request_query,
+    result_mime_types,
+)
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.base_models.source import WeatherSourceBase
 from weather_provider_api.routers.weather.controller import WeatherController
@@ -187,18 +198,27 @@ async def get_alarm() -> list[tuple[str, str]]:  # pragma: no cover
 
 
 # Handler for requests with multiple locations:
-@v2_router.get("/sources/{source_id}/models/{model_id}/multiple-locations/", tags=["sync"])
-@API_RATE_LIMITER.limit("5/minute")
+@v2_router.get(
+    "/sources/{source_id}/models/{model_id}/multiple-locations/",
+    tags=["sync"],
+    responses={
+        200: {"description": "Successful response with the requested weather data."},
+        404: {"description": "No data was found for the given period or file not found."},
+        422: {"description": "Invalid or missing query parameters."},
+    },
+)
+@API_RATE_LIMITER.limit("5/minute")  # type: ignore
 async def get_sync_weather_multi_loc(
     request: Request,
     source_id: str,
     model_id: str,
     cleanup_tasks: BackgroundTasks,
-    ret_args: WeatherContentRequestMultiLocationQuery = Depends(),
-    fmt_args: WeatherFormattingRequestQuery = Depends(),
-    accept: ResponseFormat = Depends(header_accept_type),
+    ret_args: Annotated[WeatherContentRequestMultiLocationQuery, Depends(get_weather_content_request_query)],
+    fmt_args: Annotated[WeatherFormattingRequestQuery, Depends(get_weather_formatting_request_query)],
+    accept: Annotated[ResponseFormat, Depends(header_accept_type)],
 ) -> Response:  # pragma: no cover
-    starting_time = datetime.utcnow()
+    """Request weather data for a specific Model using the given settings."""
+    starting_time = datetime.now(UTC)
     logger.info(f"WeatherRequest({starting_time}): {request.url}")
 
     source_id = source_id.lower()
@@ -225,7 +245,7 @@ async def get_sync_weather_multi_loc(
             factors=ret_args.factors,
         )
     except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.args[0])
+        raise HTTPException(status_code=404, detail=e.args[0]) from e
 
     if weather_data is None:
         raise HTTPException(status_code=404, detail="No data was found for the given period")
@@ -236,12 +256,12 @@ async def get_sync_weather_multi_loc(
         source_id, model_id, False, weather_data, fmt_args.units
     )
 
-    new_coords = []
+    new_coords: list[tuple[float, float]] = []
     for coord in coords:
-        new_coords.append(coord[0])
+        new_coords.append(coord[0])  # type: ignore
 
     response, optional_file_path = serializers.return_file_or_text_response(
-        converted_weather_data, response_format, source_id, model_id, ret_args, coords
+        converted_weather_data, response_format, source_id, model_id, ret_args, new_coords
     )
     cleanup_tasks.add_task(remove_file, optional_file_path)
     logger.info(f"WeatherRequest({starting_time}) data preparation finished.")

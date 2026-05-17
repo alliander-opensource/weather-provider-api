@@ -253,8 +253,15 @@ class WeatherRepositoryBase(ABC):
         for file in self.storage_path.glob("*.nc"):  # Assuming NetCDF files with .nc extension
             # Extract the date from the filename using the temporal_file_identifier format
             try:
-                file_date_str = file.stem  # Get the filename without extension
+                # Calculate the length of the prefix in the filename
+                len_of_stem_prefix = (
+                    len(self.config.affiliated_source_and_model[0]) + 1 +
+                    len(self.config.affiliated_source_and_model[1]) + 1
+                )
+                file_date_str = file.stem[len_of_stem_prefix:]  # Get the filename without the prefix
                 file_date: date = datetime.strptime(file_date_str, self.config.temporal_file_identifier).date()
+                
+                logger.exception(f"Checking file '{file}' with extracted date '{file_date}' against period from {from_date} to {to_date}.")
                 if from_date <= file_date <= to_date:
                     matching_files.append(file)
             except ValueError:

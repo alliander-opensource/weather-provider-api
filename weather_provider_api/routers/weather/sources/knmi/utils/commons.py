@@ -11,11 +11,10 @@ import re
 from datetime import datetime
 from io import StringIO
 
-import numpy as np
 import pandas as pd
-import requests
+import requests  # type: ignore
 import xarray as xr
-from geopy.distance import great_circle
+from geopy.distance import great_circle  # type: ignore
 from loguru import logger
 
 from weather_provider_api.routers.weather.sources.knmi.stations import (
@@ -27,7 +26,7 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 def find_closest_stn_list(
     stn_stations: pd.DataFrame, coords: list[GeoPosition]
-) -> tuple[list[np.int64], list[np.int64], list[int]]:
+) -> tuple[list[int], list[int], list[int]]:
     """Find the closest stations to the locations in the given list of GeoPositions.
 
     Args:
@@ -44,11 +43,11 @@ def find_closest_stn_list(
     # get list of relevant STNs, choose closest STN
     coords_stn = [_find_closest_stn_single(_stn_stations, coord) for coord in coords]
     stns = list(set(coords_stn))
-    coords_stn_ind = [stns.index(x) for x in coords_stn]
+    coords_stn_ind = [int(stns.index(x)) for x in coords_stn]
     return coords_stn, stns, coords_stn_ind
 
 
-def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> np.int64:
+def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> int:
     """Find the closest station to a single GeoPosition.
 
     Args:
@@ -58,13 +57,13 @@ def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> 
         A station number indicating its index in the supplied dataframe.
     """
     stn_stations["distance"] = stn_stations.apply(
-        lambda x: great_circle((x["lat"], x["lon"]), coord.get_WGS84()).km, axis=1
+        lambda x: great_circle((x["lat"], x["lon"]), coord.get_WGS84()).km, axis=1  # type: ignore
     )
 
     # Find the stn with the lowest distance to the location
-    min_ind = np.argmin(stn_stations["distance"].values)
+    min_ind: int = stn_stations["distance"].idxmin()  # type: ignore
     # Return the found stn
-    return stn_stations.loc[min_ind, "STN"]
+    return stn_stations.loc[min_ind, "STN"].astype(int)  # type: ignore
 
 
 def download_actuele_waarnemingen_weather() -> xr.Dataset | None:

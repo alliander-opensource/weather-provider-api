@@ -1,22 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 import locale
 from datetime import datetime
 
-import numpy as np
 import pytest
-import requests
+import requests  # type: ignore
 import xarray as xr
 
 from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import (
     ActueleWaarnemingenModel,
 )
-from weather_provider_api.routers.weather.sources.knmi.utils import (
-    _retrieve_observation_moment,
+from weather_provider_api.routers.weather.sources.knmi.utils.commons import (
+    _retrieve_observation_moment,  # type: ignore
     download_actuele_waarnemingen_weather,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
@@ -24,15 +20,18 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 @pytest.fixture()
 def start():
-    return np.datetime64("2018-01-01")
+    """Fixture for providing a start datetime for the tests."""
+    return datetime(2018, 1, 1)
 
 
 @pytest.fixture()
 def end():
-    return np.datetime64("2018-01-31")
+    """Fixture for providing an end datetime for the tests."""
+    return datetime(2018, 1, 31)
 
 
-def test_get_weather(mock_coordinates: list[tuple[float, float]], start: np.datetime64, end: np.datetime64):
+def test_get_weather(mock_coordinates: list[tuple[float, float]], start: datetime, end: datetime):
+    """Test the get_weather function of the ActueleWaarnemingenModel for mock coordinates and a given time range."""
     mock_geo_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     aw_model = ActueleWaarnemingenModel()
 
@@ -47,6 +46,7 @@ def test_get_weather(mock_coordinates: list[tuple[float, float]], start: np.date
 
 @pytest.mark.skip(reason="Test currently not working via Tox on GitHub Actions")
 def test__retrieve_observation_date():
+    """Test the _retrieve_observation_moment function for error handling and locale settings."""
     # Test to verify error handling
     current_locale = locale.getlocale(locale.LC_TIME)
     locale.setlocale(locale.LC_TIME, "dutch")
@@ -55,11 +55,12 @@ def test__retrieve_observation_date():
 
 
 def test__download_weather(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the download_actuele_waarnemingen_weather function for error handling and successful download."""
     # Test to verify error handling for network/request issues
-    def mock_request_get(*args, **kwargs):
+    def mock_request_get(*args, **kwargs): # type: ignore
         raise requests.exceptions.RequestException("Fake RequestException!")
 
-    monkeypatch.setattr(requests, "get", mock_request_get)
+    monkeypatch.setattr(requests, "get", mock_request_get) # type: ignore
     # The function now raises the exception, so we check for it
     import pytest
 

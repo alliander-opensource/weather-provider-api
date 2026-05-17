@@ -1,4 +1,4 @@
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 from enum import Enum
@@ -14,17 +14,22 @@ from weather_provider_api.routers.weather.utils.serializers import return_file_o
 
 
 class MockResponseFormat(str, Enum):
+    """A mock ResponseFormat for testing purposes."""
     mock_format = "mock_format"
 
 
 @pytest.fixture()
 def mock_response_query(mock_factors: list[str]) -> WeatherContentRequestQuery:
+    """Returns a mock WeatherContentRequestQuery for testing purposes."""
     result = WeatherContentRequestQuery(begin="2020-01-01", end="2020-02-02", lat=51.873419, lon=5.705929, factors=mock_factors)
     return result
 
 
 @pytest.mark.parametrize("response_format", [response.value for response in ResponseFormat])
-def test_file_or_text_response_regular(response_format: str, mock_coordinates: list[tuple[float, float]], mock_dataset: xr.Dataset, mock_response_query: WeatherContentRequestQuery):
+def test_file_or_text_response_regular(
+    response_format: str, mock_coordinates: list[tuple[float, float]], mock_dataset: xr.Dataset, mock_response_query: WeatherContentRequestQuery
+    ):
+    """Test the return_file_or_text_response function with all valid ResponseFormats."""
     # Ensure no exception is raised for any valid response format
     try:
         return_file_or_text_response(
