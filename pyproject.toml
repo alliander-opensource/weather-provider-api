@@ -84,6 +84,8 @@ ignore_missing_imports = true
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.pylint.per-file-ignores]
+"tests/**/*.py" = ["redefined-outer-name"]
 
 [tool.ruff]
 line-length = 120
