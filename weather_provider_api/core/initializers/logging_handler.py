@@ -1,13 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""Logging Handler
+"""Logger initializer.
 
-This module initializes the logging intercept handler, which intercepts other logging methods and translates them into
- the intended loguru logging format.
+This module contains the LoggingInterceptHandler class, which is responsible for intercepting log messages from Python's 
+standard logging system and forwarding them to Loguru, our custom logging system. The initialize_logging function sets up 
+Loguru as the default logging system and configures it according to the application's settings.
 """
 
 import logging
@@ -38,8 +36,10 @@ class LoggingInterceptHandler(logging.Handler):
     }
 
     def emit(self, record: logging.LogRecord) -> None:
-        """Emission method that intercepts the original logging message using Python's base logging system and  # noqa: D205
-         re-formats it (if needed) to match Loguru systems.
+        """Emit a log record.
+
+        Emission method that intercepts the original logging message using Python's base logging system and re-formats
+        it (if needed) to match Loguru systems.
 
         Args:
             record: The original logging LogRecord object that holds a record to be converted.
@@ -56,8 +56,8 @@ class LoggingInterceptHandler(logging.Handler):
 
         # Set the proper log depth and frame to use
         frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
+        while frame.f_code.co_filename == logging.__file__:  # type: ignore
+            frame = frame.f_back  # type: ignore
             depth += 1
 
         # Log the message as intended by writing the converted data to the proper log area.
@@ -66,8 +66,10 @@ class LoggingInterceptHandler(logging.Handler):
 
 
 def initialize_logging():
-    """The method that initializes and sets our custom logging system as the default, and reroutes other logging  # noqa: D205
-     systems to use our system instead.
+    """Initialize the logging system.
+    
+    The method that initializes and sets our custom logging system as the default, and reroutes other logging systems
+    to use our system instead.
 
     Returns:
         Nothing. The logging system itself is overwritten.
@@ -141,5 +143,5 @@ def initialize_logging():
     for uvicorn_logger in existing_uvicorn_loggers:
         uvicorn_logger.handlers = [LoggingInterceptHandler()]
 
-    # Finally, we hook up the LoggingInterceptHandler as the default handler
+    # Then, we hook up the LoggingInterceptHandler as the default handler
     logging.basicConfig(handlers=[LoggingInterceptHandler()], level=0)

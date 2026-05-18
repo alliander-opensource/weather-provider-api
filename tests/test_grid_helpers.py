@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 import pytest
@@ -50,7 +47,13 @@ from weather_provider_api.routers.weather.utils.grid_helpers import (
         ),  # Negative modifiers and before "starting point of grid"
     ],
 )
-def test_round_to_grid(coordinates, grid_resolution_lat_lon, starting_points_lat_lon, expected_results):
+def test_round_to_grid(
+    coordinates: list[GeoPosition],
+    grid_resolution_lat_lon: tuple[float, float],
+    starting_points_lat_lon: tuple[float, float],
+    expected_results: list[GeoPosition],
+) -> None:
+    """Test the round_coordinates_to_wgs84_grid function for various coordinate values and grid configurations."""
     results = round_coordinates_to_wgs84_grid(coordinates, grid_resolution_lat_lon, starting_points_lat_lon)
 
     for result_coordinate, expected_result_coordinate in zip(results, expected_results):

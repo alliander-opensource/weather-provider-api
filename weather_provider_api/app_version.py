@@ -25,7 +25,7 @@ def _get_app_version() -> str:
     #  the working directory.
     try:
         with open("./pyproject.toml", mode="rb") as project_file:
-            version = tomli.load(project_file)["tool"]["poetry"]["version"]
+            version = tomli.load(project_file)["project"]["version"]
         logger.info(f"Retrieved the project version from the pyproject.toml file: {version}")
         return version
     except FileNotFoundError as fnf_error:

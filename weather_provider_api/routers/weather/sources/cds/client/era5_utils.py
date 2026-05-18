@@ -1,22 +1,20 @@
-#!/usr/bin/env python
-
-#  SPDX-FileCopyrightText: 2019-2025 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
+
 import glob
 import tempfile
 import zipfile
-from datetime import date, datetime
+from datetime import UTC, date, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 
 import xarray as xr
-from dateutil.relativedelta import relativedelta
 from loguru import logger
 from pydantic import BaseModel
-from pytz import UTC
 
-from weather_provider_api.routers.weather.repository.repository import RepositoryUpdateResult
+from weather_provider_api.routers.weather.repository.repository import RepoUpdateResult
 from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import CDS_CLIENT, CDSDataSets, CDSRequest
+from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
 
 
 class Era5FileSuffixes(str, Enum):
@@ -35,16 +33,16 @@ class Era5UpdateSettings(BaseModel):
     era5_product_type: str = "reanalysis"
     filename_prefix: str
     target_storage_location: Path
-    repository_time_range: tuple[datetime, datetime]
+    repository_time_range: tuple[date, date]
     factors_to_process: list[str]
     factor_dictionary: dict[str, str]
     maximum_runtime_in_minutes: int = 2 * 60  # 2 hours
 
 
-def era5_repository_update(update_settings: Era5UpdateSettings, test_mode: bool) -> RepositoryUpdateResult:
+def era5_repository_update(update_settings: Era5UpdateSettings, test_mode: bool) -> tuple[RepoUpdateResult, str]:
     """A function to update a variant of ERA5 data into the repository."""
     starting_moment_of_update = datetime.now(UTC)
-    cutoff_time = starting_moment_of_update + relativedelta(minutes=update_settings.maximum_runtime_in_minutes)
+    cutoff_time = starting_moment_of_update + timedelta(minutes=update_settings.maximum_runtime_in_minutes)
     logger.info(
         f"Starting update of ERA5 data for {update_settings.era5_dataset_to_update_from} "
         f"to: {update_settings.target_storage_location}"
@@ -57,13 +55,13 @@ def era5_repository_update(update_settings: Era5UpdateSettings, test_mode: bool)
         _era5_update_month_by_month(update_settings, starting_moment_of_update, cutoff_time, test_mode)
     except Exception as e:
         logger.error(f"Failed to update ERA5 data. Reason: {e}")
-        return RepositoryUpdateResult.failure
+        return RepoUpdateResult.FAILURE, str(e)
 
     ending_moment_of_update = datetime.now(UTC)
     logger.info(
         f"Update finished. Total runtime: {(ending_moment_of_update - starting_moment_of_update).total_seconds()}"
     )
-    return RepositoryUpdateResult.completed
+    return RepoUpdateResult.SUCCESS, "Repository is up to date."
 
 
 def _era5_update_month_by_month(
@@ -74,24 +72,22 @@ def _era5_update_month_by_month(
     average_time_per_month_in_minutes = 35
 
     update_month = _get_update_month(update_settings)
-    target_update_month = update_settings.repository_time_range[0].replace(
-        day=1, hour=0, minute=0, second=0, microsecond=0
-    )
+    target_update_month = update_settings.repository_time_range[0].replace(day=1)
 
     while update_month > target_update_month:
         logger.info(f" > Processing month: {update_month.year}-{update_month.month}")
-        if datetime.now(UTC) + relativedelta(minutes=average_time_per_month_in_minutes) > cutoff_time:
+        if datetime.now(UTC) + timedelta(minutes=average_time_per_month_in_minutes) > cutoff_time:
             logger.warning(
                 "MAXIMUM RUNTIME REACHED: ",
                 cutoff_time,
-                datetime.now(UTC) + relativedelta(minutes=average_time_per_month_in_minutes),
+                datetime.now(UTC) + timedelta(minutes=average_time_per_month_in_minutes),
                 average_time_per_month_in_minutes,
             )
             logger.warning("Maximum runtime reached. Stopping update.")
             break
 
         update_result = _era5_update_month(update_settings, update_month, test_mode)
-        if update_result == RepositoryUpdateResult.failure:
+        if update_result == RepoUpdateResult.FAILURE:
             amount_of_months_not_processable += 1
         amount_of_months_processed += 1
 
@@ -99,11 +95,11 @@ def _era5_update_month_by_month(
             logger.warning("More than 50% of the months failed to process. Stopping update.")
             break
 
-        average_time_per_month_in_minutes = (
+        average_time_per_month_in_minutes = int(
             (datetime.now(UTC) - starting_moment_of_update).total_seconds() / 60 / amount_of_months_processed
         )
 
-        update_month = update_month - relativedelta(months=1)
+        update_month = subtract_months(update_month, 1)
 
     logger.info(
         f"Processed {amount_of_months_processed} months, {amount_of_months_not_processable} months failed to process."
@@ -111,15 +107,13 @@ def _era5_update_month_by_month(
     logger.info(f"Average time per month: {average_time_per_month_in_minutes} minutes")
 
 
-def _era5_update_month(
-    update_settings: Era5UpdateSettings, update_month: datetime, test_mode: bool
-) -> RepositoryUpdateResult:
+def _era5_update_month(update_settings: Era5UpdateSettings, update_month: date, test_mode: bool) -> RepoUpdateResult:
     """A function to update a variant of ERA5 data into the repository."""
     logger.debug(f" > Processing month: {update_month.year}-{update_month.month}")
 
     month_file_base = f"{update_settings.filename_prefix}_{update_month.year}_{update_month.month:02d}"
     month_file = update_settings.target_storage_location / f"{month_file_base}"
-    threshold_date = (datetime.now(UTC) - relativedelta(days=5)).replace(day=1)
+    threshold_date = (datetime.now(UTC) - timedelta(days=5)).replace(day=1).date()
 
     if file_requires_update(month_file, update_month, threshold_date):
         logger.debug(f" > File {month_file} requires update.")
@@ -154,31 +148,29 @@ def _era5_update_month(
 
         except Exception as e:
             logger.error(f" > Failed to update ERA5 data for {update_month}. Reason: {e}")
-            return RepositoryUpdateResult.failure
+            return RepoUpdateResult.FAILURE
 
-    return RepositoryUpdateResult.completed
+    return RepoUpdateResult.SUCCESS
 
 
-def _get_update_month(update_settings: Era5UpdateSettings) -> datetime:
-    NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5 = (datetime.now(UTC) - relativedelta(days=5)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
+def _get_update_month(update_settings: Era5UpdateSettings) -> date:
+    _normal_first_moment_available_for_era5 = (datetime.now(UTC) - timedelta(days=5)).date()
     update_moment = update_settings.repository_time_range[1]
 
     update_moment = (
         update_moment
-        if update_moment < NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5
-        else NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5
+        if update_moment < _normal_first_moment_available_for_era5
+        else _normal_first_moment_available_for_era5
     )
 
-    if update_moment == NORMAL_FIRST_MOMENT_AVAILABLE_FOR_ERA5:
+    if update_moment == _normal_first_moment_available_for_era5:
         update_moment = _verify_first_day_available_for_era5(update_moment, update_settings)
 
-    update_moment = update_moment.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    update_moment = update_moment.replace(day=1)
     return update_moment
 
 
-def _verify_first_day_available_for_era5(update_moment: datetime, update_settings: Era5UpdateSettings) -> datetime:
+def _verify_first_day_available_for_era5(update_moment: date, update_settings: Era5UpdateSettings) -> date:
     """A function to verify the first day available for ERA5 data.
 
     Normally the first full day available for ERA5 data is the 5 days ago, however, due to the nature of the data
@@ -204,21 +196,22 @@ def _verify_first_day_available_for_era5(update_moment: datetime, update_setting
             break
         except Exception as e:
             logger.debug(f" > Failed to download ERA5 data for {update_moment}. Reason: {e}")
-            update_moment = update_moment - relativedelta(days=1)
+            update_moment = update_moment - timedelta(days=1)
 
-            if update_moment < update_settings.repository_time_range[1] - relativedelta(days=45):
+            if update_moment < update_settings.repository_time_range[1] - timedelta(days=45):
                 raise ValueError(
                     "The first day available for ERA5 data could not be found within 40 days of the target date. "
                     "Aborting update."
-                )
+                ) from e
 
     return update_moment
 
 
-def _finalize_formatted_file(file_path: Path, current_moment: datetime, verification_date: datetime) -> None:
+def _finalize_formatted_file(file_path: Path, current_moment: date, verification_date: date) -> None:
     """A function to finalize the formatted file."""
+    # Ensure verification_date is a datetime (if it's a date, convert to datetime)
     incomplete_month = verification_date.replace(day=1)
-    permanent_month = (verification_date - relativedelta(months=3)).replace(day=1)
+    permanent_month = subtract_months(verification_date, 3)
 
     if not file_path.with_suffix(Era5FileSuffixes.FORMATTED).exists():
         logger.error(f"Formatted file {file_path} does not exist. Aborting finalization.")
@@ -233,7 +226,7 @@ def _finalize_formatted_file(file_path: Path, current_moment: datetime, verifica
                 logger.error(f" > Failed to remove temporary file {file_path.with_suffix(file_suffix)}: {e}")
 
     # Rename the file to its proper name:
-    if current_moment.date() == verification_date.replace(day=1).date():
+    if current_moment == verification_date.replace(day=1):
         # Current month means an incomplete file
         file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(Era5FileSuffixes.INCOMPLETE))
         logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix(Era5FileSuffixes.INCOMPLETE)}")
@@ -244,23 +237,21 @@ def _finalize_formatted_file(file_path: Path, current_moment: datetime, verifica
     else:
         # Permanent file
         file_path.with_suffix(Era5FileSuffixes.FORMATTED).rename(file_path.with_suffix(".nc"))
-        logger.debug(f'Month [{current_moment}] was renamed to: {file_path.with_suffix(".nc")}')
+        logger.debug(f"Month [{current_moment}] was renamed to: {file_path.with_suffix('.nc')}")
 
 
 def file_requires_update(file_path: Path, current_month: date, verification_date: date) -> bool:
     """A function that checks if a file requires an update based on the current state of the repository."""
-    print("A")
     if file_path.with_suffix(Era5FileSuffixes.TEMP).exists():
         # If a file is temporary we only check for a permanent update if more than 3 months have past since the current
         # most recent date with data.
-        threshold_date = (verification_date - relativedelta(months=3)).replace(day=1)
+        threshold_date = subtract_months(verification_date, 3)
         if current_month < threshold_date:
             logger.debug(" > A temporary file exists within the update range: UPDATE REQUIRED")
             return True
         logger.debug(" > A temporary file exists within the update range: UPDATE REQUIRED")
         return False
 
-    print("B")
     # A file exists but isn't any regular supported type to be updated
     if (
         file_path.with_suffix(Era5FileSuffixes.UNFORMATTED).exists()
@@ -269,18 +260,14 @@ def file_requires_update(file_path: Path, current_month: date, verification_date
         logger.debug(" > An unformatted file or formatted file exists: UPDATE REQUIRED")
         return True  # An update should both clean the UNFORMATTED file and generate a proper one
 
-    print("C")
     if not file_path.with_suffix(".nc").exists() or file_path.with_suffix(Era5FileSuffixes.INCOMPLETE).exists():
         logger.debug(" > No file exists, or it is still incomplete: UPDATE REQUIRED")
-        print("File path: ", file_path)
         return True  # No file matching the mask or incomplete files always mean the update is required!
 
-    print("D")
     if file_path.with_suffix(".nc").exists():
         # A regular file exists, no updates required
         logger.debug(" > A regular file already exists: NO UPDATE REQUIRED")
         return False
-    print("E")
     files_in_folder = glob.glob(f"{file_path}*.nc")
     logger.warning(
         f" > Unexpected files existed in the repository folder: {files_in_folder}. These should be dealt with."
@@ -288,7 +275,7 @@ def file_requires_update(file_path: Path, current_month: date, verification_date
     return False
 
 
-def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict) -> None:
+def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict[str, str]) -> None:
     """A function that formats the downloaded file to the correct format for the repository."""
     logger.info(f" > Formatting the downloaded file at: {unformatted_file}")
     ds_unformatted = load_file(unformatted_file)
@@ -298,26 +285,32 @@ def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict) -> No
         # We remove the expver index used to denominate temporary data (5) and regular data (1) and add a field for it
         # NOTE: We removed the drop_sel version as it didn't quite have the same result as drop yet. Reverting until
         #  the proper use has been validated...
-        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop("expver").dropna("valid_time", how="all")
-        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop("expver").dropna("valid_time", how="all")
+        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop("expver").dropna(  # type: ignore
+            "valid_time", how="all")
+        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop("expver").dropna(  # type: ignore
+            "valid_time", how="all")
 
         # Recombine the data
-        ds_unformatted = ds_unformatted_expver1.merge(ds_unformatted_expver5)
-        ds_unformatted["is_permanent_data"] = False
+        expver_unformatted_dataset: xr.Dataset = ds_unformatted_expver1.merge(ds_unformatted_expver5)  # type: ignore
+        expver_unformatted_dataset["is_permanent_data"] = False
     else:
-        ds_unformatted["is_permanent_data"] = True
+        expver_unformatted_dataset = ds_unformatted.copy(deep=True)
+        expver_unformatted_dataset["is_permanent_data"] = True
 
     # Rename the factors to their longer names:
-    for factor in ds_unformatted.variables.keys():
-        if factor in allowed_factors:
-            ds_unformatted = ds_unformatted.rename_vars({factor: allowed_factors[factor]})
+    for factor in expver_unformatted_dataset.variables.keys():
+        factor_str = str(factor)
+        if factor_str in allowed_factors:
+            expver_unformatted_dataset = expver_unformatted_dataset.rename_vars(
+                {factor_str: allowed_factors[factor_str]}
+                )
 
     # Rename and encode data where needed:
-    ds_unformatted.valid_time.encoding["units"] = "hours since 2016-01-01"
-    ds_unformatted = ds_unformatted.rename(name_dict={"latitude": "lat", "longitude": "lon", "valid_time": "time"})
+    expver_unformatted_dataset.valid_time.encoding["units"] = "hours since 2016-01-01"
+    expver_unformatted_dataset = expver_unformatted_dataset.rename(name_dict={"latitude": "lat", "longitude": "lon", "valid_time": "time"})
 
     # Store the data
-    ds_unformatted.to_netcdf(path=unformatted_file, format="NETCDF4", engine="netcdf4")
+    expver_unformatted_dataset.to_netcdf(path=unformatted_file, format="NETCDF4", engine="netcdf4", mode="w")  # type: ignore
 
 
 def load_file(file: Path) -> xr.Dataset:
@@ -330,8 +323,8 @@ def load_file(file: Path) -> xr.Dataset:
 
     """
     if file.exists():
-        with xr.open_dataset(file) as ds:
-            ds.load()
+        with xr.open_dataset(file) as ds:  # type: ignore
+            ds.load()  # type: ignore
         return ds
 
     # Raise a FileNotFoundError if the file doesn't exist
@@ -364,17 +357,17 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
             logger.error(f" > Required file {filename}.nc does not exist. Aborting recombination.")
             raise FileNotFoundError(f" > Required file {filename}.nc does not exist. Aborting recombination.")
 
-        dataset = xr.open_dataset(file_path)
-        dataset = dataset.drop("expver", errors="raise")
+        dataset = xr.open_dataset(file_path)  # type: ignore
+        dataset = dataset.drop("expver", errors="raise")  # type: ignore
 
         if not concatenated_dataset.data_vars:
             concatenated_dataset = dataset.copy(deep=True)
         else:
-            concatenated_dataset = xr.merge(
+            concatenated_dataset = xr.merge(  # type: ignore
                 [concatenated_dataset, dataset], join="outer", compat="no_conflicts", combine_attrs="override"
             )
 
-    concatenated_dataset.to_netcdf(unformatted_file, format="NETCDF4", engine="netcdf4")
+    concatenated_dataset.to_netcdf(unformatted_file, format="NETCDF4", engine="netcdf4")  # type: ignore
 
 
 def download_era5_data(
@@ -384,7 +377,7 @@ def download_era5_data(
 ) -> None:
     """A function to download ERA5 data."""
     try:
-        CDS_CLIENT.retrieve(
+        CDS_CLIENT.retrieve(  # type: ignore
             name=dataset.value,
             request=cds_request.request_parameters,
             target=target_location,

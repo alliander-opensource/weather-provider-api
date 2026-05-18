@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional
+from datetime import datetime
+from typing import Any
 
 import numpy as np
 import xarray as xr
@@ -21,6 +19,7 @@ class WeatherModelBase(metaclass=ABCMeta):
     """Base class for all Weather Models. All new models should use this base class!"""
 
     def __init__(self):
+        """Initialize the WeatherModelBase with default conversion dictionaries."""
         self.to_si = None
         self.to_human = None
         self.human_to_model_specific = None
@@ -28,20 +27,22 @@ class WeatherModelBase(metaclass=ABCMeta):
     @abstractmethod
     def get_weather(
         self,
-        coords: List[GeoPosition],
-        begin: Optional[np.datetime64],
-        end: Optional[np.datetime64],
-        weather_factors: List[str] = None,
+        coords: list[GeoPosition],
+        begin: datetime | None = None,
+        end: datetime | None = None,
+        weather_factors: list[str] | None = None,
     ) -> xr.Dataset:  # pragma: no cover
+        """Abstract method to get weather data for the specified coordinates and time range."""
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     @abstractmethod
-    def is_async(self):  # pragma: no cover
+    def is_async(self) -> bool:  # pragma: no cover
+        """Abstract method to determine if the model is asynchronous."""
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
-    def convert_names_and_units(self, weather_data: xr.Dataset, unit: OutputUnit):
-        """Function to convert all names and units in a dataset according to the required translations set in the
-            to_xxxx values for the model itself
+    def convert_names_and_units(self, weather_data: xr.Dataset, unit: OutputUnit) -> xr.Dataset:
+        """Convert the names and units of the weather data to match the requested output unit format.
+
         Args:
             weather_data:   A Xarray Dataset containing
             unit:           The requested output unit format
@@ -49,6 +50,9 @@ class WeatherModelBase(metaclass=ABCMeta):
         Returns:
             The same dataset, but with values altered to match the requested output unit format
         """
+        if not self.to_si or not self.to_human:
+            raise ValueError("Conversion dictionaries not properly initialized")
+        
         if unit == OutputUnit.original:
             return weather_data
 
@@ -59,7 +63,7 @@ class WeatherModelBase(metaclass=ABCMeta):
         else:
             raise TypeError("Invalid OutputUnit")
 
-        data_vars = list(weather_data.data_vars)
+        data_vars: list[str] = list(weather_data.data_vars) # type: ignore
         for var_name in data_vars:
             if var_name not in data_vars or var_name not in conversion_dict:
                 continue
@@ -71,8 +75,7 @@ class WeatherModelBase(metaclass=ABCMeta):
             new_data = weather_data[var_name]
             if "convert" in conversion_dict[var_name]:
                 dtype_value = new_data.dtype
-                converter: callable = conversion_dict[var_name]["convert"]
-                new_data = converter(weather_data[var_name]).astype(dtype_value)
+                new_data = conversion_dict[var_name]["convert"](weather_data[var_name]).astype(dtype_value)
 
             weather_data = weather_data.drop_vars(var_name)
             weather_data[new_name] = new_data
@@ -80,8 +83,8 @@ class WeatherModelBase(metaclass=ABCMeta):
         return weather_data
 
     @staticmethod
-    def _create_reverse_lookup(conversion_dict):  # pragma: no cover
-        reverse = dict()
+    def _create_reverse_lookup(conversion_dict: dict[str, dict[str, Any]]) -> dict[str, str]:  # pragma: no cover
+        reverse: dict[str, str] = {}
 
         for k, v in conversion_dict.items():
             if "name" in v:
@@ -90,38 +93,38 @@ class WeatherModelBase(metaclass=ABCMeta):
         return reverse
 
     @abstractmethod
-    def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
+    def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     @staticmethod
-    def celsius_to_kelvin(x):  # pragma: no cover
+    def celsius_to_kelvin(x: Any) -> Any:  # pragma: no cover
         return x + 273.15
 
     @staticmethod
-    def kelvin_to_celsius(x):  # pragma: no cover
+    def kelvin_to_celsius(x: Any) -> Any:  # pragma: no cover
         return x - 273.15
 
-    def tenth_celsius_to_kelvin(self, x):  # pragma: no cover
+    def tenth_celsius_to_kelvin(self, x: Any) -> Any:  # pragma: no cover
         return self.celsius_to_kelvin(self.normalize_tenths(x))
 
     @staticmethod
-    def normalize_tenths(x):  # pragma: no cover
+    def normalize_tenths(x: Any) -> Any:  # pragma: no cover
         return x / 10
 
     @staticmethod
-    def no_conversion(x):  # pragma: no cover
+    def no_conversion(x: Any) -> Any:  # pragma: no cover
         return x
 
     @staticmethod
-    def percentage_to_frac(x):  # pragma: no cover
+    def percentage_to_frac(x: Any) -> Any:  # pragma: no cover
         return x / 100
 
     @staticmethod
-    def kmh_to_ms(x):  # pragma: no cover
+    def kmh_to_ms(x: Any) -> Any:  # pragma: no cover
         return x / 3.6
 
     @staticmethod
-    def dutch_wind_direction_to_degrees(xs):
+    def dutch_wind_direction_to_degrees(xs: str) -> float | None:  # pragma: no cover
         wind_directions = [
             "NNO",
             "NO",
@@ -141,7 +144,7 @@ class WeatherModelBase(metaclass=ABCMeta):
             "N",
         ]
 
-        def dutch_wind_direction_to_degrees_single(x):
+        def dutch_wind_direction_to_degrees_single(x: str) -> float | None:
             if x in wind_directions:
                 return (wind_directions.index(x) + 1) * 22.5
             else:
@@ -150,8 +153,9 @@ class WeatherModelBase(metaclass=ABCMeta):
         return np.frompyfunc(dutch_wind_direction_to_degrees_single, 1, 1)(xs)
 
     @staticmethod
-    def knmi_visibility_class_to_meter_estimate(xs):
-        """Function to transform KNMI visibility class values to an estimate of meters visibility
+    def knmi_visibility_class_to_meter_estimate(xs: int) -> float:  # pragma: no cover
+        """Function to transform KNMI visibility class values to an estimate of meters visibility.
+
         Args:
             xs:     The visibility class value to be interpreted
 
@@ -160,7 +164,7 @@ class WeatherModelBase(metaclass=ABCMeta):
 
         """
 
-        def knmi_visibility_class_to_meter_estimate_single(x):
+        def knmi_visibility_class_to_meter_estimate_single(x: int) -> float:
             if x < 50:
                 return x * 100 + 50
             elif x == 50:

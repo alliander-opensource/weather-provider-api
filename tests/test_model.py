@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 # Not testing the abstract get_weather and is_async functions as they are implemented and defined outside this scope
@@ -36,7 +33,8 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 
 
 @pytest.fixture
-def mock_single_value_dataset(mock_coordinates):
+def mock_single_value_dataset(mock_coordinates: list[tuple[float, float]]):
+    """Returns a mock Xarray Dataset for testing the convert_names_and_units function of the WeatherModelBase class."""
     mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     mock_factor = ["temperature", "precipitation", "mock_unknown_field"]
     timeline = [datetime.now()]
@@ -61,17 +59,18 @@ def mock_single_value_dataset(mock_coordinates):
     return ds
 
 
-def test_convert_names_and_units(mock_single_value_dataset):
+def test_convert_names_and_units(mock_single_value_dataset: xr.Dataset):
+    """Tests the convert_names_and_units function of the WeatherModelBase class."""
     base_model = PluimModel()
 
     # For Pluim the original temperature format is Celsius.
     # Therefore, OutputUnit.original and OutputUnit.human should both be the original value.
     # OutputUnit.si should be Kelvin, however.
     assert (
-        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["temperature"][0][0] == 25.0
+        np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["temperature"][0][0], 25.0, rtol=1e-09, atol=1e-09)
     )
-    assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["temperature"][0][0] == 298.15
-    assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["temperature"][0][0] == 25.0
+    assert np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["temperature"][0][0], 298.15, rtol=1e-09, atol=1e-09)
+    assert np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["temperature"][0][0], 25.0, rtol=1e-09, atol=1e-09)
 
     # For Pluim the original precipitation format is mm.
     # Therefore, OutputUnit.original and OutputUnit.human should both be the original value.
@@ -79,11 +78,11 @@ def test_convert_names_and_units(mock_single_value_dataset):
     assert (
         base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["precipitation"][0][0] == 32
     )
-    assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["precipitation"][0][0] == 0.032
+    assert np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["precipitation"][0][0], 0.032, rtol=1e-09, atol=1e-09)
     assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["precipitation"][0][0] == 32
 
     with pytest.raises(TypeError) as e:
-        assert base_model.convert_names_and_units(mock_single_value_dataset, "MOCK_OUTPUT")
+        base_model.convert_names_and_units(mock_single_value_dataset, "MOCK_OUTPUT")  # type: ignore
     assert str(e.value.args[0]) == "Invalid OutputUnit"
 
     # If the field name isn't known in the model, there are no conversion functions and the values
@@ -104,6 +103,7 @@ def test_convert_names_and_units(mock_single_value_dataset):
 # The ERA5SL Model does not use the _request_weather_factors() function and therefore not used in the test cases
 # The Harmonie Model is currently not in use, due to changes to the format.
 def test__request_weather_factors():
+    """Tests the _request_weather_factors function of the WeatherModelBase class."""
     # GENERAL: For each test, some of (or part of) the factors has its capitalization altered from the regular format.
     # For any input the function should return the proper capitalization for that factor
     base_model = PluimModel()
@@ -112,7 +112,7 @@ def test__request_weather_factors():
     # For Pluim that is: wind_speed, wind_direction, short_time_wind_speed, temperature, precipitation,
     #                    precipitation_sum, cape
     weather_factors_input = None
-    assert base_model._request_weather_factors(weather_factors_input) == [
+    assert base_model._request_weather_factors(weather_factors_input) == [  # type: ignore
         "wind_speed",
         "wind_direction",
         "short_time_wind_speed",
@@ -125,7 +125,7 @@ def test__request_weather_factors():
     # TEST 2: A list consisting of only known weather-factors for that model should return identical to the input
     # NOTE: The order of the output can get scrambled, which is why we sort the output before comparing!
     weather_factors_input = ["wind_speed", "precipitation", "temperature"]
-    assert sorted(base_model._request_weather_factors(weather_factors_input)) == [
+    assert sorted(base_model._request_weather_factors(weather_factors_input)) == [  # type: ignore
         "precipitation",
         "temperature",
         "wind_speed",
@@ -146,7 +146,7 @@ def test__request_weather_factors():
     ]
 
     # Pluim - full return of factors,
-    assert sorted(base_model._request_weather_factors(weather_factors_input)) == [
+    assert sorted(base_model._request_weather_factors(weather_factors_input)) == [  # type: ignore
         "precipitation",
         "temperature",
         "wind_speed",
@@ -155,7 +155,7 @@ def test__request_weather_factors():
     # Daggegevens - return only known factors
     extra_model = DagGegevensModel()
     weather_factors_input = ["FHNH", "fxx", "duck_feathers", "T10NH"]
-    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == [
+    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == [  # type: ignore
         "FHNH",
         "FXX",
         "T10NH",
@@ -164,7 +164,7 @@ def test__request_weather_factors():
     # Uurgegevens - return only known factors
     extra_model = UurgegevensModel()
     weather_factors_input = ["DDVEC", "T10N", "duck_feathers", "vv"]
-    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == [
+    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == [  # type: ignore
         "DDVEC",
         "T10N",
         "VV",
@@ -178,7 +178,7 @@ def test__request_weather_factors():
         "duck_feathers",
         "AIR_pressure",
     ]
-    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == [
+    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == [  # type: ignore
         "air_pressure",
         "visibility",
         "weather_description",
@@ -187,19 +187,20 @@ def test__request_weather_factors():
     # TEST 4: Only unknown factors
     # All unknown factors should be removed from the list, leaving an empty list
     weather_factors_input = ["duck_feathers", "goose_FEATHERS"]
-    assert sorted(base_model._request_weather_factors(weather_factors_input)) == []
+    assert sorted(base_model._request_weather_factors(weather_factors_input)) == []  # type: ignore
 
     extra_model = DagGegevensModel()
-    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == []
+    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == []  # type: ignore
 
     extra_model = UurgegevensModel()
-    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == []
+    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == []  # type: ignore
 
     extra_model = ActueleWaarnemingenModel()
-    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == []
+    assert sorted(extra_model._request_weather_factors(weather_factors_input)) == []  # type: ignore
 
 
 def test_knmi_visibility_class_to_meter_estimate():
+    """Tests the knmi_visibility_class_to_meter_estimate function of the PluimModel class."""
     base_model = PluimModel()
 
     assert base_model.knmi_visibility_class_to_meter_estimate(49) == 4950
@@ -231,6 +232,7 @@ def test_knmi_visibility_class_to_meter_estimate():
         ("NOT_A_DIRECTION", None),
     ],
 )
-def test_dutch_wind_direction_to_degrees(wind_direction, resulting_degrees):
+def test_dutch_wind_direction_to_degrees(wind_direction: str, resulting_degrees: float | None):
+    """Tests the dutch_wind_direction_to_degrees function of the PluimModel class."""
     base_model = PluimModel()
     assert base_model.dutch_wind_direction_to_degrees(wind_direction) == resulting_degrees

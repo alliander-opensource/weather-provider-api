@@ -1,22 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""Class to retrieve the current Weather Alert status according to the KNMI site"""
+"""A class to retrieve the current Weather Alert status according to the KNMI site."""
 
 from enum import Enum
+from html.parser import HTMLParser
 
-import requests
-from bs4 import BeautifulSoup
-from requests.adapters import HTTPAdapter
 from requests.exceptions import ProxyError, Timeout, TooManyRedirects
+from requests.sessions import HTTPAdapter, Session
 from urllib3 import Retry
 
 
 class WeatherAlertCode(Enum):
-    # Enum class with valid Weather Alert Codes
+    """Enum class with valid Weather Alert Codes."""
     green = "green"
     yellow = "yellow"
     orange = "orange"
@@ -24,9 +20,10 @@ class WeatherAlertCode(Enum):
 
 
 class WeatherAlert:
-    """A class (not a Weather Model!) that parses the Weather Alert status from the KNMI site (Weeralarm)"""
+    """A class (not a Weather Model!) that parses the Weather Alert status from the KNMI site (Weeralarm)."""
 
     def __init__(self):
+        """Initialize the WeatherAlert class with the necessary information and settings."""
         self.id = "weatheralert"
         self.name = "KNMI Weather Alert"
         self.version = "0.8"
@@ -47,13 +44,13 @@ class WeatherAlert:
             "zuid-holland",
         )  # The Dutch Provinces. Every province has its own page.
 
-    def get_alarm(self):
+    def get_alarm(self) -> list[tuple[str, str]]:
         """A function that retrieves the current weather alarm stage for each of the Dutch provinces and puts those together into a formatted list of results (string-based).
 
         Returns:
-            A list of strings holding all the provinces and their retrieved current alarm stages according to KNMI
+            A list of tuples holding all the provinces and their retrieved current alarm stages according to KNMI
         """
-        alarm_list = []
+        alarm_list: list[tuple[str, str]] = []
         for province in self.provinces:
             # Every province is available from a different page, so we have to request all of them separately
             page_text = ""
@@ -74,8 +71,10 @@ class WeatherAlert:
 
     @staticmethod
     def process_page(page_text: str, status_code: int, province: str) -> tuple[str, str]:
-        """
-        Parses the weather alert page for a province and retrieves its current alarm stage by finding the first div with class 'alert' and 'alert--<color>'.
+        """Parse the weather alert page for a province and retrieve its current alarm stage.
+
+        It does so by looking for a div with the class "alert" and "alert--<color>" (where color is the code of the alarm stage). 
+        If it finds such a div, it returns the color as the alarm stage. If it doesn't find such a div, it returns an error message based on the status code.
 
         Args:
             page_text:      The response content retrieved while trying to download the page
@@ -85,36 +84,29 @@ class WeatherAlert:
         Returns:
             A tuple holding the province and a result-string for that province.
         """
-        if status_code == 200 and page_text is not None:
-            soup = BeautifulSoup(page_text, features="lxml")
-            # Find the first div with class 'alert' and 'alert--<color>'
-            alert_div = None
-            for div in soup.find_all("div", class_=lambda c: c and "alert" in c):
-                for class_name in div.get("class", []):
-                    if class_name.startswith("alert--"):
-                        color = class_name[len("alert--") :]
-                        # Only accept valid colors
-                        if color in set(item.value for item in WeatherAlertCode):
-                            return province, color
-                # If found a div with 'alert' but no valid color, continue searching
+        if status_code == 200 and len(page_text) > 0:
+            color = extract_alert_color(page_text)
+            if color in {item.value for item in WeatherAlertCode}:
+                return province, color
+            
             # If no valid code was found return an invalid data message
-            return province, "could not find expected data on page"
+            return province, "No weather alert code could be found on the page"
         elif status_code == 408:
-            return province, "time out op loading page"
+            return province, "There was a timeout while loading the page"
         elif status_code == 407:
-            return province, "proxy error on loading page"
+            return province, "There was a proxy error while loading the page"
         else:
-            return province, "page proved inaccessible"
+            return province, "The page proved inaccessible"
 
     @staticmethod
     def _requests_retry_session(
         # A function for basic retrying of an url when it isn't accessible immediately.
-        retries=8,
-        backoff_factor=0.01,
-        status_forcelist=(500, 502, 504),
-        session=None,
-    ) -> requests.Session:
-        session = session or requests.Session()
+        retries: int = 8,
+        backoff_factor: float = 0.01,
+        status_forcelist: tuple[int, ...] = (500, 502, 504),
+        session: Session | None = None,
+    ) -> Session:
+        session = session or Session()
         retry = Retry(
             total=retries,
             read=retries,
@@ -125,3 +117,32 @@ class WeatherAlert:
         adapter = HTTPAdapter(max_retries=retry)
         session.mount("https://", adapter)
         return session
+
+
+class AlertDivParser(HTMLParser):
+    """A simple HTML parser to extract the alert color from the KNMI weather alert page."""
+    def __init__(self):
+        """Initialize the AlertDivParser class."""
+        super().__init__()
+        self.found_color = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        """Handle the start tag of HTML elements and look for a div with the class 'alert' and 'alert--<color>'.
+        
+        If it is, extract the color and store it in the found_color attribute.
+        """
+        if tag == "div":
+            attrs_dict = dict(attrs)
+            class_attr = str(attrs_dict.get("class", ""))
+            classes = class_attr.split()
+            if any("alert" in cls for cls in classes):
+                for cls in classes:
+                    if cls.startswith("alert--"):
+                        color = cls[len("alert--") :]
+                        self.found_color = color
+
+def extract_alert_color(page_text: str) -> str | None:
+    """Extract the alert color from the KNMI weather alert page using the AlertDivParser."""
+    parser = AlertDivParser()
+    parser.feed(page_text)
+    return parser.found_color

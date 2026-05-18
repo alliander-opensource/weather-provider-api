@@ -1,14 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 import json
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, mock_open, patch
-
-import pytest
+from typing import Any
+from unittest.mock import mock_open, patch
 
 from weather_provider_api.scripts.openapi import generate_openapi_spec
 
@@ -16,8 +11,9 @@ from weather_provider_api.scripts.openapi import generate_openapi_spec
 class TestGenerateOpenAPISpec:
     """Test suite for the generate_openapi_spec function."""
 
-    def test_generate_openapi_spec_creates_file(self, tmp_path):
+    def test_generate_openapi_spec_creates_file(self, tmp_path: str):
         """Test that generate_openapi_spec creates an openapi.json file."""
+        _ = tmp_path  # Unused fixture
         mock_spec: dict[str, dict[str, str] | str] = {
             "openapi": "3.0.2",
             "info": {"title": "Weather API (v2)", "version": "2.0.0"},
@@ -35,9 +31,7 @@ class TestGenerateOpenAPISpec:
 
                 # Verify the spec was written to file
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
                 assert written_content == json.dumps(mock_spec)
 
     def test_generate_openapi_spec_calls_openapi_method(self):
@@ -55,7 +49,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_writes_valid_json(self):
         """Test that the generated file contains valid JSON."""
-        mock_spec = {
+        mock_spec: dict[str, dict[str, Any] | str] = {
             "openapi": "3.0.2",
             "info": {
                 "title": "Weather API (v2)",
@@ -79,9 +73,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 # Verify the content is valid JSON and matches the spec
                 parsed_json = json.loads(written_content)
@@ -89,7 +81,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_handles_complex_spec(self):
         """Test that complex OpenAPI specifications are handled correctly."""
-        mock_spec = {
+        mock_spec = {  # type: ignore
             "openapi": "3.0.2",
             "info": {
                 "title": "Weather API (v2)",
@@ -150,9 +142,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 parsed_json = json.loads(written_content)
                 assert parsed_json == mock_spec
@@ -161,7 +151,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_overwrites_existing_file(self):
         """Test that the function overwrites an existing openapi.json file."""
-        mock_spec = {"openapi": "3.0.2", "info": {"title": "Test", "version": "1.0.0"}}
+        mock_spec = {"openapi": "3.0.2", "info": {"title": "Test", "version": "1.0.0"}} # type: ignore
 
         with patch("weather_provider_api.scripts.openapi.v2_app") as mock_app:
             mock_app.openapi.return_value = mock_spec
@@ -174,7 +164,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_with_empty_paths(self):
         """Test handling of OpenAPI spec with no paths defined."""
-        mock_spec = {
+        mock_spec = {  # type: ignore
             "openapi": "3.0.2",
             "info": {"title": "Weather API (v2)", "version": "2.0.0"},
             "paths": {},
@@ -187,16 +177,14 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 parsed_json = json.loads(written_content)
                 assert parsed_json["paths"] == {}
 
     def test_generate_openapi_spec_json_formatting(self):
         """Test that the JSON is written in a compact format (no indentation)."""
-        mock_spec = {
+        mock_spec = {  # type: ignore
             "openapi": "3.0.2",
             "info": {"title": "Test", "version": "1.0.0"},
         }
@@ -208,9 +196,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 handle = mock_file()
-                written_content = "".join(
-                    call.args[0] for call in handle.write.call_args_list
-                )
+                written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
                 # Verify it's compact JSON (no extra whitespace/newlines)
                 expected = json.dumps(mock_spec)
@@ -219,7 +205,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_integration(self):
         """Integration test verifying the complete flow."""
-        mock_spec = {
+        mock_spec = {  # type: ignore
             "openapi": "3.0.2",
             "info": {
                 "title": "Weather API (v2)",

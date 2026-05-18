@@ -1,29 +1,24 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
+
+# TODO: FIX This and the KNMI Uurgegevens model to not cut off one time unit early.
 
 """KNMI day models data fetcher."""
 
 import copy
 import json
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-import requests
+import requests  # type: ignore
 import xarray as xr
-from dateutil.relativedelta import relativedelta
 from loguru import logger
-from pytz import UTC
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
 from weather_provider_api.routers.weather.sources.knmi.stations import stations_history
-from weather_provider_api.routers.weather.sources.knmi.utils import (
-    find_closest_stn_list,
-)
+from weather_provider_api.routers.weather.sources.knmi.utils.commons import find_closest_stn_list
 from weather_provider_api.routers.weather.utils.date_helpers import (
     validate_begin_and_end,
 )
@@ -32,12 +27,15 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 
 
 class DagGegevensModel(WeatherModelBase):
-    """A Weather Model that incorporates the:
-        KNMI Daggegevens
-    dataset into the Weather Provider API
+    """A model for the daily weather data from the KNMI, also known as "Daggegevens".
+    
+    This dataset contains daily measurements of various weather factors for a large number of stations across the 
+    Netherlands. The data can be requested for specific time periods and locations, and contains a wide variety of 
+    weather factors, such as temperature, wind speed, precipitation, and more.
     """
 
     def __init__(self):
+        """Initialize the Daggegevens model with its specific properties and conversion dictionaries."""
         super().__init__()
         self.id = "daggegevens"
         self.name = "KNMI daggegevens"
@@ -53,7 +51,7 @@ class DagGegevensModel(WeatherModelBase):
         self.async_model = False
         self.download_url = "https://daggegevens.knmi.nl/klimatologie/daggegevens"
 
-        self.to_si = {
+        self.to_si = {  # type: ignore
             "DDVEC": {"name": "wind_direction", "convert": self.no_conversion},
             "FHVEC": {"convert": self.normalize_tenths},  # 0.1 m/s -> m/s
             "FG": {
@@ -101,7 +99,7 @@ class DagGegevensModel(WeatherModelBase):
             },  # % -> fraction
             "Q": {
                 "name": "global_radiation",
-                "convert": lambda x: x * 1e4,
+                "convert": lambda x: x * 1e4,  # type: ignore
             },  # J/cm**2 -> J/m**2
             "DR": {
                 "name": "precipitation_duration",
@@ -109,25 +107,25 @@ class DagGegevensModel(WeatherModelBase):
             },  # 0.1 hour -> hour
             "RH": {
                 "name": "precipitation",
-                "convert": lambda x: x / 10 / 1000,
+                "convert": lambda x: x / 10 / 1000,  # type: ignore
             },  # 0.1 mm -> m
             "RHX": {
                 "name": "precipitation_max",
-                "convert": lambda x: x / 10 / 1000,
+                "convert": lambda x: x / 10 / 1000,  # type: ignore
             },  # 0.1 mm -> m
             "RHXH": {"name": "precipitation_max_hour", "convert": self.no_conversion},
             "PG": {
                 "name": "air_pressure",
-                "convert": lambda x: x / 10 * 100,
+                "convert": lambda x: x / 10 * 100,  # type: ignore
             },  # 0.1 hPa -> Pa
             "PX": {
                 "name": "air_pressure_max",
-                "convert": lambda x: x / 10 * 100,
+                "convert": lambda x: x / 10 * 100,  # type: ignore
             },  # 0.1 hPa -> Pa
             "PXH": {"name": "air_pressure_max_hour", "convert": self.no_conversion},
             "PN": {
                 "name": "air_pressure_min",
-                "convert": lambda x: x / 10 * 100,
+                "convert": lambda x: x / 10 * 100,  # type: ignore
             },  # 0.1 hPa -> Pa
             "PNH": {"name": "air_pressure_min_hour", "convert": self.no_conversion},
             "VVN": {"convert": self.knmi_visibility_class_to_meter_estimate},
@@ -149,19 +147,19 @@ class DagGegevensModel(WeatherModelBase):
                 "convert": self.percentage_to_frac,
             },  # % -> frac
             "UNH": {"name": "humidity_min_hour", "convert": self.no_conversion},
-            "EV24": {"convert": lambda x: x / 10 / 1000},  # 0.1 mm -> m
+            "EV24": {"convert": lambda x: x / 10 / 1000},  # 0.1 mm -> m  # type: ignore
         }
 
-        self.to_human = copy.deepcopy(self.to_si)
-        self.to_human["TG"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C
-        self.to_human["TN"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C
-        self.to_human["TX"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C
-        self.to_human["T10N"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C
-        self.to_human["RH"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm
-        self.to_human["RHX"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm
-        self.to_human["EV24"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm
+        self.to_human = copy.deepcopy(self.to_si)  # type: ignore
+        self.to_human["TG"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C  # type: ignore
+        self.to_human["TN"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C  # type: ignore
+        self.to_human["TX"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C  # type: ignore
+        self.to_human["T10N"]["convert"] = self.normalize_tenths  # 0.1 degree C -> C  # type: ignore
+        self.to_human["RH"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm  # type: ignore
+        self.to_human["RHX"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm  # type: ignore
+        self.to_human["EV24"]["convert"] = self.normalize_tenths  # 0.1 mm -> mm  # type: ignore
 
-        self.human_to_model_specific = self._create_reverse_lookup(self.to_si)
+        self.human_to_model_specific = self._create_reverse_lookup(self.to_si)  # type: ignore
 
         self.knmi_aliases = [
             "WIND",
@@ -178,16 +176,18 @@ class DagGegevensModel(WeatherModelBase):
 
     def get_weather(
         self,
-        coords: List[GeoPosition],
-        begin: datetime,
-        end: datetime,
-        inseason=False,
-        weather_factors: List[str] = None,
+        coords: list[GeoPosition],
+        begin: datetime | None = None,
+        end: datetime | None = None,
+        weather_factors: list[str] | None = None,
+        inseason: bool = False,
     ) -> xr.Dataset:
-        """The function that gathers and processes the requested Daggegevens weather data from the KNMI site
-            and returns it as a Xarray Dataset.
-            (Though this model downloads from a specific download url, the question remains whether this source is also
-            listed on the new KNMI Data Platform)
+        """Gather and process the requested weather data from the KNMI site for the Daggegevens dataset.
+        
+        The function that gathers and processes the requested Daggegevens weather data from the KNMI site and returns
+        it as a Xarray Dataset.
+        (Though this model downloads from a specific download url, the question remains whether this source is also 
+        listed on the new KNMI Data Platform)
 
         Args:
             coords:             A list of GeoPositions containing the locations the data is requested for.
@@ -200,7 +200,7 @@ class DagGegevensModel(WeatherModelBase):
             An Xarray Dataset containing the weather data for the requested period, locations and factors.
         """
         # Test and account for invalid datetime timeframes or input
-        begin, end = validate_begin_and_end(begin, end, None, datetime.now(UTC) - relativedelta(days=1))
+        begin, end = validate_begin_and_end(begin, end, None, datetime.now(UTC) - timedelta(days=1))
         # Get a list of the relevant STNs and choose the closest STN for each coordinate
         station_id, stns, _ = find_closest_stn_list(stations_history, coords)
 
@@ -225,6 +225,7 @@ class DagGegevensModel(WeatherModelBase):
         return ds
 
     def is_async(self) -> bool:  # pragma: no cover
+        """Determine if the model is asynchronous."""
         return self.async_model
 
     def _download_weather(
@@ -232,8 +233,9 @@ class DagGegevensModel(WeatherModelBase):
         stations: List[int],
         start: datetime,
         end: datetime,
-        inseason=False,
-        weather_factors: List[str] = None,
+        weather_factors: list[str] | None = None,
+        inseason: bool = False,
+        
     ):
         """A function that downloads the weather from the KNMI download location and returns it as a text
         Args:

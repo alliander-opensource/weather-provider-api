@@ -14,8 +14,9 @@ https://www.apache.org/licenses/LICENSE-2.0.
 
 from datetime import date
 from enum import Enum
+from typing import Any
 
-import cdsapi
+import cdsapi  # type: ignore
 from loguru import logger
 from pydantic import BaseModel, Field
 
@@ -31,7 +32,7 @@ _DEFAULT_VARIABLES = [
 ]
 
 
-def _info_callback(*args, **kwargs) -> None:  # noqa: ANN002, ANN003
+def _info_callback(*args: tuple[Any, ...], **kwargs: dict[str, Any]) -> None:
     """This is a callback function that is used to print information about the download process."""
     if len(args) > 0 or len(kwargs) > 0:
         logger.info("Callback received:")
@@ -96,9 +97,9 @@ class CDSRequest(BaseModel):
             "month": self.month,
             "day": self.day,
             "time": self.time,
-            "area": self.area,
+            "area": self.area,  # type: ignore
             "data_format": self.data_format,
-            "download_format": self.download_format
+            "download_format": self.download_format,
         }
 
 

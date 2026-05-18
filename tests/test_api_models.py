@@ -1,16 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from weather_provider_api.routers.weather.api_models import ScientificJSONResponse
 
 
 # The custom float encoder is the sole function inside api_models.py and is therefore the only thing that needs testing.
 def test_custom_json_float_encoder():
+    """Test the custom JSON float encoder for handling NaN and infinity values."""
     # Setting up generic weather output format, ready for value injection
     mock_response = ScientificJSONResponse(
         {
@@ -18,7 +16,7 @@ def test_custom_json_float_encoder():
                 "time": {
                     "dims": ("time",),
                     "attrs": {"long_name": "time"},
-                    "data": [datetime.utcnow()],
+                    "data": [datetime.now(UTC)],
                     "coord": {"dims": ("coord",), "attrs": {}, "data": [(5.25, 52.0)]},
                 },
                 "attrs": {},
@@ -38,10 +36,10 @@ def test_custom_json_float_encoder():
     )
 
     # Test NaN
-    assert mock_response.render(float("nan")) == b"null"
+    assert mock_response.render(float("nan")) == b'null'
 
     # Test infinity
-    assert mock_response.render(float("inf")) == b"Infinity"
+    assert mock_response.render(float("inf")) == b'"Infinity"'
 
     # Test negative infinity
-    assert mock_response.render(-float("inf")) == b"-Infinity"
+    assert mock_response.render(-float("inf")) == b'"-Infinity"'

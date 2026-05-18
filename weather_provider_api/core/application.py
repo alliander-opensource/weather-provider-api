@@ -6,8 +6,9 @@
 
 """Main Application."""
 
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
 from weather_provider_api.app_version import APP_VERSION
@@ -39,7 +40,6 @@ def _build_api_application() -> FastAPI:
     """
     app_title = APP_CONFIG["base"]["title"]
     app_description = APP_CONFIG["base"]["description"]
-
 
     # Define lifespan context manager for startup/shutdown events
     @asynccontextmanager

@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 """CDS - ERA5 Single Levels Weatherdata Model"""
@@ -145,8 +142,7 @@ class ERA5LandModel(WeatherModelBase):
         not_in_dataset = list(set(to_drop).difference(dataset_to_drop_from.keys()))
         if len(not_in_dataset) > 0:
             logger.warning(
-                f"The following fields passed the factor validation, but weren't in the ERA5SL data: "
-                f"{not_in_dataset}"
+                f"The following fields passed the factor validation, but weren't in the ERA5SL data: {not_in_dataset}"
             )
         to_drop = [x for x in to_drop if x in dataset_to_drop_from.keys()]
         return to_drop

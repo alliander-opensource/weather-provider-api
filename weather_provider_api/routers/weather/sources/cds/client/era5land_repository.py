@@ -1,20 +1,27 @@
-#!/usr/bin/env python
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
+#  SPDX-License-Identifier: MPL-2.0
+
+import calendar
 import glob
-from datetime import datetime
+from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 
-from dateutil.relativedelta import relativedelta
+import xarray as xr
 from loguru import logger
-from pytz import UTC
 
-from weather_provider_api.routers.weather.repository.repository import RepositoryUpdateResult, WeatherRepositoryBase
+from weather_provider_api.routers.weather.repository.repository import (
+    RepoDataFetchResult,
+    RepoUpdateResult,
+    WeatherRepositoryBase,
+    WeatherRepositoryConfiguration,
+)
 from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import CDSDataSets
 from weather_provider_api.routers.weather.sources.cds.client.era5_utils import (
     Era5UpdateSettings,
     era5_repository_update,
 )
 from weather_provider_api.routers.weather.sources.cds.factors import era5land_factors
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-from weather_provider_api.routers.weather.utils.grid_helpers import round_coordinates_to_wgs84_grid
+from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
 
 
 class ERA5LandRepository(WeatherRepositoryBase):
@@ -22,64 +29,69 @@ class ERA5LandRepository(WeatherRepositoryBase):
 
     def __init__(self):
         """Initializes the ERA5 Single Levels Repository."""
-        super().__init__()
-        self.repository_name = "CSD: ERA5-Land"
-        logger.debug(f"Initializing {self.repository_name} repository")
-        self.file_prefix = "ERA5LAND"
-        self.runtime_limit = 3 * 60  # 3 hours maximum runtime
-        self.permanent_suffixes = ["INCOMPLETE", "TEMP"]
-        self.grid_resolution = 0.25
-        self.file_identifier_length = 7
-        self.age_of_permanence_in_months = 3
-
-        logger.debug(f"Initialized {self.repository_name} repository")
-
-    @staticmethod
-    def _get_repo_sub_folder() -> str:
-        """Returns the subfolder name for the repository."""
-        return "ERA5LAND"
-
-    @property
-    def first_day_of_repo(self) -> datetime:
-        """Returns the first day of the repository."""
-        first_day_of_repo = datetime.now(UTC) - relativedelta(years=12, days=5)
-        first_day_of_repo = first_day_of_repo.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        return first_day_of_repo
-
-    @property
-    def last_day_of_repo(self) -> datetime:
-        """Returns the last day of the repository."""
-        last_day_of_repo = datetime.now(UTC) - relativedelta(days=2)
-        last_day_of_repo = last_day_of_repo.replace(hour=0, minute=0, second=0, microsecond=0)
-        return last_day_of_repo
-
-    def update(self, test_mode: bool = False) -> RepositoryUpdateResult:
-        """The update implementation for the ERA5 Land repository.
-
-        This function handles all the required actions to update the repository completely, but taking into
-        account its set runtime_limit. If based on the time of completion of other downloaded files this session
-        the next file wouldn't complete within the runtime_limit, the update process halts.
-        (if no other downloads were made yet, a generous rough estimate is used)
-
-        Returns:
-            A RepositoryUpdateResult value indicating a completion, time-out or failure of the update process
-        """
-        # Always start with a nicely cleaned repository
-        self.cleanup()
-
-        return era5_repository_update(
-            Era5UpdateSettings(
-                filename_prefix=self.file_prefix,
-                era5_dataset_to_update_from=CDSDataSets.ERA5LAND,
-                era5_product_type="reanalysis",
-                factor_dictionary=era5land_factors,
-                factors_to_process=[era5land_factors[x] for x in list(era5land_factors.keys())],
-                maximum_runtime_in_minutes=self.runtime_limit,
-                repository_time_range=(self.first_day_of_repo, self.last_day_of_repo),
-                target_storage_location=self.repository_folder,
-            ),
-            test_mode=test_mode,
+        super().__init__(
+            WeatherRepositoryConfiguration(
+                identifier="CDS ERA5 Land",
+                storage_path=Path("cds/era5land"),
+                storage_states={"raw", "processed", "uncertain", "incomplete"},
+                maximum_runtime_seconds=60 * 60 * 3,  # 3 hours
+                temporal_file_identifier="%Y%m%d",
+                affiliated_source_and_model=("cds", "era5land"),
+            )
         )
+
+        self.cds_dataset = CDSDataSets.ERA5LAND
+        self.cds_product_type = "reanalysis"
+        self.factors_to_process = era5land_factors.keys()
+        self.years_to_store = 10
+        
+        logger.info(f"Initialized {self.__class__.__name__} with configuration:\n{self.metadata}")
+
+    @property
+    def oldest_date_available(self) -> date:
+        """Returns the oldest date for which data is available in the repository."""
+        oldest_day_in_repo = subtract_months(datetime.now(UTC).date(), self.years_to_store * 12) - timedelta(days=5)
+        return oldest_day_in_repo
+
+    @property
+    def newest_date_available(self) -> date:
+        """Returns the newest date for which data is available in the repository."""
+        return (datetime.now(UTC).date() - timedelta(days=5))
+
+    def update(self, *, run_in_testmode: bool = False) -> tuple[RepoUpdateResult, str]:
+        """Update the repository with new data."""
+        msg = f"Updating {self.identifier} repository"
+        if run_in_testmode:
+            msg += " (test mode)"
+        logger.info(msg)
+
+        # Start by cleaning up the repository to ensure a good state before updating
+        if self.cleanup_storage() == RepoUpdateResult.FAILURE:
+            logger.error(
+                "Failed to clean up the repository storage. Aborting update to avoid potential data integrity issues."
+            )
+            return RepoUpdateResult.FAILURE, "Failed to clean up the repository storage."
+
+        # process the update and return the result
+        return era5_repository_update(
+            update_settings=Era5UpdateSettings(
+                filename_prefix="cds_era5sl",
+                era5_dataset_to_update_from=self.cds_dataset,
+                era5_product_type=self.cds_product_type,
+                factor_dictionary=era5land_factors,
+                factors_to_process=[era5land_factors[x] for x in self.factors_to_process],
+                maximum_runtime_in_minutes=int(self.config.maximum_runtime_seconds // 60),
+                repository_time_range=(self.oldest_date_available, self.newest_date_available),
+                target_storage_location=self.absolute_storage_path,
+            ),
+            test_mode=run_in_testmode,
+        )
+
+    def cleanup_storage(self) -> RepoUpdateResult:
+        """Cleans up the storage by deleting all files that are outside of the repository's scope."""
+        self._delete_files_outside_of_scope()
+
+        return RepoUpdateResult.SUCCESS
 
     def _delete_files_outside_of_scope(self):
         """A function that deletes all files in the repository with a date not inside the repository's scope.
@@ -89,50 +101,129 @@ class ERA5LandRepository(WeatherRepositoryBase):
         Returns:
             Nothing. Successful means the all files outside the scope were deleted.
         """
-        len_filename_until_date = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
+        prefix = str(self.absolute_storage_path / "cds_era5sl_")
+        prefix_len = len(prefix)
+        for file_path in glob.glob(f"{prefix}*.nc"):
+            # Expecting filenames like .../cds_era5sl_YYYY-MM.nc
+            try:
+                year = int(file_path[prefix_len : prefix_len + 4])
+                month = int(file_path[prefix_len + 5 : prefix_len + 7])
+                file_date = date(year, month, 1)
+            except (ValueError, IndexError):
+                logger.warning(f"Skipping file with unexpected name format: {file_path}")
+                continue
 
-        for file_name in glob.glob(str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc"):
-            file_year = int(file_name[len_filename_until_date : len_filename_until_date + 4])
-            file_month = int(file_name[len_filename_until_date + 5 : len_filename_until_date + 7])
-
-            if (
-                file_year < self.first_day_of_repo.year
-                or file_year > self.last_day_of_repo.year
-                or (file_year == self.first_day_of_repo.year and file_month < self.first_day_of_repo.month)
-                or (file_year == self.last_day_of_repo.year and file_month > self.last_day_of_repo.month)
-            ):
+            if not self.oldest_date_available <= file_date <= self.newest_date_available:
                 logger.debug(
-                    f"Deleting file [{file_name}] because it does not lie in the "
-                    f"repository scope ({self.first_day_of_repo, self.last_day_of_repo})"
+                    f"Deleting file [{file_path}] because it does not lie in the "
+                    f"repository scope ({self.oldest_date_available}, {self.newest_date_available})"
                 )
-                self._safely_delete_file(file_name)
+                self.safely_delete_file(Path(file_path))
 
-    def _get_file_list_for_period(self, start: datetime, end: datetime):
+
+    def retrieve_data(self, from_date: date, to_date: date, locations: list[tuple[float, float]], factors: list[str]) -> tuple[xr.Dataset | None, RepoDataFetchResult]:
+        """Retrieves data from the repository for the given parameters."""
+        required_files_for_data = self._retrieve_files_matching_period(from_date, to_date)
+
+        try:
+            combined_dataset = self._gather_data_from_files_and_combine_into_dataset(required_files_for_data, locations, factors)
+        except Exception as e:
+            logger.error(f"An error occurred while retrieving data: {e}")
+            return None, RepoDataFetchResult.FAILURE
+
+        return combined_dataset, RepoDataFetchResult.SUCCESS
+
+    def _retrieve_files_matching_period(self, from_date: date, to_date: date) -> list[Path]:
         """A function that retrieves a list of files in the repository associated with the requested period of time.
 
         Args:
-            start:  A datetime containing the start of the requested period of time.
-            end:    A datetime containing the end of the requested period of time.
+            from_date:  A datetime containing the start of the requested period of time.
+            to_date:    A datetime containing the end of the requested period of time.
 
         Returns:
             A list of files (in string format) that indicate the files containing data for the requested period.
         """
-        self.cleanup()
+        prefix = str(self.absolute_storage_path / "cds_era5sl_")
+        prefix_len = len(prefix)
+        last_day_of_end_month = to_date.replace(day=calendar.monthrange(to_date.year, to_date.month)[1]).day
+        list_of_required_files: list[Path] = []
+        
+        for file_path in glob.glob(f"{prefix}*.nc"):
+            # Expecting filenames like .../cds_era5sl_YYYY-MM.nc
+            try:
+                year = int(file_path[prefix_len : prefix_len + 4])
+                month = int(file_path[prefix_len + 5 : prefix_len + 7])
+                file_date = date(year, month, 1)
+            except (ValueError, IndexError):
+                logger.warning(f"Skipping file with unexpected name format: {file_path}")
+                continue
 
-        len_filename_until_date = len(str(self.repository_folder.joinpath(self.file_prefix))) + 1
-        full_list_of_files = glob.glob(str(self.repository_folder.joinpath(self.file_prefix)) + "*.nc")
-        list_of_filtered_files = []
-        for file in full_list_of_files:
-            file_year = int(file[len_filename_until_date : len_filename_until_date + 4])
-            file_month = int(file[len_filename_until_date + 5 : len_filename_until_date + 7])
-            date_for_filename = datetime(year=file_year, month=file_month, day=15)
-
-            if start.replace(day=1) < date_for_filename < datetime(year=end.year, month=end.month, day=28):
+            if from_date.replace(day=1) <= file_date <= to_date.replace(day=last_day_of_end_month):
                 # If the file is within the requested period, save it to the list of filtered files
-                list_of_filtered_files.append(file)
+                logger.debug(f"Adding file [{file_path}] to the list of files for the requested period.")
+                list_of_required_files.append(Path(file_path))
 
-        return list_of_filtered_files
+        return list_of_required_files
 
-    def get_grid_coordinates(self, coordinates: list[GeoPosition]) -> list[GeoPosition]:
-        """Rounds a list of GeoPositions to the resolution set through grid_resolution."""
-        return round_coordinates_to_wgs84_grid(coordinates, (self.grid_resolution, self.grid_resolution))
+    def _gather_data_from_files_and_combine_into_dataset(
+        self,
+        required_files_for_data: list[Path],
+        locations: list[tuple[float, float]],
+        factors: list[str],
+    ) -> xr.Dataset | None:
+        """Gather data from the required files and combine it into a single Dataset.
+
+        Arguments:
+            required_files_for_data:
+                    A list of Path objects representing the files that match the specified date range.
+            locations:
+                    A list of tuples containing the latitude and longitude of the locations for which data is requested.
+            factors:
+                    A list of strings representing the factors to be included in the dataset.
+        """
+        combined_dataset: xr.Dataset | None = None
+
+        for file_path in required_files_for_data:
+            try:
+                dataset: xr.Dataset = xr.open_dataset(file_path, engine="netcdf4", mode="r")  # type: ignore
+                filtered_dataset = self._filter_dataset_by_locations_and_factors(dataset, locations, factors)
+                if combined_dataset is None:
+                    combined_dataset = filtered_dataset
+                else:
+                    combined_dataset = xr.concat([combined_dataset, filtered_dataset], dim="time")
+            except Exception as e:
+                logger.error(f"An error occurred while reading file [{file_path}]: {e}")
+                raise e
+
+        if not combined_dataset:
+            logger.warning("No data could be read from the required files. Returning None.")
+            return None
+        return combined_dataset
+
+    def _filter_dataset_by_locations_and_factors(
+        self, dataset: xr.Dataset, locations: list[tuple[float, float]], factors: list[str]
+    ) -> xr.Dataset:
+        """Filter the dataset based on the requested locations and factors.
+
+        Arguments:
+            dataset:
+                    An xarray Dataset containing the data read from a file.
+            locations:
+                    A list of tuples containing the latitude and longitude of the locations for which data is requested.
+            factors:
+                    A list of strings representing the factors to be included in the dataset.
+
+        Returns:
+            An xarray Dataset containing only the data for the requested locations and factors.
+        """
+        # We start by filtering for locations
+        latitudes = [location[0] for location in locations]
+        longitudes = [location[1] for location in locations]
+        location_trimmed_dataset = dataset.sel(latitude=latitudes, longitude=longitudes, method="nearest")
+
+        # Then we filter for factors
+        available_factors = set(dataset.data_vars.keys())
+        factors_to_keep = [factor for factor in factors if factor in available_factors]
+        factor_trimmed_dataset = location_trimmed_dataset[factors_to_keep]
+
+        return factor_trimmed_dataset

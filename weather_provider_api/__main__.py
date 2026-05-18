@@ -9,11 +9,6 @@
 import uvicorn
 from loguru import logger
 
-from weather_provider_api.core.initializers.logging_handler import initialize_logging
-
-# Logging is initialized before the importing of APP_CONFIG, to ensure custom logging for APP_CONFIG initialisation.
-initialize_logging()
-
 # Import application configuration settings
 from weather_provider_api.config import APP_CONFIG
 

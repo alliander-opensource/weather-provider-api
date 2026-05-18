@@ -1,20 +1,17 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""CDS - ERA5 Single Levels Weather data Model"""
+"""CDS - ERA5 Single Levels Weather data Model."""
 
 import copy
 from datetime import datetime
-from typing import List, Optional
 
 import numpy as np
 import xarray as xr
 from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
+from weather_provider_api.routers.weather.repository.repository import RepoDataFetchResult
 from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository import (
     ERA5SLRepository,
 )
@@ -26,12 +23,10 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 class ERA5SLModel(WeatherModelBase):
-    """A Weather Model that incorporates the:
-        ERA5 hourly data on single levels from 1979 to present
-    dataset into the Weather Provider API
-    """
+    """A weather model for the CDS ERA5 Single Levels dataset."""
 
     def __init__(self):
+        """Initializes the ERA5SLModel with its specific configuration and repository."""
         super().__init__()
         self.id = "era5sl"
         logger.debug(f"Initializing weather model [{self.id}]")
@@ -53,34 +48,36 @@ class ERA5SLModel(WeatherModelBase):
         self.repository = ERA5SLRepository()
 
         # Set up Conversion Dictionary
-        si_conversion_dict = {
-            k: {"name": k, "convert": lambda x: x} for k in era5sl_factors.values()
+        si_conversion_dict = {  # type: ignore
+            k: {"name": k, "convert": lambda x: x}  # type: ignore
+            for k in era5sl_factors.values()  # type: ignore
         }  # The default output format for ERA5SL is already SI
-        self.to_si = si_conversion_dict
+        self.to_si = si_conversion_dict  # type: ignore
 
         # Human output conversion:
-        self.to_human = copy.deepcopy(self.to_si)
-        # self.to_human["sea_surface_temperature"]["convert"] = self.kelvin_to_celsius
-        self.to_human["soil_temperature_level_1"]["convert"] = self.kelvin_to_celsius
-        self.to_human["soil_temperature_level_2"]["convert"] = self.kelvin_to_celsius
-        self.to_human["soil_temperature_level_3"]["convert"] = self.kelvin_to_celsius
-        self.to_human["soil_temperature_level_4"]["convert"] = self.kelvin_to_celsius
-        self.to_human["2m_temperature"]["convert"] = self.kelvin_to_celsius
+        self.to_human = copy.deepcopy(self.to_si)  # type: ignore
+        self.to_human["soil_temperature_level_1"]["convert"] = self.kelvin_to_celsius  # type: ignore
+        self.to_human["soil_temperature_level_2"]["convert"] = self.kelvin_to_celsius  # type: ignore
+        self.to_human["soil_temperature_level_3"]["convert"] = self.kelvin_to_celsius  # type: ignore
+        self.to_human["soil_temperature_level_4"]["convert"] = self.kelvin_to_celsius  # type: ignore
+        self.to_human["2m_temperature"]["convert"] = self.kelvin_to_celsius  # type: ignore
 
         logger.debug(f"Weather model [{self.id}] initialized successfully")
 
-    def is_async(self):
-        """Returns the async model status"""
+    def is_async(self) -> bool:
+        """Returns whether the model is asynchronous or not."""
         return self.async_model
 
     def get_weather(
         self,
-        coords: List[GeoPosition],
-        begin: datetime,
-        end: datetime,
-        weather_factors: List[str] = None,
+        coords: list[GeoPosition],
+        begin: datetime | None = None,
+        end: datetime | None = None,
+        weather_factors: list[str] | None = None,
     ) -> xr.Dataset:
-        """The function that gathers and processes the requested ERA5 Single Levels weather data from the repository
+        """Gather and process the requested ERA5SL weather data from the repository, and return it as a Xarray Dataset.
+
+        The function that gathers and processes the requested ERA5 Single Levels weather data from the repository
             and returns it as a Xarray Dataset.
 
         Args:
@@ -96,8 +93,8 @@ class ERA5SLModel(WeatherModelBase):
         begin, end = validate_begin_and_end(
             begin,
             end,
-            self.repository.first_day_of_repo,
-            self.repository.last_day_of_repo,
+            self.repository.oldest_date_available,
+            self.repository.newest_date_available,
         )
 
         # Validate the requested weather factors:
@@ -107,8 +104,10 @@ class ERA5SLModel(WeatherModelBase):
         return ds
 
     @staticmethod
-    def _validate_weather_factors(weather_factors: List[str]) -> List[str]:
-        """A function that validates a list of weather factors to that of the dataset in the repository.
+    def _validate_weather_factors(weather_factors: list[str] | None) -> list[str]:
+        """Validate the requested weather factors against those available in the ERA5SL dataset.
+
+        A function that validates a list of weather factors to that of the dataset in the repository.
             Existing factors will be kept, non-existing removed, and if the list is empty the full set for the dataset
             will be used.
 
@@ -119,7 +118,7 @@ class ERA5SLModel(WeatherModelBase):
             A list of weather factors (in string format) only factors that match those of the ERA5SL dataset.
         """
         if weather_factors is None:
-            weather_factors = [era5sl_factors[x] for x in list(era5sl_factors.keys())]
+            weather_factors = [era5sl_factors[x] for x in era5sl_factors.keys()]
 
         # Lookup using the generic long name
         weather_factors_long_names = [x for x in weather_factors if x in era5sl_factors.values()]
@@ -133,7 +132,7 @@ class ERA5SLModel(WeatherModelBase):
         return weather_factors
 
     @staticmethod
-    def _get_list_of_factors_to_drop(factors: List[str]) -> List[str]:
+    def _get_list_of_factors_to_drop(factors: list[str]) -> list[str]:
         # A small function that that compares a list of factors to keep with the full list, to make a list of factors
         # to drop from a full set.
         to_drop = [x for x in era5sl_factors.values() if x not in factors]
@@ -142,12 +141,14 @@ class ERA5SLModel(WeatherModelBase):
 
     def _fill_dataset_with_data(
         self,
-        era5sl_coordinates: List[GeoPosition],
+        era5sl_coordinates: list[GeoPosition],
         begin: datetime,
         end: datetime,
-        validated_factors: List[str],
+        validated_factors: list[str],
     ) -> xr.Dataset:
-        """A function that fills a dataset with ERA5SL weather data from the repository, based on the requested
+        """Fill a dataset with ERA5SL weather data from the repository, based on the requested coordinates and period.
+
+        A function that fills a dataset with ERA5SL weather data from the repository, based on the requested
             coordinates and period, and removes any not-requested weather factors from the output.
 
         Args:
@@ -160,25 +161,32 @@ class ERA5SLModel(WeatherModelBase):
             An Xarray Dataset containing the weather data requested.
         """
         # Gather a dataset with the proper period and coordinates
-        ds = self.repository.gather_period(begin, end, era5sl_coordinates)
+        arome_dataset, fetch_result = self.repository.retrieve_data(
+            begin, end, [coordinate.get_WGS84() for coordinate in era5sl_coordinates], validated_factors
+        )
 
-        ds = ds.sel(time=slice(np.datetime64(begin), np.datetime64(end)))
+        if fetch_result == RepoDataFetchResult.FAILURE or arome_dataset is None:
+            logger.error("Failed to retrieve data from the repository for the given request parameters.")
+            raise RuntimeError("Data retrieval failure")
+
+        arome_dataset = arome_dataset.sel(time=slice(np.datetime64(begin), np.datetime64(end)))
 
         # Drop excess weather factors
-        ds = ds.drop_vars(self._get_list_of_factors_to_drop(validated_factors))
-        return ds
+        arome_dataset = arome_dataset.drop_vars(self._get_list_of_factors_to_drop(validated_factors))
+        return arome_dataset
 
-    def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
+    def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
+        """A function that gathers the requested weather factors, validates them, and returns them."""
         # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
         if factors is None:
-            return list(self.to_si.keys())
+            return list(self.to_si.keys())  # type: ignore
 
         new_factors = []
 
         for f in factors:
             f_low = f.lower()
 
-            if f_low in self.to_si:
-                new_factors.append(f_low)
+            if f_low in self.to_si:  # type: ignore
+                new_factors.append(f_low)  # type: ignore
 
-        return list(set(new_factors))  # Cleanup any duplicate values and return
+        return list(set(new_factors))  # Cleanup any duplicate values and return  # type: ignore
