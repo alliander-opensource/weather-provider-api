@@ -148,7 +148,5 @@ def test_arome_repository_remove_file(_get_mock_repository_dir: Path, caplog: py
 
         # FILE REMOVAL TEST 2:  Try to remove a non-existing file from the repo
         non_existing_file = arome_repo.storage_path.joinpath("DEF_DOESNT_EXIST.NOPE")
-        with caplog.at_level("WARNING"):
-            result = arome_repo.safely_delete_file(non_existing_file)
+        result = arome_repo.safely_delete_file(non_existing_file)
         assert result is False
-        assert "does not exist or is not a regular file. Deletion skipped." in caplog.text

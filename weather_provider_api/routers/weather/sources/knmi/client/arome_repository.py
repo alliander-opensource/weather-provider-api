@@ -2,7 +2,7 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 import re
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
 from importlib.util import find_spec
 from pathlib import Path
@@ -284,6 +284,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         processed_files_count = 0
         successfully_processed_files_count = 0
 
+        starting_moment_of_update = datetime.now(UTC)
+        cutoff_time = starting_moment_of_update + timedelta(seconds=self.config.maximum_runtime_seconds)
+
         # Step through each available file and determine if it needs to be (re-)downloaded and processed
         for file in available_files:
             datetime_tag_for_file = self._extract_datetime_tag_from_file_name(file_name=str(file["filename"]))
@@ -309,6 +312,15 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
                     "More than 50% of the available files could not be processed successfully, which "
                     "may indicate an issue with the update process. Please check the logs for more "
                     "details."
+                )
+                break
+
+            if datetime.now(UTC) > cutoff_time:
+                update_result = RepoUpdateResult.TIMEOUT
+                update_message = (
+                    f"The update process has reached the maximum runtime of {self.config.maximum_runtime_seconds} seconds. "
+                    f"{successfully_processed_files_count} out of {processed_files_count} files were processed successfully. "
+                    "Please check the logs for more details."
                 )
                 break
 

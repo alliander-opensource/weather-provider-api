@@ -145,11 +145,3 @@ def initialize_logging():
 
     # Then, we hook up the LoggingInterceptHandler as the default handler
     logging.basicConfig(handlers=[LoggingInterceptHandler()], level=0)
-
-    # Finally we add a handler that intercepts warnings and forwards them to the logging system as well, to ensure we catch all log messages.
-    class PropagateHandler(logging.Handler):
-        """Logging handler that propagates log messages to the root logger."""
-        def emit(self, record: logging.LogRecord) -> None:
-            logging.getLogger(record.name).handle(record)
-
-    logger.add(PropagateHandler(), format="{message}")
