@@ -42,6 +42,7 @@ jobs:
           CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
           CDSAPI_VERIFY: 1
+          KNMI_DATA_PLATFORM_KEY: ${{ secrets.KNMI_DATA_PLATFORM_KEY }}
         run: |
           poetry run coverage run -m pytest
           poetry run coverage report
