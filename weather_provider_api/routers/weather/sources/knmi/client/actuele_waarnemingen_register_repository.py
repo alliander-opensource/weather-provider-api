@@ -133,6 +133,9 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
             if isinstance(latest_time, np.datetime64):
                 latest_time = latest_time.astype("M8[ms]").astype(datetime)
             if isinstance(latest_time, datetime):
+                # Ensure latest_time is timezone-aware (UTC)
+                if latest_time.tzinfo is None:
+                    latest_time = latest_time.replace(tzinfo=UTC)
                 time_diff = update_moment - latest_time
                 if time_diff < timedelta(minutes=5):
                     logger.info(
