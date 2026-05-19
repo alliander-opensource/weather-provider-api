@@ -335,7 +335,7 @@ def _move_merged_netcdf_file_to_target_location(temporary_file: Path, target_net
     target_file_name: Path = target_netcdf_file_path / temporary_file.name
 
     try:
-        temporary_file.rename(target_file_name)
+        shutil.move(str(temporary_file), str(target_file_name))
         logger.info(f"Moved merged netCDF file from {temporary_file} to {target_file_name}")
         return target_file_name
     except FileExistsError:
