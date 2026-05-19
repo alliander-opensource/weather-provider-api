@@ -196,7 +196,11 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
                 )
                 self.storage_filename.unlink(missing_ok=True)
                 return RepoUpdateResult.FAILURE
-            current_data = current_data.sel(time=slice(self.oldest_date_available, self.newest_date_available))
+            current_data = current_data.sel(time=slice(
+                datetime.combine(self.oldest_date_available, datetime.min.time()), 
+                datetime.combine(self.newest_date_available, datetime.max.time())
+                )
+            )
             current_data.to_netcdf(self.storage_filename, format="NETCDF4")  # type: ignore
 
             return RepoUpdateResult.SUCCESS
