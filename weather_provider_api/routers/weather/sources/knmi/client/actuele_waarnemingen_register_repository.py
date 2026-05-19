@@ -7,6 +7,7 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 from loguru import logger
 
@@ -196,11 +197,11 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
                 )
                 self.storage_filename.unlink(missing_ok=True)
                 return RepoUpdateResult.FAILURE
+            
             current_data = current_data.sel(time=slice(
-                datetime.combine(self.oldest_date_available, datetime.min.time()), 
-                datetime.combine(self.newest_date_available, datetime.max.time())
-                )
-            )
+                pd.Timestamp(datetime.combine(self.oldest_date_available, datetime.min.time())),
+                pd.Timestamp(datetime.combine(self.newest_date_available, datetime.max.time()))
+            ))
             current_data.to_netcdf(self.storage_filename, format="NETCDF4")  # type: ignore
 
             return RepoUpdateResult.SUCCESS
