@@ -1,0 +1,50 @@
+# Ignore Python cache and virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pycache
+
+# Ignore local virtual environments
+.venv/
+venv/
+ENV/
+
+# Ignore test and coverage outputs
+.coverage
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+
+# Ignore build and distribution directories
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Ignore editor and OS files
+*.swp
+*.swo
+*.DS_Store
+*.idea/
+.vscode/
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore documentation builds
+sphinx-docs/_build/
+
+# Ignore Docker artifacts
+docker-compose.override.yml
+
+# Ignore other common files
+*.log
+*.tmp
+
+# Do not ignore required files for build
+!pyproject.toml
+!weather_provider_api/
+!var_maps/
