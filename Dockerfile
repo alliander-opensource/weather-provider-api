@@ -2,13 +2,11 @@
 # SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 # SPDX-License-Identifier: MPL-2.0
 #
+FROM python:3.13-slim-bookworm AS base-image
 
-FROM python:3.13.13-slim-bookworm AS base-image
-
-RUN apt-get update &&  \
-    apt-get -y install libeccodes-dev &&  \
-    apt-get -y install libeccodes-tools &&  \
-    apt-get clean
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends libeccodes-dev libeccodes-tools && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV ECCODES_DIR=/usr/src/eccodes
 ENV ECMWFLIBS_ECCODES_DEFINITION_PATH=/usr/src/eccodes/share/eccodes/definitions
@@ -47,6 +45,8 @@ FROM base-image AS uvicorn-image
 
 USER $APP_USER
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl --fail http://localhost:8000/metrics || exit 1
 CMD ["uvicorn", "--host", "0.0.0.0", "--port", "8000", "weather_provider_api.core.application:WPLA_APPLICATION" ]
 
 # --- GUNICORN image --
@@ -54,4 +54,6 @@ FROM base-image AS gunicorn-image
 
 USER $APP_USER
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl --fail http://localhost:8000/metrics || exit 1
 CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "weather_provider_api.core.application:WPLA_APPLICATION", "--timeout", "180"]
