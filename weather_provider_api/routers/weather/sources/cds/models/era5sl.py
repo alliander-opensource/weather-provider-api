@@ -34,7 +34,7 @@ class ERA5SLModel(WeatherModelBase):
         self.name = "CDS ERA5 - Hourly data on single levels from 1979 to the present"
 
         self.version = "0.3"
-        self.url = "https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=overview"
+        self.url = "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview"
         self.predictive = False
         self.description = (
             "Hourly weather measurements. Can be returned for a specified period. The number of "
@@ -133,8 +133,7 @@ class ERA5SLModel(WeatherModelBase):
 
     @staticmethod
     def _get_list_of_factors_to_drop(factors: list[str]) -> list[str]:
-        # A small function that that compares a list of factors to keep with the full list, to make a list of factors
-        # to drop from a full set.
+        """Compare a list of factors to keep with the full list, to make a list of factors to drop from a full set."""
         to_drop = [x for x in era5sl_factors.values() if x not in factors]
         logger.debug("Dropping the following factors for the request: " + str(to_drop))
         return to_drop
@@ -162,7 +161,10 @@ class ERA5SLModel(WeatherModelBase):
         """
         # Gather a dataset with the proper period and coordinates
         arome_dataset, fetch_result = self.repository.retrieve_data(
-            begin, end, [coordinate.get_WGS84() for coordinate in era5sl_coordinates], validated_factors
+            from_date=begin.date(),
+            to_date=end.date(),
+            locations=[coordinate.get_WGS84() for coordinate in era5sl_coordinates],
+            factors=validated_factors,
         )
 
         if fetch_result == RepoDataFetchResult.FAILURE or arome_dataset is None:

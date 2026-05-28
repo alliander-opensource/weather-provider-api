@@ -30,7 +30,7 @@ class Era5UpdateSettings(BaseModel):
     """A class that holds the settings for updating the ERA5 data."""
 
     era5_dataset_to_update_from: CDSDataSets
-    era5_product_type: str = "reanalysis"
+    era5_product_type: str | None
     filename_prefix: str
     target_storage_location: Path
     repository_time_range: tuple[date, date]
@@ -126,7 +126,7 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: date, 
             download_era5_data(
                 update_settings.era5_dataset_to_update_from,
                 CDSRequest(
-                    product_type=[update_settings.era5_product_type],
+                    product_type=[update_settings.era5_product_type] if update_settings.era5_product_type is not None else None,
                     variables=update_settings.factors_to_process,
                     year=[str(update_month.year)],
                     month=[str(update_month.month)],
@@ -138,8 +138,19 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: date, 
 
             logger.debug("Stored file at: ", month_file_name)
 
-            _recombine_multiple_files(month_file_name)
+            if update_settings.era5_dataset_to_update_from == CDSDataSets.ERA5SL:
+                # We need to recombine multiple files into one for ERA5SL, as the data is split into multiple files
+                _recombine_multiple_files(month_file_name)
+            elif update_settings.era5_dataset_to_update_from == CDSDataSets.ERA5LAND:
+                # Unpack the file
+                temp_dir = tempfile.mkdtemp()
+                with zipfile.ZipFile(month_file_name, "r") as zip_ref:
+                    zip_ref.extractall(temp_dir)
+                # Save the data_0.nc file to the month_file_name location 
+                data_file = Path(temp_dir).joinpath("data_0.nc")
+                data_file.rename(month_file_name)
 
+            
             _format_downloaded_file(month_file_name, update_settings.factor_dictionary)
 
             month_file_name.rename(month_file.with_suffix(Era5FileSuffixes.FORMATTED))
@@ -184,8 +195,8 @@ def _verify_first_day_available_for_era5(update_moment: date, update_settings: E
             download_era5_data(
                 dataset=update_settings.era5_dataset_to_update_from,
                 cds_request=CDSRequest(
-                    product_type=[update_settings.era5_product_type],
-                    variables=["stl1"],  # A factor that exists in all supported ERA5 datasets
+                    product_type=[update_settings.era5_product_type] if update_settings.era5_product_type is not None else None,
+                    variables=["soil_temperature_level_1"],  # A factor that exists in all supported ERA5 datasets
                     year=[str(update_moment.year)],
                     month=[str(update_moment.month)],
                     day=[str(update_moment.day)],
@@ -323,7 +334,7 @@ def load_file(file: Path) -> xr.Dataset:
 
     """
     if file.exists():
-        with xr.open_dataset(file) as ds:  # type: ignore
+        with xr.open_dataset(file, engine="netcdf4") as ds:  # type: ignore
             ds.load()  # type: ignore
         return ds
 

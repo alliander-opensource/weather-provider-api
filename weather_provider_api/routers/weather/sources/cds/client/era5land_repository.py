@@ -41,7 +41,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         )
 
         self.cds_dataset = CDSDataSets.ERA5LAND
-        self.cds_product_type = "reanalysis"
+        self.cds_product_type = None
         self.factors_to_process = era5land_factors.keys()
         self.years_to_store = 10
         
@@ -75,7 +75,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         # process the update and return the result
         return era5_repository_update(
             update_settings=Era5UpdateSettings(
-                filename_prefix="cds_era5sl",
+                filename_prefix="cds_era5land",
                 era5_dataset_to_update_from=self.cds_dataset,
                 era5_product_type=self.cds_product_type,
                 factor_dictionary=era5land_factors,

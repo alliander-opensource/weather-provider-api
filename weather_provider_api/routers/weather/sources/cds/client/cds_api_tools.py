@@ -50,7 +50,7 @@ class CDSDataSets(str, Enum):
 class CDSRequest(BaseModel):
     """A class that holds all necessary information for a CDS API request."""
 
-    product_type: list[str] = Field(["reanalysis"])
+    product_type: list[str] | None = None
     variables: list[str]
     year: list[str] = Field([date.strftime(date.today(), "%Y")])
     month: list[str] = Field([date.strftime(date.today(), "%m")])
@@ -89,9 +89,8 @@ class CDSRequest(BaseModel):
 
     @property
     def request_parameters(self) -> dict[str, str | list[str] | tuple[float]]:
-        """Returns the request parameters as a dictionary."""
-        return {
-            "product_type": self.product_type,
+        """Return the request parameters as a dictionary."""
+        param_dict: dict[str, str | list[str] | tuple[float]] = {
             "variable": self.variables,
             "year": self.year,
             "month": self.month,
@@ -101,6 +100,10 @@ class CDSRequest(BaseModel):
             "data_format": self.data_format,
             "download_format": self.download_format,
         }
+
+        if self.product_type is not None:
+            param_dict["product_type"] = self.product_type
+        return param_dict
 
 
 CDS_CLIENT = cdsapi.Client(info_callback=_info_callback(), url="https://cds.climate.copernicus.eu/api")
