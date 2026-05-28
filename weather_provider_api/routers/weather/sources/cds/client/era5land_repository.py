@@ -219,7 +219,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         # We start by filtering for locations
         latitudes = [location[0] for location in locations]
         longitudes = [location[1] for location in locations]
-        location_trimmed_dataset = dataset.sel(latitude=latitudes, longitude=longitudes, method="nearest")
+        location_trimmed_dataset = dataset.sel(lat=latitudes, lon=longitudes, method="nearest")
 
         # Then we filter for factors
         available_factors = set(dataset.data_vars.keys())
