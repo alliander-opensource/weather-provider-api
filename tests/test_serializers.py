@@ -2,7 +2,10 @@
 #  SPDX-License-Identifier: MPL-2.0
 
 from enum import Enum
+from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
 import xarray as xr
 
@@ -58,3 +61,34 @@ def test_file_or_text_response_forged_response_format(
             mock_coordinates,
         )
     assert str(e.value.args[0]) == "'mock_format' is not a valid ResponseFormat"
+
+
+def test_file_or_text_response_netcdf4_with_timezone_aware_time(
+    mock_coordinates: list[tuple[float, float]],
+    mock_response_query: WeatherContentRequestQuery,
+):
+    """Test that NetCDF export succeeds when the dataset contains timezone-aware time coordinates."""
+    timezone_aware_timeline = pd.date_range("2026-01-01", periods=4, freq="1h", tz="UTC")
+    dataset = xr.Dataset(
+        data_vars={"temperature": (["time", "lat", "lon"], np.zeros((4, 1, 1), dtype=np.float64))},
+        coords={"time": timezone_aware_timeline, "lat": [mock_coordinates[0][0]], "lon": [mock_coordinates[0][1]]},
+    )
+
+    response, file_path = return_file_or_text_response(
+        dataset,
+        ResponseFormat.netcdf4,
+        "cds",
+        "era5sl",
+        mock_response_query,
+        mock_coordinates,
+    )
+
+    assert response is not None
+    assert file_path is not None
+    assert Path(file_path).exists()
+
+    with xr.open_dataset(file_path, engine="netcdf4") as loaded_dataset:  # type: ignore
+        assert "time" in loaded_dataset.coords
+        assert "UTC" not in str(loaded_dataset.time.dtype)
+
+    Path(file_path).unlink(missing_ok=True)

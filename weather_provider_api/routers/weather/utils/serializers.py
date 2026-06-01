@@ -4,8 +4,8 @@
 import tempfile
 from typing import Any
 
+import pandas as pd
 import xarray as xr
-from loguru import logger
 from starlette.responses import FileResponse
 
 from weather_provider_api.routers.weather.api_models import (
@@ -115,6 +115,8 @@ def json_dataset_response(unserialized_data: xr.Dataset) -> tuple[ScientificJSON
 
 def to_netcdf(unserialized_data: xr.Dataset, response_format: ResponseFormat) -> str:
     """Convert the unserialized data to a NetCDF file and return the file path."""
+    unserialized_data = _normalize_time_coordinate_for_netcdf(unserialized_data)
+
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     file_path = temp_file.name
     if response_format == ResponseFormat.netcdf4:
@@ -124,6 +126,22 @@ def to_netcdf(unserialized_data: xr.Dataset, response_format: ResponseFormat) ->
     else:
         raise NotImplementedError(f"Unsupported NetCDF format: {response_format.name}")
     return file_path
+
+
+def _normalize_time_coordinate_for_netcdf(unserialized_data: xr.Dataset) -> xr.Dataset:
+    """Normalize timezone-aware time coordinates to timezone-naive UTC for NetCDF compatibility."""
+    if "time" not in unserialized_data.coords:
+        return unserialized_data
+
+    try:
+        time_index = pd.to_datetime(unserialized_data.coords["time"].values, utc=True, errors="raise")
+    except (TypeError, ValueError):
+        # Keep non-standard/cftime-like coordinates untouched.
+        return unserialized_data
+
+    # NetCDF cannot store timezone-aware datetimes directly.
+    normalized_time = time_index.tz_localize(None).to_numpy(dtype="datetime64[ns]")
+    return unserialized_data.assign_coords(time=normalized_time)  # type: ignore
 
 
 def to_csv(unserialized_data: xr.Dataset, coords: list[tuple[float, float]]) -> str:
