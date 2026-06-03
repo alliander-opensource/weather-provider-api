@@ -4,7 +4,9 @@
 #  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""CORS support"""
+"""CORS support."""
+
+from typing import cast
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +15,33 @@ from loguru import logger
 from weather_provider_api.config import APP_CONFIG
 
 
-def initialize_cors_middleware(app: FastAPI):
+def _normalize_origin_regex(origins_regex: object) -> str | None:
+    """Convert config regex values to a single regex string expected by CORSMiddleware."""
+    if origins_regex is None:
+        return None
+
+    if isinstance(origins_regex, str):
+        regex = origins_regex.strip()
+        return regex or None
+
+    if isinstance(origins_regex, (list, tuple)):
+        patterns: list[str] = []
+        for regex in cast(list[object] | tuple[object, ...], origins_regex):
+            if isinstance(regex, str):
+                cleaned_regex = regex.strip()
+                if cleaned_regex:
+                    patterns.append(cleaned_regex)
+        if not patterns:
+            return None
+        return "|".join(f"(?:{pattern})" for pattern in patterns)
+
+    logger.warning(
+        f"Invalid type for CORS allowed origins regex: {type(origins_regex)}. Expected str or list/tuple of str."
+    )
+    return None
+
+
+def initialize_cors_middleware(app: FastAPI) -> None:
     """Initializes the CORS middleware.
 
     Enables CORS handling for the allowed origins set in the config setting `CORS_ALLOWED_ORIGINS`, a list of strings
@@ -27,40 +55,26 @@ def initialize_cors_middleware(app: FastAPI):
 
     """
     origins = APP_CONFIG["components"]["cors_allowed_origins"]
-    origins_regex = APP_CONFIG["components"]["cors_allowed_origins_regex"]
+    origins_regex = _normalize_origin_regex(APP_CONFIG["components"]["cors_allowed_origins_regex"])
 
     if origins and len(origins) == 0:
         origins = None
-    if origins_regex and len(origins_regex) == 0:
-        origins_regex = None
 
-    if origins and origins_regex:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-            allow_origins_regex=origins_regex,
-        )
-        logger.info(f"Attached CORS middleware enabled for the following origins: {origins}, {origins_regex}")
-    elif origins:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-        logger.info(f"Attached CORS middleware enabled for the following origins: {origins}")
-    elif origins_regex:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins_regex=origins_regex,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-        logger.info(f"Attached CORS middleware enabled for the following origins: {origins_regex}")
-    else:
+    cors_config: dict[str, list[str] | str | bool | type] = {
+        "middleware_class": CORSMiddleware,
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+
+    if origins:
+        cors_config["allow_origins"] = origins
+
+    if origins_regex:
+        cors_config["allow_origin_regex"] = origins_regex
+
+    if not origins and not origins_regex:
         logger.warning("CORS middleware enabled but no allowed origins are set.")
+        return
+
+    app.add_middleware(**cors_config)  # type: ignore
