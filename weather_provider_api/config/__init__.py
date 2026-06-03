@@ -10,7 +10,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from tomli import load
+from tomllib import load
 
 config_file_path = Path(__file__).parent.joinpath("config.toml")
 with config_file_path.open(mode="rb") as file_processor:
