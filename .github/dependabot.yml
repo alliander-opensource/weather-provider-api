@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # A single github-actions entry at "/" discovers and updates ALL
+  # action references in this repo: workflows under .github/workflows/
+  # AND composite actions under .github/actions/**.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: "ci"
+    labels:
+      - dependencies
+      - github-actions
+
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "deps"
+    labels:
+      - dependencies
+      - python
