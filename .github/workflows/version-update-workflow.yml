@@ -16,19 +16,18 @@ jobs:
     steps:
       # Checkout
       - name: Branch checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       # Install Python
       - name: Setup Python installation
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.version }}
       # Install Poetry
       - name: Setup Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          poetry self update --preview
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Install required dependencies
       - name: Install dependencies
@@ -53,7 +52,7 @@ jobs:
       # Upload coverage data to Sonar Source
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -64,10 +63,12 @@ jobs:
     name: Create package and upload to PyPI
     needs: tests-and-sonarcloud
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       # Checkout
       - name: Repository checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       # Install Poetry
       - name: Install Poetry
         run: |
@@ -77,7 +78,7 @@ jobs:
           echo "POETRY_INSTALLER_PARALLEL=true" >> $GITHUB_ENV
       # Install Python
       - name: Python setup
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.13'
       # Install required dependencies
@@ -112,7 +113,7 @@ jobs:
       # Create a Release on GitHub for the new package
       - name: Create a Release for the new package
         if: ${{ github.ref_name == 'main-2.0' }}
-        uses: softprops/action-gh-release@v0.1.14
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ env.package_version }}
           name: "Release ${{ env.package_version }}"
@@ -134,10 +135,10 @@ jobs:
     steps:
       # Checkout
       - name: Check out source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       # Configure AWS
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@master
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
@@ -145,7 +146,6 @@ jobs:
       - name: Setup Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          poetry self update --preview
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Determine the current version of the application
       - name: Determine current version
@@ -156,7 +156,7 @@ jobs:
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
       # Create the image and upload it to Amazon ECR (Uvicorn edition)
       - name: Build, tag, and push image to Amazon ECR - Uvicorn
         run: |
@@ -173,34 +173,34 @@ jobs:
           docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}
       # Login to DockerHub
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       # Create Gunicorn image and upload as latest
       - name: Gunicorn - Build and Upload to Docker (latest)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-gunicorn:latest
           target: gunicorn-image
       # Create Gunicorn image and upload as version
       - name: Gunicorn - Build and Upload to Docker (versioned)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-gunicorn:${{ env.package_version }}
           target: gunicorn-image
       # Create Uvicorn image and upload as latest
       - name: Uvicorn - Build and Upload to Docker (latest)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-uvicorn:latest
           target: uvicorn-image
       # Create Uvicorn image and upload as version
       - name: Uvicorn - Build and Upload to Docker (versioned)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-uvicorn:${{ env.package_version }}

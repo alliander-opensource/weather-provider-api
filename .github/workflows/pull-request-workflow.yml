@@ -15,19 +15,18 @@ jobs:
     steps:
       # Checkout
       - name: Branch checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       # Install Python
       - name: Setup Python installation
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.version }}
       # Install Poetry
       - name: Setup Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          poetry self update --preview
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       # Install required dependencies
       - name: Install dependencies
@@ -53,7 +52,7 @@ jobs:
       # Upload coverage data to SonarCloud.io
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

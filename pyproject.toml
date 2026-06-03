@@ -1,6 +1,6 @@
 [project]
 name = "weather_provider_api"
-version = "2.90"
+version = "2.91"
 description = "Weather Provider Libraries and API"
 authors = [
     { name = "Verbindingsteam" },
