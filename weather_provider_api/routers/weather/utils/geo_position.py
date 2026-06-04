@@ -1,13 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
 import math
 from enum import Enum
 
-"""
+"""Geo Position.
+
 Modules translates RC coordinates to WGS84 and vice versa.
 This module uses an approximation system originating from a document known as "Transformatieformules.pdf" from Dutch
 site http://dekoepel.nl, though the file can no longer be found there.
@@ -22,11 +20,13 @@ calculation.
 
 # Coordinate Enum to allow for easy adding of more coordinate types
 class CoordinateSystem(str, Enum):
+    """Enum representing different coordinate systems."""
     rd = "RD"
     wgs84 = "WGS84"
 
 
 class GeoPosition:
+    """Class representing a geographical position."""
     # Zero point configuration (Table 3) based on the center point of the RD coordinate system
     # (phi and lambda shift (very) slightly over the years...)
     X0 = 155000.0
@@ -35,7 +35,7 @@ class GeoPosition:
     LAMBDA0 = 5.38720621
 
     # Tables 4 & 5
-    K = [
+    K: list[list[float]] = [
         [0, 1, 3235.65389],
         [2, 0, -32.58297],
         [0, 2, -0.24750],
@@ -48,7 +48,7 @@ class GeoPosition:
         [4, 1, 0.00033],
         [1, 1, -0.00012],
     ]
-    L = [
+    L: list[list[float]] = [
         [1, 0, 5260.52916],
         [1, 1, 105.94684],
         [1, 2, 2.45656],
@@ -62,7 +62,7 @@ class GeoPosition:
         [2, 0, -0.00022],
         [5, 0, 0.00026],
     ]
-    R = [
+    R: list[list[float]] = [
         [0, 1, 190094.945],
         [1, 1, -11832.228],
         [2, 1, -114.221],
@@ -73,7 +73,7 @@ class GeoPosition:
         [0, 2, -0.008],
         [2, 3, 0.148],
     ]
-    S = [
+    S: list[list[float]] = [
         [1, 0, 309056.544],
         [0, 2, 3638.893],
         [2, 0, 73.077],
@@ -86,7 +86,7 @@ class GeoPosition:
         [1, 4, -0.054],
     ]
 
-    def __init__(self, xcoord, ycoord, locformat=None):
+    def __init__(self, xcoord: float, ycoord: float, locformat: CoordinateSystem | None = None):
         self.x = xcoord
         self.y = ycoord
         if locformat is None:
@@ -124,14 +124,16 @@ class GeoPosition:
             return False
         return True
 
-    def get_RD(self):
+    def get_RD(self) -> tuple[float, float]:
+        """Get the coordinates in the RD coordinate system."""
         # If the system isn't the same as called, return the proper conversion result.
         # Otherwise, return the original values
         if self.system == CoordinateSystem.wgs84:
             return self._wgs84_to_rd()
         return self.x, self.y
 
-    def get_WGS84(self):
+    def get_WGS84(self) -> tuple[float, float]:
+        """Get the coordinates in the WGS84 coordinate system."""
         # If the system isn't the same as called, return the proper conversion result.
         # Otherwise, return the original values
 
@@ -139,10 +141,11 @@ class GeoPosition:
             return self._rd_to_wgs84()
         return self.x, self.y
 
-    def get_original(self):
+    def get_original(self) -> tuple[float, float]:
+        """Get the original coordinates as they were inputted, without conversion."""
         return self.x, self.y
 
-    def _wgs84_to_rd(self):
+    def _wgs84_to_rd(self) -> tuple[float, float]:
         # Convert WGS84 to RD, using function 7 in combination with the R and S conversion sets.
         dPhi = 0.36 * (self.x - self.PHI0)
         dLambda = 0.36 * (self.y - self.LAMBDA0)
