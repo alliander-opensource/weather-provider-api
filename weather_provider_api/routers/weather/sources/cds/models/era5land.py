@@ -59,7 +59,6 @@ class ERA5LandModel(WeatherModelBase):
 
         # Human output conversion:
         self.to_human = copy.deepcopy(self.to_si)  # type: ignore
-        self.to_human["sea_surface_temperature"]["convert"] = self.kelvin_to_celsius  # type: ignore
         self.to_human["soil_temperature_level_1"]["convert"] = self.kelvin_to_celsius  # type: ignore
         self.to_human["soil_temperature_level_2"]["convert"] = self.kelvin_to_celsius  # type: ignore
         self.to_human["soil_temperature_level_3"]["convert"] = self.kelvin_to_celsius  # type: ignore
