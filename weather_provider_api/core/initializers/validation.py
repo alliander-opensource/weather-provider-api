@@ -4,10 +4,11 @@
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""API Validation checks"""
+"""API Validation checks."""
 
 import re
 from datetime import datetime
+from typing import Any
 
 from fastapi import FastAPI
 from loguru import logger
@@ -21,7 +22,7 @@ from weather_provider_api.core.initializers.exception_handling import (
 )
 
 
-def initialize_api_validation(application: FastAPI):
+def initialize_api_validation(application: FastAPI) -> None:
     """Method for attach the API validity checker to a FastAPI application.
 
     Args:
@@ -32,7 +33,7 @@ def initialize_api_validation(application: FastAPI):
 
     """
 
-    async def check_api_for_validity(request: Request, call_next):
+    async def check_api_for_validity(request: Request, call_next: Any) -> Any:
         """The method that validated the API validity.
 
         Args:
@@ -65,9 +66,6 @@ def initialize_api_validation(application: FastAPI):
                     "Please contact the maintainer of this project!"
                 ),
             )
-
-        if not api_version_in_url:
-            return await call_next(request)  # continue as normal if no api version is involved
 
         # Determine the API interpreter version used and its expiry date
         start_location_of_version_number_in_url = api_version_in_url.start() + len(api_prefix)

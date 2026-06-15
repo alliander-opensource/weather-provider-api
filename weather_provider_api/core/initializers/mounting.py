@@ -1,10 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""(sub)-API Mounting
+"""(sub)-API Mounting.
 
 This module handles the mounting of sub-API's onto a main API.
 """
@@ -17,7 +14,7 @@ from weather_provider_api.core.initializers.exception_handling import (
 )
 
 
-def mount_api_version(base_application: FastAPI, api_to_mount: FastAPI):
+def mount_api_version(base_application: FastAPI, api_to_mount: FastAPI) -> None:
     """The method that mounts a FastAPI object as a child into another.
 
     Args:

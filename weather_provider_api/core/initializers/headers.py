@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
+
+from typing import Any
 
 from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -13,7 +12,7 @@ from weather_provider_api.app_version import APP_VERSION
 from weather_provider_api.config import APP_CONFIG
 
 
-def initialize_header_metadata(application: FastAPI):
+def initialize_header_metadata(application: FastAPI) -> None:
     """Method that attaches the customized Metadata Header method that adds extra metadata.
 
     Args:
@@ -23,7 +22,7 @@ def initialize_header_metadata(application: FastAPI):
         Nothing. The FastAPI application itself is updated.
     """
 
-    async def add_metadata_headers(request: Request, call_next):
+    async def add_metadata_headers(request: Request, call_next: Any) -> object:
         response = await call_next(request)
         response.headers["X-App-Version"] = APP_VERSION
         response.headers["X-App-Valid-Till"] = APP_CONFIG["base"]["expiration_date"]
@@ -34,4 +33,4 @@ def initialize_header_metadata(application: FastAPI):
 
         return response
 
-    application.add_middleware(BaseHTTPMiddleware, dispatch=add_metadata_headers)
+    application.add_middleware(BaseHTTPMiddleware, dispatch=add_metadata_headers)  # type: ignore

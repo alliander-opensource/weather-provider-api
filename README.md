@@ -3,13 +3,13 @@ SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 SPDX-License-Identifier: MPL-2.0
 -->
 [![License: MIT](https://img.shields.io/badge/License-MPL2.0-informational.svg)](https://github.com/alliander-opensource/weather-provider-api/blob/master/LICENSE)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=security_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=bugs)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=security_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=bugs)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/weather-provider-api?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/weather-provider-api)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=coverage)](https://sonarcloud.io/dashboard?id=alliander-opensource_Weather-Provider-API)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=coverage)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
 
 > :warning: **Due to changes in the way that CDS delivers data, ERA5 data does not currently process sea level data 
 > for the time being. This will be fixed in a future release.**

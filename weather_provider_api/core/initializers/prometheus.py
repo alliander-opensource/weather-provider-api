@@ -1,17 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
 
-"""Prometheus Middleware handler"""
+"""Prometheus Middleware handler."""
 
 from fastapi import FastAPI
 from loguru import logger
 from starlette_prometheus import PrometheusMiddleware, metrics
 
 
-def initialize_prometheus_interface(application: FastAPI, metrics_endpoint: str = "/metrics"):
+def initialize_prometheus_interface(application: FastAPI, metrics_endpoint: str = "/metrics") -> None:
     """The method that attaches the Prometheus Middleware to a FastAPI application.
 
     Args:
