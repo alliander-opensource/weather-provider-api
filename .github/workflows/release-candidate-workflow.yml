@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - release-*
+permissions:
+  contents: read
 jobs:
   # ---------------------------------------------------------------- #
   # |  Coverage and SonarCloud.io upload                           | #
@@ -10,9 +12,10 @@ jobs:
   tests-and-sonarcloud:
     strategy:
       matrix:
-        version: ["3.13"]  # TODO: Get Python versions from the project
+        version: ["3.13"]
     name: Testing and updating SonarCloud
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     steps:
       # Checkout
       - name: Branch checkout
@@ -62,7 +65,8 @@ jobs:
   create-and-upload-image:
     name: Create and upload image
     needs: tests-and-sonarcloud
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     permissions:
       id-token: write
       contents: read
