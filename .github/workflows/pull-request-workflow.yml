@@ -15,12 +15,12 @@ jobs:
     steps:
       # Checkout
       - name: Branch checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Install Python
       - name: Setup Python installation
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.version }}
       # Install Poetry
@@ -53,7 +53,7 @@ jobs:
       # Upload coverage data to SonarCloud.io
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@713881670b6b3676cda39549040e2d88c70d582e # v8.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

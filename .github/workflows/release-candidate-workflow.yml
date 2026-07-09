@@ -16,12 +16,12 @@ jobs:
     steps:
       # Checkout
       - name: Branch checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Install Python
       - name: Setup Python installation
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.version }}
       # Install Poetry
@@ -53,7 +53,7 @@ jobs:
       # Upload coverage data to SonarCloud.io
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@713881670b6b3676cda39549040e2d88c70d582e # v8.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -72,10 +72,10 @@ jobs:
     steps:
       # Checkout
       - name: Check out source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       # Configure AWS
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@master
+        uses: aws-actions/configure-aws-credentials@517a711dbcd0e402f90c77e7e2f81e849156e31d # v6.2.2
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
@@ -88,7 +88,7 @@ jobs:
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
       - name: Determine current version
         run: |
           version="$(poetry version --short)rc${{ github.run_number }}"

@@ -16,12 +16,12 @@ jobs:
     steps:
       # Checkout
       - name: Branch checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       # Install Python
       - name: Setup Python installation
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.version }}
       # Install Poetry
@@ -53,7 +53,7 @@ jobs:
       # Upload coverage data to Sonar Source
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@713881670b6b3676cda39549040e2d88c70d582e # v8.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -67,7 +67,7 @@ jobs:
     steps:
       # Checkout
       - name: Repository checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       # Install Poetry
       - name: Install Poetry
         run: |
@@ -77,7 +77,7 @@ jobs:
           echo "POETRY_INSTALLER_PARALLEL=true" >> $GITHUB_ENV
       # Install Python
       - name: Python setup
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.13'
       # Install required dependencies
@@ -112,7 +112,7 @@ jobs:
       # Create a Release on GitHub for the new package
       - name: Create a Release for the new package
         if: ${{ github.ref_name == 'main-2.0' }}
-        uses: softprops/action-gh-release@v0.1.14
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           tag_name: ${{ env.package_version }}
           name: "Release ${{ env.package_version }}"
@@ -134,10 +134,10 @@ jobs:
     steps:
       # Checkout
       - name: Check out source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       # Configure AWS
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@master
+        uses: aws-actions/configure-aws-credentials@517a711dbcd0e402f90c77e7e2f81e849156e31d # v6.2.2
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
@@ -156,7 +156,7 @@ jobs:
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
       # Create the image and upload it to Amazon ECR (Uvicorn edition)
       - name: Build, tag, and push image to Amazon ECR - Uvicorn
         run: |
@@ -173,34 +173,34 @@ jobs:
           docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}
       # Login to DockerHub
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       # Create Gunicorn image and upload as latest
       - name: Gunicorn - Build and Upload to Docker (latest)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-gunicorn:latest
           target: gunicorn-image
       # Create Gunicorn image and upload as version
       - name: Gunicorn - Build and Upload to Docker (versioned)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-gunicorn:${{ env.package_version }}
           target: gunicorn-image
       # Create Uvicorn image and upload as latest
       - name: Uvicorn - Build and Upload to Docker (latest)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-uvicorn:latest
           target: uvicorn-image
       # Create Uvicorn image and upload as version
       - name: Uvicorn - Build and Upload to Docker (versioned)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           push: true
           tags: weatherproviderapi/weather-provider-api-uvicorn:${{ env.package_version }}
