@@ -11,7 +11,8 @@ jobs:
       matrix:
         version: ["3.13"]
     name: Testing and updating SonarCloud
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     steps:
       # Checkout
       - name: Branch checkout

@@ -12,7 +12,8 @@ jobs:
       matrix:
         version: ["3.13"]  # TODO: Get Python versions from the project
     name: Testing and updating SonarCloud
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     steps:
       # Checkout
       - name: Branch checkout
@@ -63,7 +64,8 @@ jobs:
   package-creation-and-upload:
     name: Create package and upload to PyPI
     needs: tests-and-sonarcloud
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     steps:
       # Checkout
       - name: Repository checkout
@@ -125,7 +127,8 @@ jobs:
   create-and-upload-image:
     name: Create and upload the image
     needs: tests-and-sonarcloud
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     permissions:
       id-token: write
       contents: read

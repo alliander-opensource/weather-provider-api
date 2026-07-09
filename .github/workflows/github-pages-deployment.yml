@@ -9,7 +9,8 @@ permissions:
 jobs:
   # Build the Sphinx documentation
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
     - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
@@ -29,7 +30,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     needs: build
     steps:
       - name: Deploy to GitHub Pages
