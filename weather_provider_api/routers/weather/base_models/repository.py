@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """Weather repository module."""
 
@@ -25,6 +26,7 @@ class RepoUpdateResult(StrEnum):
     PARTIAL_SUCCESS = "Update partially successful"
     FAILURE = "Update failed"
     TIMEOUT = "Update timed out"
+
 
 class RepoDataFetchResult(StrEnum):
     """Enum representing the result of a repository data fetch operation."""
@@ -170,7 +172,7 @@ class WeatherRepositoryBase(ABC):
             xr.Dataset | None:
                     The retrieved weather data as an xarray Dataset, or None if no data is available.
             RepoDataFetchResult:
-                    The result of the data fetch operation, indicating success, partial success, failure, 
+                    The result of the data fetch operation, indicating success, partial success, failure,
                     or no data available.
         """
         raise NotImplementedError("Subclasses must implement the retrieve_data method.")
@@ -255,13 +257,17 @@ class WeatherRepositoryBase(ABC):
             try:
                 # Calculate the length of the prefix in the filename
                 len_of_stem_prefix = (
-                    len(self.config.affiliated_source_and_model[0]) + 1 +
-                    len(self.config.affiliated_source_and_model[1]) + 1
+                    len(self.config.affiliated_source_and_model[0])
+                    + 1
+                    + len(self.config.affiliated_source_and_model[1])
+                    + 1
                 )
                 file_date_str = file.stem[len_of_stem_prefix:]  # Get the filename without the prefix
                 file_date: date = datetime.strptime(file_date_str, self.config.temporal_file_identifier).date()
-                
-                logger.exception(f"Checking file '{file}' with extracted date '{file_date}' against period from {from_date} to {to_date}.")
+
+                logger.exception(
+                    f"Checking file '{file}' with extracted date '{file_date}' against period from {from_date} to {to_date}."
+                )
                 if from_date <= file_date <= to_date:
                     matching_files.append(file)
             except ValueError:
@@ -319,7 +325,7 @@ class WeatherRepositoryBase(ABC):
     def _extract_datetime_tag_from_file_name(self, file_name: str) -> str | None:
         """Extract a datetime tag from the file name if it matches the expected format.
 
-        By transforming the temporal_file_identifier format string into a regular expression, 
+        By transforming the temporal_file_identifier format string into a regular expression,
         this method checks if the file name contains a valid datetime tag and extracts it if present.
 
         Arguments:
@@ -334,6 +340,6 @@ class WeatherRepositoryBase(ABC):
         match = re.search(regex_pattern, file_name)
         if match:
             return match.group(0)
-        
+
         logger.warning(f"File [{file_name}] does not contain a valid datetime tag.")
         return None

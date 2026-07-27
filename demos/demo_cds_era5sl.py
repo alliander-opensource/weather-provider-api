@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 #  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
 #  SPDX-License-Identifier: MPL-2.0
@@ -19,9 +18,9 @@ from weather_provider_api.routers.weather.utils import serializers
 
 """
     This is a DEMO for a specific weather model: ERA5 Single Levels
-    
+
     The purpose of this demo is to show users a method of how they can use specific models from the Weather Provider API
-    to request specific output. 
+    to request specific output.
 """
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 
 from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import (
@@ -9,7 +10,7 @@ from weather_provider_api.routers.weather.sources.cds.client.era5land_repository
 
 def main() -> None:
     """Script to erase the ERA5-Land repository.
-    
+
     This is used to clear the repository of old data, for example when the data is corrupted or when the repository is
     full and needs to be cleared to make space for new data.
     """

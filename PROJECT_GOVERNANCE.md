@@ -1,5 +1,6 @@
 <!--
-SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+
 SPDX-License-Identifier: MPL-2.0
 -->
 
@@ -13,17 +14,16 @@ The Technical Steering Committee (TSC) is responsible for:
 
 1. General ambitions, objectives and goals of this project
 2. Guidelines and procedures and tool selection
-3. Guidelines and procedures and tool selection
-4. Architectural and (development) infrastructure choices
-5. Raise subjects/issues that are important for the direction/development of this project
+3. Architectural and (development) infrastructure choices
+4. Raise subjects/issues that are important for the direction/development of this project
 
 The community council consists of the following members:
 
-* **Tim Weelinck** - *API development*
+* **Jesse Tjebbes** - *API development*
 * **Raoul Linnenbank** - *Active API Development, Geo positioning, CDS ERA5, caching, remodeling, Harmonie Arome and optimisation*
-* **Joan Ressing** - *Infrastructure and deployment*
+* **Derk Weijers** - *Infrastructure and deployment*
 
-**Tim Weelinck** will chair the TSC.
+**Jesse Tjebbes** will chair the TSC.
 
 ## Maintainers
 
@@ -38,7 +38,7 @@ Maintainers are responsible for maintaining parts of the code-base. Maintainers 
 
 The current maintainers of this project are:
 * **Raoul Linnenbank** - *Active API Development, debugging, repository management*
-* **Joan Ressing** - *Infrastructure and deployment, back-up for Raoul Linnenbank*
+* **Derk Weijers** - *Infrastructure and deployment, back-up for Raoul Linnenbank*
 
 ## Contributors
 

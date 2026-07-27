@@ -1,23 +1,24 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import glob
 import tempfile
 import zipfile
 from datetime import UTC, date, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import xarray as xr
 from loguru import logger
 from pydantic import BaseModel
 
-from weather_provider_api.routers.weather.repository.repository import RepoUpdateResult
+from weather_provider_api.routers.weather.base_models.repository import RepoUpdateResult
 from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import CDS_CLIENT, CDSDataSets, CDSRequest
 from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
 
 
-class Era5FileSuffixes(str, Enum):
+class Era5FileSuffixes(StrEnum):
     """Enum class for the different suffixes that can be used for the ERA5 files."""
 
     FORMATTED = ".FORMATTED.nc"
@@ -126,7 +127,9 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: date, 
             download_era5_data(
                 update_settings.era5_dataset_to_update_from,
                 CDSRequest(
-                    product_type=[update_settings.era5_product_type] if update_settings.era5_product_type is not None else None,
+                    product_type=[update_settings.era5_product_type]
+                    if update_settings.era5_product_type is not None
+                    else None,
                     variables=update_settings.factors_to_process,
                     year=[str(update_month.year)],
                     month=[str(update_month.month)],
@@ -146,11 +149,10 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: date, 
                 temp_dir = tempfile.mkdtemp()
                 with zipfile.ZipFile(month_file_name, "r") as zip_ref:
                     zip_ref.extractall(temp_dir)
-                # Save the data_0.nc file to the month_file_name location 
+                # Save the data_0.nc file to the month_file_name location
                 data_file = Path(temp_dir).joinpath("data_0.nc")
                 data_file.rename(month_file_name)
 
-            
             _format_downloaded_file(month_file_name, update_settings.factor_dictionary)
 
             month_file_name.rename(month_file.with_suffix(Era5FileSuffixes.FORMATTED))
@@ -195,7 +197,9 @@ def _verify_first_day_available_for_era5(update_moment: date, update_settings: E
             download_era5_data(
                 dataset=update_settings.era5_dataset_to_update_from,
                 cds_request=CDSRequest(
-                    product_type=[update_settings.era5_product_type] if update_settings.era5_product_type is not None else None,
+                    product_type=[update_settings.era5_product_type]
+                    if update_settings.era5_product_type is not None
+                    else None,
                     variables=["soil_temperature_level_1"],  # A factor that exists in all supported ERA5 datasets
                     year=[str(update_moment.year)],
                     month=[str(update_moment.month)],
@@ -292,14 +296,24 @@ def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict[str, s
     ds_unformatted = load_file(unformatted_file)
     ds_unformatted.attrs = {}  # Remove unneeded attributes
 
-    if "expver" in ds_unformatted.indexes.keys():
+    if "expver" in ds_unformatted.indexes:
         # We remove the expver index used to denominate temporary data (5) and regular data (1) and add a field for it
         # NOTE: We removed the drop_sel version as it didn't quite have the same result as drop yet. Reverting until
         #  the proper use has been validated...
-        ds_unformatted_expver5 = ds_unformatted.sel(expver=5).drop("expver").dropna(  # type: ignore
-            "valid_time", how="all")
-        ds_unformatted_expver1 = ds_unformatted.sel(expver=1).drop("expver").dropna(  # type: ignore
-            "valid_time", how="all")
+        ds_unformatted_expver5 = (
+            ds_unformatted.sel(expver=5)
+            .drop("expver")
+            .dropna(  # type: ignore
+                "valid_time", how="all"
+            )
+        )
+        ds_unformatted_expver1 = (
+            ds_unformatted.sel(expver=1)
+            .drop("expver")
+            .dropna(  # type: ignore
+                "valid_time", how="all"
+            )
+        )
 
         # Recombine the data
         expver_unformatted_dataset: xr.Dataset = ds_unformatted_expver1.merge(ds_unformatted_expver5)  # type: ignore
@@ -309,16 +323,18 @@ def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict[str, s
         expver_unformatted_dataset["is_permanent_data"] = True
 
     # Rename the factors to their longer names:
-    for factor in expver_unformatted_dataset.variables.keys():
+    for factor in expver_unformatted_dataset.variables:
         factor_str = str(factor)
         if factor_str in allowed_factors:
             expver_unformatted_dataset = expver_unformatted_dataset.rename_vars(
                 {factor_str: allowed_factors[factor_str]}
-                )
+            )
 
     # Rename and encode data where needed:
     expver_unformatted_dataset.valid_time.encoding["units"] = "hours since 2016-01-01"
-    expver_unformatted_dataset = expver_unformatted_dataset.rename(name_dict={"latitude": "lat", "longitude": "lon", "valid_time": "time"})
+    expver_unformatted_dataset = expver_unformatted_dataset.rename(
+        name_dict={"latitude": "lat", "longitude": "lon", "valid_time": "time"}
+    )
 
     # Store the data
     expver_unformatted_dataset.to_netcdf(path=unformatted_file, format="NETCDF4", engine="netcdf4", mode="w")  # type: ignore

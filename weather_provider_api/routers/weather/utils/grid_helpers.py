@@ -1,7 +1,7 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -9,10 +9,10 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
 def round_coordinates_to_wgs84_grid(
-    coordinates: List[GeoPosition],
-    grid_resolution_lat_lon: Tuple[float, float],
-    starting_points_lat_lon: Tuple[float, float] = (0, 0),
-) -> List[GeoPosition]:
+    coordinates: list[GeoPosition],
+    grid_resolution_lat_lon: tuple[float, float],
+    starting_points_lat_lon: tuple[float, float] = (0, 0),
+) -> list[GeoPosition]:
     """A function that rounds coordinates to a WGS84 coordinate grid based on the given settings.
 
     Args:
@@ -30,7 +30,7 @@ def round_coordinates_to_wgs84_grid(
     start_lat = starting_points_lat_lon[0]
     start_lon = starting_points_lat_lon[1]
 
-    wgs84_coordinate_list = [coordinate.get_WGS84() for coordinate in coordinates]
+    wgs84_coordinate_list = [coordinate.as_wgs84 for coordinate in coordinates]
     rounded_wgs84_coordinate_list = [
         (
             (np.round((coordinate[0] - start_lat) / grid_res_lat) * grid_res_lat) + start_lat,

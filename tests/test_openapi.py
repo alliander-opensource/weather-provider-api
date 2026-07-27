@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import json
 from typing import Any
@@ -151,7 +152,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_overwrites_existing_file(self):
         """Test that the function overwrites an existing openapi.json file."""
-        mock_spec = {"openapi": "3.0.2", "info": {"title": "Test", "version": "1.0.0"}} # type: ignore
+        mock_spec = {"openapi": "3.0.2", "info": {"title": "Test", "version": "1.0.0"}}  # type: ignore
 
         with patch("weather_provider_api.scripts.openapi.v2_app") as mock_app:
             mock_app.openapi.return_value = mock_spec

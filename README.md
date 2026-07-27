@@ -1,5 +1,6 @@
 <!--
-SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+
 SPDX-License-Identifier: MPL-2.0
 -->
 [![License: MIT](https://img.shields.io/badge/License-MPL2.0-informational.svg)](https://github.com/alliander-opensource/weather-provider-api/blob/master/LICENSE)
@@ -11,7 +12,7 @@ SPDX-License-Identifier: MPL-2.0
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/weather-provider-api?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/weather-provider-api)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=coverage)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
 
-> :warning: **Due to changes in the way that CDS delivers data, ERA5 data does not currently process sea level data 
+> :warning: **Due to changes in the way that CDS delivers data, ERA5 data does not currently process sea level data
 > for the time being. This will be fixed in a future release.**
 
 
@@ -30,7 +31,7 @@ https://github.com/alliander-opensource/Weather-Provider-API
 **And the GitHub Pages at:**
 https://alliander-opensource.github.io/weather-provider-api/
 
-The project uses a number of data sources for the acquisition of weather data. Currently being supported by this API 
+The project uses a number of data sources for the acquisition of weather data. Currently being supported by this API
 are the following weather data sources:
 
 **DATA SOURCE #1: KNMI Historical data per day / hour**
@@ -175,7 +176,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Contact
 To contact the project owners directly please e-mail us at [weather.provider@alliander.com](mailto://weather.provider@alliander.com)
-            
+
 ## Authors
 
 This project was initially created by:
@@ -193,14 +194,14 @@ This project is licensed under the Mozilla Public License, version 2.0 - see LIC
 
 ## Licenses third-party code
 
-This project includes third-party code, which is licensed under their own respective Open-Source licenses. SPDX-License-Identifier headers are used to show which license is applicable. The concerning license files can be found in the LICENSES directory. 
+This project includes third-party code, which is licensed under their own respective Open-Source licenses. SPDX-License-Identifier headers are used to show which license is applicable. The concerning license files can be found in the LICENSES directory.
 
 ## Acknowledgments
 
 Thanks to team Inzicht & Analytics and Strategie & Innovatie to
 make this project possible.
 
-A big thanks as well to Alliander for being the main sponsor for this open source project.  
+A big thanks as well to Alliander for being the main sponsor for this open source project.
 
 And of course a big thanks to the guys of IT New Business & R&D to provide
 such an easy-to-use Python environment in the cloud.

@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """CDS - ERA5 Land Weather data Model."""
 
@@ -11,7 +12,7 @@ import xarray as xr
 from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
-from weather_provider_api.routers.weather.repository.repository import RepoDataFetchResult
+from weather_provider_api.routers.weather.base_models.repository import RepoDataFetchResult
 from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import (
     ERA5LandRepository,
 )
@@ -53,7 +54,8 @@ class ERA5LandModel(WeatherModelBase):
 
         # Set up Conversion Dictionary
         si_conversion_dict = {  # type: ignore
-            k: {"name": k, "convert": lambda x: x} for k in era5sl_factors.values()  # type: ignore
+            k: {"name": k, "convert": lambda x: x}
+            for k in era5sl_factors.values()  # type: ignore
         }  # The default output format for ERA5SL is already SI
         self.to_si = si_conversion_dict  # type: ignore
 
@@ -166,7 +168,7 @@ class ERA5LandModel(WeatherModelBase):
         arome_dataset, fetch_result = self.repository.retrieve_data(
             from_date=begin.date(),
             to_date=end.date(),
-            locations=[coordinate.get_WGS84() for coordinate in era5sl_coordinates],
+            locations=[coordinate.as_wgs84 for coordinate in era5sl_coordinates],
             factors=validated_factors,
         )
 

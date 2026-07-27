@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import pytest
 
@@ -15,7 +16,6 @@ from weather_provider_api.routers.weather.api_view_v2 import header_accept_type
         ("application/json", "json"),
         ("application/json-dataset", "json_dataset"),
         ("text/csv", "csv"),
-
         # Near matches (with parameters)
         ("application/netcdf; version=4", "netcdf4"),
         ("application/json; charset=utf-8", "json"),

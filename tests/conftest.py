@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import tempfile
 from datetime import UTC, datetime, timedelta
@@ -37,15 +38,7 @@ def mock_factors() -> list[str]:
 
 @pytest.fixture(scope="session")
 def mock_dataset(mock_coordinates, mock_factors):
-    """
-        returns a mock Xarray Dataset for
-    Args:
-        mock_coordinates:
-        mock_factors:
-
-    Returns:
-
-    """
+    """Generate a mock dataset for testing purposes."""
     timeline = pd.date_range(end=datetime.now(tz=None), periods=96, freq="1h", inclusive="left")
     coord_indices = coords_to_pd_index([GeoPosition(51.873419, 5.705929), GeoPosition(53.2194, 6.5665)])
     weather_factors = mock_factors
@@ -63,15 +56,7 @@ def mock_dataset(mock_coordinates, mock_factors):
 
 @pytest.fixture(scope="session")
 def mock_dataset_era5(mock_coordinates, mock_factors):
-    """
-        returns a mock Xarray Dataset for
-    Args:
-        mock_coordinates:
-        mock_factors:
-
-    Returns:
-
-    """
+    """Generate a mock ERA5 dataset for testing."""
     timeline = pd.date_range(
         end=(datetime.now(tz=UTC) - timedelta(days=61)),
         periods=96,
@@ -94,15 +79,7 @@ def mock_dataset_era5(mock_coordinates, mock_factors):
 
 @pytest.fixture(scope="session")
 def mock_dataset_arome(mock_coordinates, mock_factors):
-    """
-        returns a mock Xarray Dataset for
-    Args:
-        mock_coordinates:
-        mock_factors:
-
-    Returns:
-
-    """
+    """Generate an AROME mock dataset for testing."""
     timeline = pd.date_range(
         end=(datetime.now(tz=UTC) - timedelta(days=6)),
         periods=96,

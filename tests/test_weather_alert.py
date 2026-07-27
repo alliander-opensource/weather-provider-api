@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import pytest
 import requests  # type: ignore
@@ -85,8 +86,10 @@ def test_weather_alert_wrongly_formatted_page(monkeypatch: pytest.MonkeyPatch):
 
     def mock_request_response(_, nope: str = "") -> object:
         _ = nope  # Unused parameter to match the signature of the original function
+
         class FakeResponse:
             """A fake response object to simulate a wrongly formatted page."""
+
             status_code = 200
             text = "<HTML><BODY><DIV>Nothing Here!<DIV></BODY></HTML>"
 

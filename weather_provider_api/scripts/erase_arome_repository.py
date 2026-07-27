@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
     HarmonieAromeRepository,
@@ -8,7 +9,7 @@ from weather_provider_api.routers.weather.sources.knmi.client.arome_repository i
 
 def main() -> None:
     """Script to erase the Arome repository.
-    
+
     This is used to clear the repository of old data, for example when the data is corrupted or when the repository is
     full and needs to be cleared to make space for new data.
     """
@@ -16,5 +17,5 @@ def main() -> None:
     arome_repo.purge_repository(identifier="arome")
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

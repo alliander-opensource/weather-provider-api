@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 # factor name mapping
 
@@ -15,8 +13,8 @@ from weather_provider_api.routers.weather.utils.file_helpers import (
 file_to_use_era5sl = get_var_map_file_location("era5sl_var_map.json")
 file_to_use_era5land = get_var_map_file_location("era5land_var_map.json")
 
-with open(file_to_use_era5sl, "r", encoding="utf-8") as _f:
+with open(file_to_use_era5sl, encoding="utf-8") as _f:
     era5sl_factors: dict[str, str] = json.load(_f)
 
-with open(file_to_use_era5land, "r", encoding="utf-8") as _f:
+with open(file_to_use_era5land, encoding="utf-8") as _f:
     era5land_factors: dict[str, str] = json.load(_f)

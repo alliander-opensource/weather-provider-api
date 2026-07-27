@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from typing import Any
 
@@ -15,6 +16,7 @@ class ExceptionResponseModel(BaseModel):
 
 class APIExpiredException(HTTPException):
     """Exception to raise when an API has expired and should not be used anymore."""
+
     def __init__(self, detail: Any = None):
         """Initialize the APIExpiredException with a default message if no detail is provided."""
         self.detail = (

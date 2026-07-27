@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 # factor name mapping
 
@@ -14,5 +12,5 @@ from weather_provider_api.routers.weather.utils.file_helpers import (
 
 file_to_use = get_var_map_file_location("arome_var_map.json")
 
-with open(file_to_use, "r") as _f:
+with open(file_to_use) as _f:
     arome_factors: dict[str, str] = json.load(_f)

@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import locale
 from datetime import datetime
@@ -56,11 +57,12 @@ def test__retrieve_observation_date():
 
 def test__download_weather(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the download_actuele_waarnemingen_weather function for error handling and successful download."""
+
     # Test to verify error handling for network/request issues
-    def mock_request_get(*args, **kwargs): # type: ignore
+    def mock_request_get(*args, **kwargs):  # type: ignore
         raise requests.exceptions.RequestException("Fake RequestException!")
 
-    monkeypatch.setattr(requests, "get", mock_request_get) # type: ignore
+    monkeypatch.setattr(requests, "get", mock_request_get)  # type: ignore
     # The function now raises the exception, so we check for it
     import pytest
 

@@ -1,10 +1,13 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from typing import Any
 
 
-def prepare_example_response(example_response: dict[str, Any] | list[dict[str, Any]], content_type: str = "application/json") -> dict[str, Any]:
+def prepare_example_response(
+    example_response: dict[str, Any] | list[dict[str, Any]], content_type: str = "application/json"
+) -> dict[str, Any]:
     """Translates a simple example response into a FastAPI response dictionary.
 
      This method is used to translate simple output example lists and dictionaries into FastAPI response dictionaries

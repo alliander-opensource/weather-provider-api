@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
@@ -20,6 +21,8 @@ class WeatherModelBase(metaclass=ABCMeta):
 
     def __init__(self):
         """Initialize the WeatherModelBase with default conversion dictionaries."""
+        self.id = None
+        self.async_model = None
         self.to_si = None
         self.to_human = None
         self.human_to_model_specific = None
@@ -52,7 +55,7 @@ class WeatherModelBase(metaclass=ABCMeta):
         """
         if not self.to_si or not self.to_human:
             raise ValueError("Conversion dictionaries not properly initialized")
-        
+
         if unit == OutputUnit.original:
             return weather_data
 
@@ -63,7 +66,7 @@ class WeatherModelBase(metaclass=ABCMeta):
         else:
             raise TypeError("Invalid OutputUnit")
 
-        data_vars: list[str] = list(weather_data.data_vars) # type: ignore
+        data_vars: list[str] = list(weather_data.data_vars)  # type: ignore
         for var_name in data_vars:
             if var_name not in data_vars or var_name not in conversion_dict:
                 continue
@@ -98,33 +101,41 @@ class WeatherModelBase(metaclass=ABCMeta):
 
     @staticmethod
     def celsius_to_kelvin(x: Any) -> Any:  # pragma: no cover
+        """Convert a temperature from Celsius to Kelvin."""
         return x + 273.15
 
     @staticmethod
     def kelvin_to_celsius(x: Any) -> Any:  # pragma: no cover
+        """Convert a temperature from Kelvin to Celsius."""
         return x - 273.15
 
     def tenth_celsius_to_kelvin(self, x: Any) -> Any:  # pragma: no cover
+        """Convert a temperature from tenths of Celsius to Kelvin."""
         return self.celsius_to_kelvin(self.normalize_tenths(x))
 
     @staticmethod
     def normalize_tenths(x: Any) -> Any:  # pragma: no cover
+        """Normalize a value in tenths to its actual value."""
         return x / 10
 
     @staticmethod
     def no_conversion(x: Any) -> Any:  # pragma: no cover
+        """Return the value without any conversion."""
         return x
 
     @staticmethod
     def percentage_to_frac(x: Any) -> Any:  # pragma: no cover
+        """Convert a percentage value to a fraction."""
         return x / 100
 
     @staticmethod
     def kmh_to_ms(x: Any) -> Any:  # pragma: no cover
+        """Convert a speed from kilometers per hour to meters per second."""
         return x / 3.6
 
     @staticmethod
     def dutch_wind_direction_to_degrees(xs: str) -> float | None:  # pragma: no cover
+        """Convert a Dutch wind direction string to degrees."""
         wind_directions = [
             "NNO",
             "NO",
@@ -145,6 +156,7 @@ class WeatherModelBase(metaclass=ABCMeta):
         ]
 
         def dutch_wind_direction_to_degrees_single(x: str) -> float | None:
+            """Convert a single Dutch wind direction string to degrees."""
             if x in wind_directions:
                 return (wind_directions.index(x) + 1) * 22.5
             else:

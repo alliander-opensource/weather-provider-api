@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import calendar
 import glob
@@ -9,7 +10,7 @@ from pathlib import Path
 import xarray as xr
 from loguru import logger
 
-from weather_provider_api.routers.weather.repository.repository import (
+from weather_provider_api.routers.weather.base_models.repository import (
     RepoDataFetchResult,
     RepoUpdateResult,
     WeatherRepositoryBase,
@@ -44,7 +45,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         self.cds_product_type = None
         self.factors_to_process = era5land_factors.keys()
         self.years_to_store = 10
-        
+
         logger.info(f"Initialized {self.__class__.__name__} with configuration:\n{self.metadata}")
 
     @property
@@ -56,7 +57,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
     @property
     def newest_date_available(self) -> date:
         """Returns the newest date for which data is available in the repository."""
-        return (datetime.now(UTC).date() - timedelta(days=5))
+        return datetime.now(UTC).date() - timedelta(days=5)
 
     def update(self, *, run_in_testmode: bool = False) -> tuple[RepoUpdateResult, str]:
         """Update the repository with new data."""
@@ -120,13 +121,16 @@ class ERA5LandRepository(WeatherRepositoryBase):
                 )
                 self.safely_delete_file(Path(file_path))
 
-
-    def retrieve_data(self, from_date: date, to_date: date, locations: list[tuple[float, float]], factors: list[str]) -> tuple[xr.Dataset | None, RepoDataFetchResult]:
+    def retrieve_data(
+        self, from_date: date, to_date: date, locations: list[tuple[float, float]], factors: list[str]
+    ) -> tuple[xr.Dataset | None, RepoDataFetchResult]:
         """Retrieves data from the repository for the given parameters."""
         required_files_for_data = self._retrieve_files_matching_period(from_date, to_date)
 
         try:
-            combined_dataset = self._gather_data_from_files_and_combine_into_dataset(required_files_for_data, locations, factors)
+            combined_dataset = self._gather_data_from_files_and_combine_into_dataset(
+                required_files_for_data, locations, factors
+            )
         except Exception as e:
             logger.error(f"An error occurred while retrieving data: {e}")
             return None, RepoDataFetchResult.FAILURE
@@ -147,7 +151,7 @@ class ERA5LandRepository(WeatherRepositoryBase):
         prefix_len = len(prefix)
         last_day_of_end_month = to_date.replace(day=calendar.monthrange(to_date.year, to_date.month)[1]).day
         list_of_required_files: list[Path] = []
-        
+
         for file_path in glob.glob(f"{prefix}*.nc"):
             # Expecting filenames like .../cds_era5sl_YYYY-MM.nc
             try:

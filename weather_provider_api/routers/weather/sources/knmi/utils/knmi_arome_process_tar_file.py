@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import re
 import shutil
@@ -51,13 +52,17 @@ def process_knmi_arome_cy43_p1_tar_file_into_netcdf(
     _convert_grib_files_to_netcdf(temporary_directory, datetime_tag)
 
     # After conversion we should merge the netCDF4 files into a single file
-    merged_netcdf_file_path = _merge_netcdf_files_in_directory(temporary_directory, target_netcdf_file_name, datetime_tag)
+    merged_netcdf_file_path = _merge_netcdf_files_in_directory(
+        temporary_directory, target_netcdf_file_name, datetime_tag
+    )
     if merged_netcdf_file_path is None:
         logger.error(f"Failed to merge netCDF files in temporary directory: {temporary_directory}")
         return None
 
     # Finally, we move the merged netCDF file to the target location and return its path.
-    merged_netcdf_file_path = _move_merged_netcdf_file_to_target_location(merged_netcdf_file_path, target_netcdf_file_path)
+    merged_netcdf_file_path = _move_merged_netcdf_file_to_target_location(
+        merged_netcdf_file_path, target_netcdf_file_path
+    )
 
     # Cleanup the temporary directory and all its contents
     shutil.rmtree(temporary_directory)
@@ -269,7 +274,9 @@ def _build_lat_lon_grid(grib_message: dict[str, Any]) -> tuple[list[float], list
     return latitudes, longitudes
 
 
-def _merge_netcdf_files_in_directory(temporary_directory: str, target_netcdf_file_name: str, datetime_tag: str) -> Path | None:
+def _merge_netcdf_files_in_directory(
+    temporary_directory: str, target_netcdf_file_name: str, datetime_tag: str
+) -> Path | None:
     """Merge all netCDF files in the specified temporary directory into a single netCDF file.
 
     The merged file will be saved in the same directory with a name based on the datetime tag.
@@ -297,11 +304,7 @@ def _merge_netcdf_files_in_directory(temporary_directory: str, target_netcdf_fil
         return None
 
     combined_dataset = xr.open_mfdataset(  # type: ignore
-        netcdf_files,
-        combine="by_coords",
-        engine="netcdf4",
-        chunks={"time": 8},
-        data_vars="all"
+        netcdf_files, combine="by_coords", engine="netcdf4", chunks={"time": 8}, data_vars="all"
     )
 
     encoding = {}
@@ -309,7 +312,7 @@ def _merge_netcdf_files_in_directory(temporary_directory: str, target_netcdf_fil
         encoding[var] = {
             "zlib": True,
             "complevel": 4,  # 1-9, higher is more compression but slower
-            "chunksizes": (1, 50, 50)  # (time, lat, lon) or adjust as needed
+            "chunksizes": (1, 50, 50),  # (time, lat, lon) or adjust as needed
         }
 
     merged_netcdf_file_path = netcdf_directory / target_netcdf_file_name
@@ -345,9 +348,7 @@ def _move_merged_netcdf_file_to_target_location(temporary_file: Path, target_net
         logger.error(f"Permission denied when moving file to: {target_file_name}")
         return None
     except FileNotFoundError:
-        logger.error(
-            f"Source or target file not found during move: {temporary_file} -> {target_file_name}"
-        )
+        logger.error(f"Source or target file not found during move: {temporary_file} -> {target_file_name}")
         return None
     except OSError as e:
         logger.error(f"OS error when moving merged netCDF file: {e}")

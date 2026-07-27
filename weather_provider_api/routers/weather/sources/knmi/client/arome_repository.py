@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import re
 from datetime import UTC, date, datetime, timedelta
@@ -10,7 +11,7 @@ from pathlib import Path
 import xarray as xr
 from loguru import logger
 
-from weather_provider_api.routers.weather.repository.repository import (
+from weather_provider_api.routers.weather.base_models.repository import (
     RepoDataFetchResult,
     RepoUpdateResult,
     WeatherRepositoryBase,
@@ -274,7 +275,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         Returns:
             RepoUpdateResult:
-                    An enum indicating the result of the update operation 
+                    An enum indicating the result of the update operation
                     (e.g., SUCCESS, FAILURE, NO_UPDATES_AVAILABLE).
             str:
                     A message providing additional details about the update result.
@@ -367,7 +368,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         suggested_file_handling = self._determine_suggested_file_handling(file, existing_files_with_same_datetime_tag)
 
         if suggested_file_handling == AromeSuggestedFileHandling.LEAVE_AS_IS:
-            logger.info(f"File [{file['filename']}] is already present in the repository and does not require an update.")
+            logger.info(
+                f"File [{file['filename']}] is already present in the repository and does not require an update."
+            )
             return RepoUpdateResult.SUCCESS
 
         if suggested_file_handling == AromeSuggestedFileHandling.DEPRECATE:
