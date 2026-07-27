@@ -6,6 +6,9 @@ name: Pull Request Evaluation
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+  pull-requests: read
 jobs:
   # ---------------------------------------------------------------- #
   # |  Coverage and SonarCloud.io upload                           | #
@@ -15,7 +18,8 @@ jobs:
       matrix:
         version: ["3.13"]
     name: Testing and updating SonarCloud
-    runs-on: ubuntu-latest
+    runs-on:
+      group: managed
     steps:
       # Checkout
       - name: Branch checkout
