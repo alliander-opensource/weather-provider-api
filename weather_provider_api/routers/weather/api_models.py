@@ -1,13 +1,14 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import json
 import math
 from collections import defaultdict
 from dataclasses import field
 from datetime import UTC, date, datetime, time, timedelta
-from enum import Enum
-from typing import Any, List
+from enum import StrEnum
+from typing import Any
 
 from fastapi import Query
 from pydantic import Field
@@ -22,7 +23,7 @@ TO_DATE_AND_TIME = "To date and time"
 FACTORS_DESCRIPTION = "Only return these weather factors (default: all factors)"
 
 
-class OutputUnit(str, Enum):
+class OutputUnit(StrEnum):
     """Enumeration of valid output unit sets for weather data."""
 
     # Valid output unit sets
@@ -31,7 +32,7 @@ class OutputUnit(str, Enum):
     original = "original"
 
 
-class ResponseFormat(str, Enum):
+class ResponseFormat(StrEnum):
     """Enumeration of valid output file-formats for weather data responses."""
 
     # Valid output file-formats
@@ -70,13 +71,13 @@ class WeatherSource(BaseModel):
     id: str = Field(..., description="Source id")
     name: str = Field(..., description="Source name")
     url: str | None = Field(default=None, description="Source URL")
-    models: List[WeatherModel] | None = Field(default=None, description="Synchronous models")
-    async_models: List[WeatherModel] | None = Field(default=None, description="Asynchronous models")
-
+    models: list[WeatherModel] | None = Field(default=None, description="Synchronous models")
+    async_models: list[WeatherModel] | None = Field(default=None, description="Asynchronous models")
 
 
 class WeatherFormattingRequestQuery(BaseModel):
     """Query parameters for formatting weather data responses."""
+
     units: OutputUnit = Field(
         default=OutputUnit.si,
         description="Unit of weather factors",
@@ -89,7 +90,10 @@ class WeatherFormattingRequestQuery(BaseModel):
 
 # Note: I'd love to combine the (almost) duplicate entries below, but the hybrid solutions don't work in FastAPI 0.30.
 class WeatherContentRequestQuery(BaseModel):
-    """Request query model for synchronous weather data requests, containing all necessary parameters for data retrieval and formatting."""
+    """Request query model for synchronous weather data requests.
+
+    Contains all necessary parameters for data retrieval and formatting.
+    """
 
     begin: str | None = Field(
         default=None,
@@ -119,7 +123,10 @@ class WeatherContentRequestQuery(BaseModel):
 
 @dataclass
 class WeatherContentRequestMultiLocationQuery:
-    """Request query model for synchronous weather data requests with multiple locations, containing all necessary parameters for data retrieval and formatting."""
+    """Request query model for synchronous weather data requests with multiple locations.
+
+    Contains all necessary parameters for data retrieval and formatting.
+    """
 
     begin: str = field(
         default_factory=lambda: Query(None, description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()])
@@ -136,7 +143,10 @@ class WeatherContentRequestMultiLocationQuery:
 
 
 class WeatherContentRequestBody(BaseModel):
-    """Request body model for asynchronous weather data requests, containing all necessary parameters for data retrieval and formatting."""
+    """Request body model for asynchronous weather data requests.
+
+    Contains all necessary parameters for data retrieval and formatting.
+    """
 
     begin: str | None = Field(..., description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()])
     end: str | None = Field(..., description=TO_DATE_AND_TIME, examples=[_yesterday_end()])
@@ -146,7 +156,10 @@ class WeatherContentRequestBody(BaseModel):
 
 
 class ScientificJSONResponse(StarletteResponse):
-    """Custom response class for returning scientific data in JSON format, with specific handling for float formatting and special float values."""
+    """Custom response class for returning scientific data in JSON format.
+
+    With specific handling for float formatting and special float values.
+    """
 
     media_type = "application/json"
 
@@ -222,9 +235,8 @@ def get_weather_content_request_query(
     lon: float = Query(..., description="GPS Longitude or RD y-coordinate", examples=[5.18]),
     factors: list[str] | None = Query(None, description=FACTORS_DESCRIPTION),
 ) -> WeatherContentRequestQuery:
-    return WeatherContentRequestQuery(
-        begin=begin, end=end, lat=lat, lon=lon, factors=factors
-    )
+    """Retrieve a WeatherContentRequestQuery from query parameters."""
+    return WeatherContentRequestQuery(begin=begin, end=end, lat=lat, lon=lon, factors=factors)
 
 
 # Dependency function to build WeatherFormattingRequestQuery from query params

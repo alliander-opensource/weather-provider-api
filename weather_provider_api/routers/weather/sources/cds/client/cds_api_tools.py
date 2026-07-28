@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-
-#  SPDX-FileCopyrightText: 2019-2025 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
 
 """This is the module that contains the tools for the CDS API.
 
@@ -13,7 +12,7 @@ https://www.apache.org/licenses/LICENSE-2.0.
 """
 
 from datetime import date
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import cdsapi  # type: ignore
@@ -40,7 +39,7 @@ def _info_callback(*args: tuple[Any, ...], **kwargs: dict[str, Any]) -> None:
         logger.info(" - kwargs: ", **kwargs)
 
 
-class CDSDataSets(str, Enum):
+class CDSDataSets(StrEnum):
     """Currently supported datasets for the CDS API."""
 
     ERA5SL = "reanalysis-era5-single-levels"
@@ -88,9 +87,9 @@ class CDSRequest(BaseModel):
     area: tuple[float, float, float, float] = (53.7, 3.2, 50.75, 7.22)
 
     @property
-    def request_parameters(self) -> dict[str, str | list[str] | tuple[float]]:
+    def request_parameters(self) -> dict[str, list[str] | tuple[float, float, float, float] | str]:
         """Return the request parameters as a dictionary."""
-        param_dict: dict[str, str | list[str] | tuple[float]] = {
+        param_dict: dict[str, list[str] | tuple[float, float, float, float] | str] = {
             "variable": self.variables,
             "year": self.year,
             "month": self.month,
@@ -106,4 +105,4 @@ class CDSRequest(BaseModel):
         return param_dict
 
 
-CDS_CLIENT = cdsapi.Client(info_callback=_info_callback(), url="https://cds.climate.copernicus.eu/api")
+CDS_CLIENT = cdsapi.Client(info_callback=_info_callback, url="https://cds.climate.copernicus.eu/api")

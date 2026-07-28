@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 # repo_get_repository_location() isn't tested as it only fetches a value and if none is found a specific value is used.
 # A test would therefore be bigger and more error-prone than the code itself.
@@ -113,7 +114,7 @@ def test_repo_get_month_filename(_get_mock_repository_dir: Path):
         result = [
             Path(file_name)
             for file_name in arome_repo._retrieve_files_matching_period(  # type: ignore
-                from_date=existing_dates['from'], to_date=subtract_months(existing_dates['to'], months=1)
+                from_date=existing_dates["from"], to_date=subtract_months(existing_dates["to"], months=1)
             )
         ]
         assert len(result) == 1

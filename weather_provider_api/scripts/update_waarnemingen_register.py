@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import sys
 
@@ -11,7 +12,7 @@ from weather_provider_api.routers.weather.sources.knmi.client.actuele_waarneming
 
 
 def main(args: list[str] | None = None) -> None:
-    """Run the update of the ERA5SL repository."""
+    """Run the update of the Actuele Waarnemingen Register repository."""
     test_mode = False
 
     if args is None:

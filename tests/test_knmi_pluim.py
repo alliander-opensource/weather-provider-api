@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from datetime import UTC, datetime, timedelta
 
@@ -24,7 +25,11 @@ def ending_moment() -> datetime:
 
 
 def test_retrieve_weather(
-        monkeypatch: pytest.MonkeyPatch, mock_coordinates: list[tuple[float, float]], starting_moment: datetime, ending_moment: datetime):
+    monkeypatch: pytest.MonkeyPatch,
+    mock_coordinates: list[tuple[float, float]],
+    starting_moment: datetime,
+    ending_moment: datetime,
+):
     mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     # TODO: Monkeypatch the download call to test without connection
 

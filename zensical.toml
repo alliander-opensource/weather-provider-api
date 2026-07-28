@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
+[project]
+site_name = "Weather Provider API"
+site_url = "https://github.com/alliander-opensource/weather-provider-api"
+site_description = "Weather Provider Libraries and API"
+site_author = "Alliander N.V."
+
+repo_url = "https://github.com/alliander-opensource/weather-provider-api"
+repo_name = "alliander-opensource/weather-provider-api"
+
+copyright = "&copy; 2026 Alliander N.V."
+
+docs_dir = "docs"
+
+nav = [
+    {"Home" = "index.md"},
+    {"API Reference" = "reference/api.md"},
+    {"About" = "about.md"}
+]
+
+[project.validation]
+invalid_links = true
+invalid_link_anchors = true
+unresolved_references = false
+unresolved_footnotes = false
+unused_definitions = false
+unused_footnotes = false
+shadowed_definitions = false
+shadowed_footnotes = false
+
+[project.theme]
+features = [
+    "navigation.instant"
+]
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["."]
+inventories = ["https://docs.python.org/3/objects.inv"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+show_source = false
+show_root_heading = true
+show_root_full_path = false
+show_signature_annotations = true
+separate_signature = true
+members_order = "source"

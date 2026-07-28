@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """Entry point to the weather provider."""
 
@@ -23,8 +24,8 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 class WeatherController:  # pragma: no cover
     """Controller for the Weather Provider API.
-    
-    This class is responsible for handling all requests for weather data, including fetching data from 
+
+    This class is responsible for handling all requests for weather data, including fetching data from
     the appropriate sources and models, converting units, and formatting the output.
     """
 

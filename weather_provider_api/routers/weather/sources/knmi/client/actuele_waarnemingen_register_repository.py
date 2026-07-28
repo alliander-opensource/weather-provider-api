@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """This module houses the repository class for the Actuele Waarnemingen Register."""
 
@@ -11,7 +12,7 @@ import pandas as pd
 import xarray as xr
 from loguru import logger
 
-from weather_provider_api.routers.weather.repository.repository import (
+from weather_provider_api.routers.weather.base_models.repository import (
     RepoDataFetchResult,
     RepoUpdateResult,
     WeatherRepositoryBase,
@@ -200,11 +201,13 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
                 )
                 self.storage_filename.unlink(missing_ok=True)
                 return RepoUpdateResult.FAILURE
-            
-            current_data = current_data.sel(time=slice(
-                pd.Timestamp(datetime.combine(self.oldest_date_available, datetime.min.time())),
-                pd.Timestamp(datetime.combine(self.newest_date_available, datetime.max.time()))
-            ))
+
+            current_data = current_data.sel(
+                time=slice(
+                    pd.Timestamp(datetime.combine(self.oldest_date_available, datetime.min.time())),
+                    pd.Timestamp(datetime.combine(self.newest_date_available, datetime.max.time())),
+                )
+            )
             current_data.to_netcdf(self.storage_filename, format="NETCDF4")  # type: ignore
 
             return RepoUpdateResult.SUCCESS

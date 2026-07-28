@@ -1,19 +1,21 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """Logger initializer.
 
-This module contains the LoggingInterceptHandler class, which is responsible for intercepting log messages from Python's 
-standard logging system and forwarding them to Loguru, our custom logging system. The initialize_logging function sets 
+This module contains the LoggingInterceptHandler class, which is responsible for intercepting log messages from Python's
+standard logging system and forwarding them to Loguru, our custom logging system. The initialize_logging function sets
 up Loguru as the default logging system and configures it according to the application's settings.
 """
 
 import logging
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from tempfile import gettempdir
 from types import MappingProxyType
-from typing import ClassVar, Mapping
+from typing import ClassVar
 
 from loguru import logger
 
@@ -28,14 +30,16 @@ class LoggingInterceptHandler(logging.Handler):
 
     """
 
-    log_level_map: ClassVar[Mapping[int, str]] = MappingProxyType({
-        50: "CRITICAL",
-        40: "ERROR",
-        30: "WARNING",
-        20: "INFO",
-        10: "DEBUG",
-        0: "NOTSET",
-    })
+    log_level_map: ClassVar[Mapping[int, str]] = MappingProxyType(
+        {
+            50: "CRITICAL",
+            40: "ERROR",
+            30: "WARNING",
+            20: "INFO",
+            10: "DEBUG",
+            0: "NOTSET",
+        }
+    )
 
     def emit(self, record: logging.LogRecord) -> None:
         """Emit a log record.
@@ -69,7 +73,7 @@ class LoggingInterceptHandler(logging.Handler):
 
 def initialize_logging() -> None:
     """Initialize the logging system.
-    
+
     The method that initializes and sets our custom logging system as the default, and reroutes other logging systems
     to use our system instead.
 
@@ -139,10 +143,12 @@ def initialize_logging() -> None:
         )
 
     # Because Uvicorn already uses its own logger, we'll also need to replace those:
-    manager: logging.Manager = logging.root.manager    
+    manager: logging.Manager = logging.root.manager
     existing_uvicorn_loggers = (
-        logging.getLogger(name) for name in manager.loggerDict if name.startswith("uvicorn.")  # pylint: disable=no-member
-        )
+        logging.getLogger(name)
+        for name in manager.loggerDict
+        if name.startswith("uvicorn.")  # pylint: disable=no-member
+    )
     for uvicorn_logger in existing_uvicorn_loggers:
         uvicorn_logger.handlers = [LoggingInterceptHandler()]
 

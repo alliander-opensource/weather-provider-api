@@ -1,12 +1,13 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import random
 from datetime import UTC, datetime, timedelta
 
 import xarray as xr
 
-from weather_provider_api.routers.weather.repository.repository import RepoDataFetchResult
+from weather_provider_api.routers.weather.base_models.repository import RepoDataFetchResult
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5SLModel
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
@@ -33,7 +34,7 @@ def test__validate_weather_factors():
     arome_model = ERA5SLModel()
 
     # TEST 1: No factors are passed. The full standard list of factors should be returned.
-    assert arome_model._validate_weather_factors(None) == list(era5sl_factors.values()) # type: ignore
+    assert arome_model._validate_weather_factors(None) == list(era5sl_factors.values())  # type: ignore
 
     # TEST 2: Only valid factors are passed. The same list should be returned.
     list_of_factors = list(era5sl_factors.keys())
@@ -63,7 +64,7 @@ def test__validate_weather_factors():
 
 def test_retrieve_weather(monkeypatch, mock_dataset_arome: xr.Dataset):  # type: ignore
     """Test the retrieve_weather function of the HarmonieAromeModel.
-    
+
     This is done by monkeypatching the gather_period function of the HarmonieAromeRepository, which is used in the
     retrieve_weather function, to return a mock dataset instead of making an actual API call. The test then checks
     if the returned dataset has the expected structure and content.
@@ -72,9 +73,8 @@ def test_retrieve_weather(monkeypatch, mock_dataset_arome: xr.Dataset):  # type:
     one_month_ago = subtract_months(five_days_ago, months=1)
 
     # Instead of returning the regular data
-    def mock_fill_dataset_with_data(
-            self, from_date, to_date, locations: list[tuple[float, float]], factors: list[str]):  # type: ignore
-        _,_,_,_,_ = self, from_date, to_date, locations, factors  # type: ignore
+    def mock_fill_dataset_with_data(self, from_date, to_date, locations: list[tuple[float, float]], factors: list[str]):  # type: ignore
+        _, _, _, _, _ = self, from_date, to_date, locations, factors  # type: ignore
         return mock_dataset_arome, RepoDataFetchResult.SUCCESS
 
     monkeypatch.setattr(HarmonieAromeRepository, "retrieve_data", mock_fill_dataset_with_data)  # type: ignore

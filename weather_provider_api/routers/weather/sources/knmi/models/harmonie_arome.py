@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0 AND CC-BY-2.5
 
 """Module containing the Harmonie Arome Weather Model."""
 
@@ -10,7 +11,7 @@ import xarray as xr
 from loguru import logger
 
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
-from weather_provider_api.routers.weather.repository.repository import RepoDataFetchResult
+from weather_provider_api.routers.weather.base_models.repository import RepoDataFetchResult
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
     HarmonieAromeRepository,
 )
@@ -101,7 +102,7 @@ class HarmonieAromeModel(WeatherModelBase):
         weather_dataset, fetch_result = self.repository.retrieve_data(
             from_date=valid_begin.date(),
             to_date=valid_end.date(),
-            locations=[coord.get_WGS84() for coord in coords],
+            locations=[coord.as_wgs84 for coord in coords],
             factors=translated_factors,
         )
         if fetch_result == RepoDataFetchResult.NO_DATA_AVAILABLE or weather_dataset is None:

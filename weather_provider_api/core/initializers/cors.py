@@ -1,9 +1,8 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """CORS support."""
-
-from typing import cast
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +22,7 @@ def _normalize_origin_regex(origins_regex: object) -> str | None:
 
     if isinstance(origins_regex, (list, tuple)):
         patterns: list[str] = []
-        for regex in cast(list[object] | tuple[object, ...], origins_regex):
+        for regex in origins_regex:
             if isinstance(regex, str):
                 cleaned_regex = regex.strip()
                 if cleaned_regex:

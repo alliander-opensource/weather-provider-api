@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0 AND CC-BY-2.5
 
 """KNMI current weather data fetcher."""
 
@@ -103,12 +104,12 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         timeline = ds.coords["time"].values  # type: ignore
 
         coord_index = coords_to_pd_index(coords)
-        mindex_coords = xr.Coordinates.from_pandas_multiindex(coord_index, 'coord')
+        mindex_coords = xr.Coordinates.from_pandas_multiindex(coord_index, "coord")
 
         ds = xr.Dataset(
             data_vars=data_dict,  # type: ignore
             coords={"time": timeline, **mindex_coords},
-)
+        )
         ds = ds.unstack("coord")
 
         logger.debug("Finished processing KNMI Actuele Waarnemingen data and returning dataset.")

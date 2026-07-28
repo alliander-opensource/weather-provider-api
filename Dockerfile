@@ -1,7 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
 #
-# SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
 # SPDX-License-Identifier: MPL-2.0
-#
 FROM python:3.13-slim-bookworm AS base-image
 
 RUN apt-get update && \

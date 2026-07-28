@@ -1,9 +1,10 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import pytest
 
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.routers.weather.utils.geo_position import GeoPosition, GeoCoordinateSystem
 
 
 @pytest.fixture
@@ -17,16 +18,16 @@ def test_location_type_detection():
     # Test 1: Out of bounds 'coordinate' for both WGS84 and RD, using auto-detection
     with pytest.raises(ValueError) as e:
         GeoPosition(52.2, 182)
-    assert str(e.value.args[0]) == "No valid coordinate system could be determined from the coordinates given.."
+    assert str(e.value.args[0]) == "No valid coordinate system could be determined from the coordinates given."
 
     # Test 2:  Value in bounds as WSG84, but specified as RD and out of bounds for RD.
     with pytest.raises(ValueError) as e:
-        GeoPosition(52.2, 90, "RD")
+        GeoPosition(52.2, 90, GeoCoordinateSystem.RD)
     assert str(e.value.args[0]) == "Invalid coordinates for type were used"
 
     # Test 3: Value in bounds as RD, but specified as WGS84 and out of bounds for WGS84.
     with pytest.raises(ValueError) as e:
-        GeoPosition(155000, 463000, "WGS84")
+        GeoPosition(155000, 463000, GeoCoordinateSystem.WGS84)
     assert str(e.value.args[0]) == "Invalid coordinates for type were used"
 
     # Test 4: Highest possible and lowest possible values for WGS84, autodetect.
@@ -38,14 +39,14 @@ def test_location_type_detection():
     assert GeoPosition(300000, 629000)
 
     # Test 6: Unknown coordinate system is passed for a coordinate. Coordinate resolves (to RD) though.
-    assert GeoPosition(155000, 463000, "MARSHMALLOW").system == "RD", (  #type: ignore
-        "GeoPosition should determine RD to be the correctformat"
+    assert GeoPosition(155000, 463000, "MARSHMALLOW").system == "RD", (  # type: ignore
+        "GeoPosition should determine RD to be the correct format"
     )
 
     # Test 7: Unknown coordinate system is passed for a coordinate. Coordinate does not resolve.
     with pytest.raises(ValueError) as e:
         GeoPosition(-1000, -2000, "MARSHMALLOW")
-    assert str(e.value.args[0]) == "No valid coordinate system could be determined from the coordinates given.."
+    assert str(e.value.args[0]) == "No valid coordinate system could be determined from the coordinates given."
 
 
 def test_coordinate_live_locations():
@@ -56,13 +57,13 @@ def test_coordinate_live_locations():
     them to their Google WGS84 locations, and using a known reliable tertiary conversion tool to confirm everything.
     """
     # Test 1: "Onze Lieve Vrouwe Toren" - Amersfoort (building and the center point of the RD coordinate system)
-    geo_pos = GeoPosition(155000, 463000, "RD")
+    geo_pos = GeoPosition(155000, 463000, GeoCoordinateSystem.RD)
 
-    assert geo_pos.get_RD() == (
+    assert geo_pos.as_rd == (
         155000,
         463000,
     ), "Error - Value not properly saved as RD-value"
-    assert geo_pos.get_WGS84() == (
+    assert geo_pos.as_wgs84 == (
         52.15517440,
         5.38720621,
     ), "Error - WGS84 value not within allowed constraints"
@@ -70,22 +71,22 @@ def test_coordinate_live_locations():
     # Test 2: Wijnbergseweg - Braamt (street on the middle east side of the country)
     geo_pos = GeoPosition(215803, 438150)
 
-    assert geo_pos.get_RD() == (
+    assert geo_pos.as_rd == (
         215803,
         438150,
     ), "Error - Value not properly identified or saved as RD"
-    assert geo_pos.get_WGS84() == pytest.approx((51.92849584, 6.27121733), rel=1e-5), (  # type: ignore
+    assert geo_pos.as_wgs84 == pytest.approx((51.92849584, 6.27121733), rel=1e-5), (  # type: ignore
         "Error - WGS84 value not within allowed constraints"
     )
 
     # Test 3: Admiralengracht - Amsterdam (street on the middle west side of the country)
     geo_pos = GeoPosition(52.36954423, 4.85667541)
 
-    assert geo_pos.get_RD() == (
+    assert geo_pos.as_rd == (
         118868,
         486984,
     ), "Error - RD value not within allowed constraints"
-    assert geo_pos.get_WGS84() == (
+    assert geo_pos.as_wgs84 == (
         52.36954423,
         4.85667541,
     ), "Error - Value not properly identified or saved as WGS84"
@@ -93,22 +94,22 @@ def test_coordinate_live_locations():
     # Test 4: Gasthuisstraat - Dokkum (street on the middle north side of the country)
     geo_pos = GeoPosition(195703, 593452)
 
-    assert geo_pos.get_RD() == (
+    assert geo_pos.as_rd == (
         195703,
         593452,
     ), "Error - Value not properly identified or saved as RD"
-    assert geo_pos.get_WGS84() == pytest.approx((53.3259597, 5.9980788), rel=1e-5), (  #type: ignore
+    assert geo_pos.as_wgs84 == pytest.approx((53.3259597, 5.9980788), rel=1e-5), (  # type: ignore
         "Error - WGS84 value not within allowed constraints"
     )
 
     # Test 5: Burgemeester de Grauwstraat - Baarle Nassau (street on the middle south side of the country)
     geo_pos = GeoPosition(51.4450399, 4.9284643)
 
-    assert geo_pos.get_RD() == (
+    assert geo_pos.as_rd == (
         123108,
         384094,
     ), "Error - RD value not within allowed constraints"
-    assert geo_pos.get_WGS84() == (
+    assert geo_pos.as_wgs84 == (
         51.4450399,
         4.9284643,
     ), "Error - Value not properly identified or saved as WGS84"

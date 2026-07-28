@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
@@ -10,6 +11,7 @@ from loguru import logger
 from starlette.exceptions import HTTPException
 
 _TWO_DIGITS_REGEX = r"\d{2}"
+
 
 def parse_datetime(
     datetime_string: str | None,
@@ -22,7 +24,11 @@ def parse_datetime(
     if datetime_string is None:
         return None
 
-    dt = pd.to_datetime(datetime_string, dayfirst=False, errors="coerce")
+    parsed = pd.to_datetime(datetime_string, dayfirst=False, errors="coerce")
+    if pd.isnull(parsed):
+        dt: datetime | None = None
+    else:
+        dt = parsed.to_pydatetime()  # native datetime.datetime
 
     if pd.isnull(dt):
         logger.exception("Error while parsing datetime string", input=datetime_string)
@@ -39,10 +45,7 @@ def parse_datetime(
         dt = None
 
     if dt is not None and (round_missing_time_up or round_to_days) and time_unknown(dt, datetime_string):
-        if round_to_days:
-            dt = dt + timedelta(days=1)
-        else:
-            dt = dt.replace(hour=23, minute=59, second=59)
+        dt = dt + timedelta(days=1) if round_to_days else dt.replace(hour=23, minute=59, second=59)
 
     if dt is not None:
         dt = np.datetime64(dt).astype(datetime)
@@ -52,9 +55,7 @@ def parse_datetime(
 
 def time_unknown(dt: datetime, datetime_string: str) -> bool:  # pragma: no cover
     """Check if the time part of a datetime is unknown (i.e., not specified in the string)."""
-    if dt.hour == 0 and dt.minute == 0 and dt.second == 0 and ":" not in datetime_string:
-        return True
-    return False
+    return bool(dt.hour == 0 and dt.minute == 0 and dt.second == 0 and ":" not in datetime_string)
 
 
 def validate_begin_and_end(

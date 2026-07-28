@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from typing import Any
 
@@ -21,7 +22,7 @@ class GunicornApplication(Application):
 
     def __init__(self, fastapi_application: FastAPI, options: dict[str, str]):
         """Initializer for the Gunicorn application.
-        
+
         Overwrite of the base method with the purpose of automatically loading a FastAPI application and deployment
          options passed.
 

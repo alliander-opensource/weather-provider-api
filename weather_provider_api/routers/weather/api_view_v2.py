@@ -1,8 +1,9 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from datetime import UTC, datetime
-from typing import Annotated, List
+from typing import Annotated
 
 import accept_types  # type: ignore
 import numpy as np
@@ -44,11 +45,11 @@ def header_accept_type(accept: str = Header(None)) -> ResponseFormat:
 
 
 # @weather_provider_api.get("/sources", response_model=List[WeatherSource], tags=["sync", "async"])
-@v2_router.get("/sources", response_model=List[WeatherSource], tags=["sync"])
+@v2_router.get("/sources", response_model=list[WeatherSource], tags=["sync"])
 async def get_sources() -> list[WeatherSourceBase]:  # pragma: no cover
     """List all of the Weather Sources available.
-    
-    An API route that returns a list of all the Weather Sources available from the WeatherController. 
+
+    An API route that returns a list of all the Weather Sources available from the WeatherController.
     Each Source contains information about the source and a list of the Models available for that Source.
 
     Args:
@@ -63,7 +64,7 @@ async def get_sources() -> list[WeatherSourceBase]:  # pragma: no cover
 @v2_router.get("/sources/{source_id}", response_model=WeatherSource, tags=["sync"])
 async def get_source(source_id: str) -> WeatherSourceBase | None:  # pragma: no cover
     """List all the Models available  for the Source.
-        
+
     An API route that returns a list of all the Models available for the given Source ID.
 
     Args:
@@ -75,7 +76,7 @@ async def get_source(source_id: str) -> WeatherSourceBase | None:  # pragma: no 
     return controller.get_source(source_id)
 
 
-@v2_router.get("/sources/{source_id}/models", response_model=List[WeatherModel], tags=["sync"])
+@v2_router.get("/sources/{source_id}/models", response_model=list[WeatherModel], tags=["sync"])
 async def get_sync_models(source_id: str) -> list[WeatherModelBase]:  # pragma: no cover
     """List all the synchronous Models available for the selected Source.
 
@@ -111,7 +112,7 @@ async def get_sync_weather(
     accept: Annotated[ResponseFormat, Depends(header_accept_type)],
 ) -> Response:  # pragma: no cover
     """Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.).
-    
+
     This data is then formatted as the requested output format (output unit system and file format) before returning the requested data.
 
     (Please note that as some models are predictive or otherwise restricted in the periods available for requests,

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
 name: Pull Request Evaluation
 on:
   pull_request:
@@ -38,14 +42,14 @@ jobs:
       # Install ecCodes dependencies
       - name: Install ecCodes
         run: sudo apt-get update && sudo apt-get install -y libeccodes0 libeccodes-dev
-      
+
       # Run Coverage
       - name: Run Coverage
         env:
           CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
           CDSAPI_VERIFY: 1
-          KNMI_DATA_PLATFORM_KEY: ${{ secrets.KNMI_DATA_PLATFORM_KEY }}            
+          KNMI_DATA_PLATFORM_KEY: ${{ secrets.KNMI_DATA_PLATFORM_KEY }}
         run: |
           poetry run coverage run -m pytest
           poetry run coverage report
