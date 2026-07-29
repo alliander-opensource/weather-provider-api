@@ -43,20 +43,15 @@ jobs:
       - name: Install ecCodes
         run: sudo apt-get update && sudo apt-get install -y libeccodes0 libeccodes-dev
 
-      # Run Coverage
-      - name: Run Coverage
+      # Run tests with coverage (pytest-cov is configured via addopts in pyproject.toml,
+      # which also writes coverage.xml and prints the terminal report)
+      - name: Run tests and coverage
         env:
           CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
           CDSAPI_VERIFY: 1
           KNMI_DATA_PLATFORM_KEY: ${{ secrets.KNMI_DATA_PLATFORM_KEY }}
-        run: |
-          poetry run coverage run -m pytest
-          poetry run coverage report
-      # Generate XML Coverage result file
-      - if: matrix.version == '3.13'
-        name: Generate Coverage XML file
-        run: poetry run coverage xml
+        run: poetry run pytest
       # Upload coverage data to SonarCloud.io
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
