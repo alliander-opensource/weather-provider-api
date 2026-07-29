@@ -51,9 +51,9 @@ class CDSRequest(BaseModel):
 
     product_type: list[str] | None = None
     variables: list[str]
-    year: list[str] = Field([date.strftime(date.today(), "%Y")])
-    month: list[str] = Field([date.strftime(date.today(), "%m")])
-    day: list[str] = Field([date.strftime(date.today(), "%d")])
+    year: list[str] = Field(default_factory=lambda: [date.today().strftime("%Y")])
+    month: list[str] = Field(default_factory=lambda: [date.today().strftime("%m")])
+    day: list[str] = Field(default_factory=lambda: [date.today().strftime("%d")])
     time: list[str] = Field(
         [
             "00:00",

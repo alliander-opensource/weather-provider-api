@@ -20,6 +20,8 @@ jobs:
     name: Testing and updating SonarCloud
     runs-on:
       group: managed
+    permissions:
+      contents: read
     steps:
       # Checkout
       - name: Branch checkout
@@ -31,14 +33,15 @@ jobs:
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.version }}
-      # Install Poetry
-      - name: Setup Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      # Install uv (with built-in dependency caching)
+      - name: Setup uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
       # Install required dependencies
       - name: Install dependencies
-        run: poetry install -v --with dev
+        run: uv sync
       # Install ecCodes dependencies
       - name: Install ecCodes
         run: sudo apt-get update && sudo apt-get install -y libeccodes0 libeccodes-dev
@@ -50,7 +53,7 @@ jobs:
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
           CDSAPI_VERIFY: 1
           KNMI_DATA_PLATFORM_KEY: ${{ secrets.KNMI_DATA_PLATFORM_KEY }}
-        run: poetry run pytest
+        run: uv run pytest
       # Upload coverage data to Sonar Source
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
@@ -72,13 +75,12 @@ jobs:
       # Checkout
       - name: Repository checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      # Install Poetry
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "POETRY_VIRTUALENVS_CREATE=true" >> $GITHUB_ENV
-          echo "POETRY_VIRTUALENVS_IN_PROJECT=true" >> $GITHUB_ENV
-          echo "POETRY_INSTALLER_PARALLEL=true" >> $GITHUB_ENV
+      # Install uv (with built-in dependency caching)
+      - name: Setup uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
       # Install Python
       - name: Python setup
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -86,33 +88,30 @@ jobs:
           python-version: '3.13'
       # Install required dependencies
       - name: Install dependencies
-        run: poetry install -vv --no-interaction --without dev
-      # Configure Nexus in Poetry
-      - name: Poetry Nexus configuration
-        run: |
-          poetry source add nexus https://nexus.appx.cloud/repository/pypi-hosted/simple
-          poetry config http-basic.nexus ${{ secrets.EKS_NEXUS_USER }} ${{ secrets.EKS_NEXUS_PASSWORD }}
+        run: uv sync --no-dev
       # Determine the current version of the application (for main branch)
       - name: Determine current version
         if: ${{ github.ref_name == 'main-2.0' }}
         run: |
-          version="$(poetry version --short)${{ github.run_number }}"
+          version="$(uv version --short)${{ github.run_number }}"
           echo "Package version: $version"
           echo "package_version=$version" >> $GITHUB_ENV
       # Determine the current version of the application (for non-main branch)
       - name: Determine a version non-main branch
         if: ${{ github.ref_name != 'main-2.0' }}
         run: |
-          version="$(poetry version --short)rc${{ github.run_number }}"  # rc
+          version="$(uv version --short)rc${{ github.run_number }}"  # rc
           echo "Package version: $version"
           echo "package_version=$version" >> $GITHUB_ENV
       # Build the package and publish it to PyPI
       - name: Build and publish package
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           echo "Package version: ${{ env.package_version }}"
-          poetry version ${{ env.package_version }}
-          poetry publish --build
+          uv version ${{ env.package_version }}
+          uv build
+          uv publish
       # Create a Release on GitHub for the new package
       - name: Create a Release for the new package
         if: ${{ github.ref_name == 'main-2.0' }}
@@ -146,15 +145,13 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
-      # Install Poetry (needed for version)
-      - name: Setup Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      # Install uv (needed for version)
+      - name: Setup uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
       # Determine the current version of the application
       - name: Determine current version
         run: |
-          version="$(poetry version --short)${{ github.run_number }}"
+          version="$(uv version --short)${{ github.run_number }}"
           echo "Package version: $version"
           echo "package_version=$version" >> $GITHUB_ENV
       # Login to Amazon ECR
