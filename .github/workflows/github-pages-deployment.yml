@@ -12,27 +12,53 @@ on:
 permissions:
     contents: read
 jobs:
-  # Build the Zensical documentation and deploy it to GitHub Pages
+  # Build the Zensical documentation and open a signed PR to the gh-pages branch
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on:
       group: managed
     permissions:
-      contents: read
-      pages: write
-      id-token: write
+      contents: write
+      pull-requests: write
     steps:
-      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      # Check out the source to build the documentation from
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
-      - run: uv run --only-group docs zensical build --clean
-      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      - name: Build documentation site
+        run: uv run --only-group docs zensical build --clean
+      # Check out the published branch into a subdirectory
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          path: site
-      - uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
-        id: deployment
+          ref: gh-pages
+          path: gh-pages
+      # Replace the branch contents with the freshly built site
+      - name: Stage built site onto gh-pages
+        run: |
+          find gh-pages -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -a site/. gh-pages/
+          touch gh-pages/.nojekyll
+      # Open a signed PR with the updated site (branch protection requires a signed PR)
+      - name: Open PR to update gh-pages
+        id: cpr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          path: gh-pages
+          base: gh-pages
+          branch: chore/gh-pages-update
+          commit-message: "docs: update GitHub Pages site"
+          sign-commits: true
+          title: "docs: update GitHub Pages site"
+          body: |
+            Automated documentation build from the `${{ github.workflow }}`
+            workflow (source commit ${{ github.sha }}).
+          delete-branch: true
+      # Auto-merge the PR so the site publishes without manual intervention
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number
+        uses: peter-evans/enable-pull-request-automerge@a660677d5469627102a1c1e11409dd063606628d # v3.0.0
+        with:
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
