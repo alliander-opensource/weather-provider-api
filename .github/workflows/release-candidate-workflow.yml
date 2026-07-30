@@ -22,6 +22,7 @@ jobs:
       group: managed
     permissions:
       contents: write
+      pull-requests: write
     steps:
       # Checkout
       - name: Branch checkout
@@ -64,19 +65,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      # Commit the regenerated lockfile back to the branch ([skip ci] avoids re-triggering)
+      # Open a PR with the regenerated lockfile (branch protection requires PRs)
       - if: matrix.version == '3.13'
-        name: Commit regenerated uv.lock
-        run: |
-          if git diff --quiet -- uv.lock; then
-            echo "uv.lock is already up to date."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add uv.lock
-            git commit -m "chore: regenerate uv.lock [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
-          fi
+        name: Open PR for regenerated uv.lock
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          add-paths: uv.lock
+          base: ${{ github.ref_name }}
+          branch: chore/uv-lock-update-${{ github.ref_name }}
+          commit-message: "chore: regenerate uv.lock"
+          title: "chore: regenerate uv.lock for ${{ github.ref_name }}"
+          body: |
+            Automated lockfile regeneration (`uv lock --upgrade`) from the
+            `${{ github.workflow }}` workflow on `${{ github.ref_name }}`.
+          delete-branch: true
   # ---------------------------------------------------------------- #
   # |  Build image and upload it to AWS and DockerHub              | #
   # ---------------------------------------------------------------- #
