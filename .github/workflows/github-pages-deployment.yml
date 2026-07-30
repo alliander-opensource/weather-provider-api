@@ -8,6 +8,7 @@ on:
     branches:
       - master
       - main
+      - release-*
 permissions:
     contents: read
 jobs:
