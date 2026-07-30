@@ -1,0 +1,1611 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Weather Provider Libraries and API">
+      
+      
+        <meta name="author" content="Alliander N.V.">
+      
+      
+        <link rel="canonical" href="https://github.com/alliander-opensource/weather-provider-api/using_wpla/usage/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.50">
+    
+    
+      
+        <title>Weather API - Weather Provider API</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.62c9b9cc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#weather-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Weather Provider API" class="md-header__button md-logo" aria-label="Weather Provider API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Weather Provider API
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Weather API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/alliander-opensource/weather-provider-api" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    alliander-opensource/weather-provider-api
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Weather Provider API" class="md-nav__button md-logo" aria-label="Weather Provider API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    Weather Provider API
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/alliander-opensource/weather-provider-api" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    alliander-opensource/weather-provider-api
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API Reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  About
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Usage
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-weather-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Retrieving weather data
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Sources
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#knmi" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        KNMI
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="KNMI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daggegevens" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Daggegevens
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uurgegevens" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Uurgegevens
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#harmonie" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Harmonie
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pluim" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Pluim
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        CDS
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#era5-coming-soon" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ERA5 (coming soon!)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather-factors" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Weather factors
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Weather factors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#knmi_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        KNMI
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="KNMI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daggegevens_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Daggegevens
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uurgegevens_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Uurgegevens
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#harmonie_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Harmonie
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pluim_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Pluim
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knmi-weather-factor-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        KNMI weather factor classes
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="KNMI weather factor classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#knmi-visibility-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        KNMI visibility classes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knmi-cloud-cover-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        KNMI cloud cover classes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knmi-weather-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        KNMI weather code
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cds_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        CDS
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CDS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#era5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ERA5
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authors" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Authors
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        License
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Acknowledgments
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<!--
+SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
+SPDX-License-Identifier: MPL-2.0
+-->
+
+<h1 id="weather-api">Weather API<a class="headerlink" href="#weather-api" title="Permanent link">&para;</a></h1>
+<p>The weather API provides historical and current weather measurements, and weather predictions. The data comes from various sources and models, such as KNMI Daggegevens, KNMI Harmonie, and CDS ERA5.</p>
+<p>Since there are many differences between the sources and models, regarding both naming and the units in which features are described, this API aims to provide a uniform way to access and represent the weather features. In order to do so, where possible, weather factors are given the same label across sources and models. Additionaly, the user of the API can choose between the original variable units, SI units, and units which are easier to read and grasp for humans. Finally, the output format can be chosen and ranges from basic types such as JSON, to more advanced and specialized models like NetCDF.</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="retrieving-weather-data">Retrieving weather data<a class="headerlink" href="#retrieving-weather-data" title="Permanent link">&para;</a></h3>
+<p>To retrieve weather data, whether historical or predictive, a few parameters need to be provided to the API.</p>
+<p>The <code>source_id</code> and <code>model_id</code> tell the API which dataset you want to query. The available sources and models can be retrieved using the  <strong>"/weather/sources"</strong> endpoint. Possible values are, for instance, <em>knmi</em> as the <code>source_id</code> and <em>daggegevens</em> as the <code>model_id</code>.</p>
+<p>A measurement or prediction time window must be provided as well. This is done by setting the <code>begin</code> and <code>end</code> values. Both need to be in the following date time format: <code>%m-%d-%Y %H:%M</code>. For example, <code>2019-01-31 04:00</code>, <code>2017-12-25 14:45</code>, and <code>2020-02-28 00:00</code> are valid values.</p>
+<p>The location is needed as well and is described in <em>WGS84</em> format, by specifying latitude <code>lat</code> and longitude <code>lon</code>. The API selects the closest weather station or grid in a model for which data is available. The Swagger UI is pre-filled with the latitude and longitude for <em>De Bilt</em>. In future versions of the API it will be possible to retrieve weather data for multiple locations in a single call.</p>
+<p>The units and names of the various weather variables can be changed. SI units are returned by default but if preferred the original units and labels can be returned, or units which are easier to read for humans.</p>
+<p>The format of the output can be chosen as well. The default is NetCDF4, which is great for weather data and can be read using e.g. the <a href="http://xarray.pydata.org/en/stable/generated/xarray.open_dataset.html">Xarray</a> Python package and NASA's <a href="https://www.giss.nasa.gov/tools/panoply/">Panoply</a>.</p>
+<p>Other formats are NetCDF3, JSON, and CSV. For JSON the default structure is a list of records, with a record of all weather factors for a given date and time. A second flavor is available is well, namely <em>json_dataset</em>, which stores all measurements in a list for each factor.</p>
+<p>Finally, you have to option to specify a subset of the available features for retrieval, using the <code>factors</code> attribute. If you don't specify a list of features, all available ones are returned. Both the original feature names and their aliases can be used (and mixed) to describe which factors have to be selected. Additionally, for the KNMI Daggegevens and Uurgegevens the aliases listed <a href="https://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script">here</a> can be used, to retrieve e.g. all temperature related factors, by specifying a single label.</p>
+<h2 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">&para;</a></h2>
+<p>The list of sources and models accessible through the API can be retrieved by calling the <code>/sources</code> endpoint. This endpoint is always up-to-date, since it attains the list of models from the API itself.</p>
+<p>The sources and models are listed below as well, but this list may be out of date.</p>
+<p>All factors which can be retrieved by the API are listed in the <em>Weather factors</em> section.</p>
+<h3 id="knmi">KNMI<a class="headerlink" href="#knmi" title="Permanent link">&para;</a></h3>
+<p>Several <a href="https://knmi.nl/home">KNMI</a> models are available, for both historical data and predictions.</p>
+<h4 id="daggegevens">Daggegevens<a class="headerlink" href="#daggegevens" title="Permanent link">&para;</a></h4>
+<p>KNMI <a href="https://projects.knmi.nl/klimatologie/daggegevens/">Daggegevens</a> contains historical weather data on a 1-day resolution. The data from 35 KNMI weather stations is availble. Measurements from the current day are not present in this data set.</p>
+<h4 id="uurgegevens">Uurgegevens<a class="headerlink" href="#uurgegevens" title="Permanent link">&para;</a></h4>
+<p>KNMI <a href="https://projects.knmi.nl/klimatologie/uurgegevens/">Uurgegevens</a> is similar to <em>Daggegevens</em>, but on a 1-hour resolution. Again, data from the current day isn't present in the data set. This is a limitation on the side of the KNMI.</p>
+<h4 id="harmonie">Harmonie<a class="headerlink" href="#harmonie" title="Permanent link">&para;</a></h4>
+<p>KNMI <a href="https://data.knmi.nl/datasets/harmonie_p1/0.2">Harmonie</a> contains predictions for the coming 48 hours. Only the current predictions can be retrieved at this time. In the future, we may store predictions, to be able to provide historical predictions.</p>
+<p>The predictions are updated every 6 hours (at 00, 06, 12, and 18 o'clock UTC+00).</p>
+<p>Geographical resolution is 0.037 grades west-east and 0.023 grades north-south.</p>
+<h4 id="pluim">Pluim<a class="headerlink" href="#pluim" title="Permanent link">&para;</a></h4>
+<p>KNMI <a href="https://www.knmi.nl/nederland-nu/weer/waarschuwingen-en-verwachtingen/weer-en-klimaatpluim">Pluim</a> contains predictions for the coming 14 days. For each day, four predictions are made, one for every 6 hours (00, 06, 12, and 18 o'clock). The data comes from 8 KNMI stations located in The Netherlands. It contains fewer variables than the other KNMI datasets.</p>
+<h3 id="cds">CDS<a class="headerlink" href="#cds" title="Permanent link">&para;</a></h3>
+<h3 id="era5-coming-soon">ERA5 (coming soon!)<a class="headerlink" href="#era5-coming-soon" title="Permanent link">&para;</a></h3>
+<p>ERA5 is the fifth generation <a href="https://www.ecmwf.int/">ECMWF</a> (European Centre for Medium Range Weather Forecast) atmospheric reanalysis of the global climate. ERA5 data released so far covers the period from 1979 to 2-3 months before the present. ERA5 provides worldwide data for temperature and pressure, wind (at 100 meter height), radiation and heat, clouds, evaporation and runoff, precipitation and rain, snow, soil (temperature and moisture at four depths), etc. The spatial resolution of the data set is approximately 80 km.</p>
+<p>Details on the exact dataset used can be found <a href="https://cds.climate.copernicus.eu/portfolio/dataset/reanalysis-era5-single-levels">here</a>.</p>
+<h2 id="weather-factors">Weather factors<a class="headerlink" href="#weather-factors" title="Permanent link">&para;</a></h2>
+<h3 id="knmi_1">KNMI<a class="headerlink" href="#knmi_1" title="Permanent link">&para;</a></h3>
+<h4 id="daggegevens_1">Daggegevens<a class="headerlink" href="#daggegevens_1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Alias</th>
+<th>Original unit</th>
+<th>SI unit</th>
+<th>Human readable unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TG</td>
+<td>temperature</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>24-hour average temperature</td>
+</tr>
+<tr>
+<td>TN</td>
+<td>temperature_min</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>minimum temperature</td>
+</tr>
+<tr>
+<td>TNH</td>
+<td>temperature_min_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>TX</td>
+<td>temperature_max</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>maximum temperature</td>
+</tr>
+<tr>
+<td>TXH</td>
+<td>temperature_max_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>T10N</td>
+<td>-</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>minimum temperature at 10 cm</td>
+</tr>
+<tr>
+<td>T10NH</td>
+<td>-</td>
+<td>hour [1-4]</td>
+<td>hour [1-4]</td>
+<td>hour [1-4]</td>
+<td>6 hour window in which respective factor was measured (e.g. 1 = 00:00-06:00 AM)</td>
+</tr>
+<tr>
+<td>FG</td>
+<td>wind_speed</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>24-hour average wind speed</td>
+</tr>
+<tr>
+<td>FHN</td>
+<td>wind_speed_min</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>minimum wind speed</td>
+</tr>
+<tr>
+<td>FHNH</td>
+<td>wind_speed_min_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>FHX</td>
+<td>wind_speed_max</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>maximum wind speed</td>
+</tr>
+<tr>
+<td>FHXH</td>
+<td>wind_speed_max_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>FXX</td>
+<td>wind_gust_max</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>maximum wind gust speed</td>
+</tr>
+<tr>
+<td>FXXH</td>
+<td>wind_gust_max_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>DDVEC</td>
+<td>wind_direction</td>
+<td>°</td>
+<td>°</td>
+<td>°</td>
+<td>vector mean wind direction (360=N, 270=W, 180=S, 90=E)</td>
+</tr>
+<tr>
+<td>FHVEC</td>
+<td>-</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>vector mean wind speed</td>
+</tr>
+<tr>
+<td>RH</td>
+<td>precipitation</td>
+<td>0.1 mm</td>
+<td>m</td>
+<td>mm</td>
+<td>24-hour precipitation sum</td>
+</tr>
+<tr>
+<td>RHX</td>
+<td>precipitation_max</td>
+<td>0.1 mm</td>
+<td>m</td>
+<td>mm</td>
+<td>maximum precipitation in one hour</td>
+</tr>
+<tr>
+<td>RHXH</td>
+<td>precipitation_max_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>DR</td>
+<td>precipitation_duration</td>
+<td>0.1 h</td>
+<td>h</td>
+<td>h</td>
+<td>precipitation duration</td>
+</tr>
+<tr>
+<td>EV24</td>
+<td>-</td>
+<td>0.1 mm</td>
+<td>m</td>
+<td>mm</td>
+<td>referentiegewasverdamping (Makkink)</td>
+</tr>
+<tr>
+<td>UG</td>
+<td>humidity</td>
+<td>%</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>24-hour average air humidity</td>
+</tr>
+<tr>
+<td>UN</td>
+<td>humidity_min</td>
+<td>%</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>minimum air humidity</td>
+</tr>
+<tr>
+<td>UNH</td>
+<td>humidity_min_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>UX</td>
+<td>humidity_max</td>
+<td>%</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>maximum air humidity</td>
+</tr>
+<tr>
+<td>UXH</td>
+<td>humidity_max_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>PG</td>
+<td>air_pressure</td>
+<td>0.1 hPa</td>
+<td>Pa</td>
+<td>Pa</td>
+<td>24-hour average air pressure at sea-level</td>
+</tr>
+<tr>
+<td>PN</td>
+<td>air_pressure_min</td>
+<td>0.1 hPa</td>
+<td>Pa</td>
+<td>Pa</td>
+<td>minimum air pressure at sea-level</td>
+</tr>
+<tr>
+<td>PNH</td>
+<td>air_pressure_min_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>PX</td>
+<td>air_pressure_max</td>
+<td>0.1 hPa</td>
+<td>Pa</td>
+<td>Pa</td>
+<td>maximum air pressure at sea-level</td>
+</tr>
+<tr>
+<td>PXH</td>
+<td>air_pressure_max_hour</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>VVN</td>
+<td>-</td>
+<td>class, see below</td>
+<td>m</td>
+<td>m</td>
+<td>minimum visibility</td>
+</tr>
+<tr>
+<td>VVNH</td>
+<td>-</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>VVX</td>
+<td>-</td>
+<td>class, see below</td>
+<td>m</td>
+<td>m</td>
+<td>maximum visibility</td>
+</tr>
+<tr>
+<td>VVXH</td>
+<td>-</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>hour [1-24]</td>
+<td>1 hour window in which respective factor was measured (e.g. 1 = 00:00-01:00 AM)</td>
+</tr>
+<tr>
+<td>NG</td>
+<td>cloud_cover</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>24-hour average cloud cover</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>global_radiation</td>
+<td>J/cm^2</td>
+<td>J/m^2</td>
+<td>J/m^2</td>
+<td>global radiation</td>
+</tr>
+<tr>
+<td>SQ</td>
+<td>sunlight_duration</td>
+<td>0.1 hour</td>
+<td>hour</td>
+<td>hour</td>
+<td>sunlight duration</td>
+</tr>
+<tr>
+<td>SP</td>
+<td>percentage_of_max_possible_sunlight_duration</td>
+<td>%</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>percentage of the longest possible sunlight duration</td>
+</tr>
+</tbody>
+</table>
+<h4 id="uurgegevens_1">Uurgegevens<a class="headerlink" href="#uurgegevens_1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Alias</th>
+<th>Original unit</th>
+<th>SI unit</th>
+<th>Human readable unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T</td>
+<td>temperature</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>1-hour average temperature</td>
+</tr>
+<tr>
+<td>T10N</td>
+<td>-</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>minimum temperature at 10 cm</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>-</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>dew point temperature at 1.5 m</td>
+</tr>
+<tr>
+<td>FH</td>
+<td>wind_speed</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>1-hour average wind speed</td>
+</tr>
+<tr>
+<td>FF</td>
+<td>-</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>average wind speed over last 10 minutes of past hour</td>
+</tr>
+<tr>
+<td>FX</td>
+<td>wind_speed_max</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>maximum wind speed in past hour</td>
+</tr>
+<tr>
+<td>DD</td>
+<td>wind_direction</td>
+<td>°</td>
+<td>°</td>
+<td>°</td>
+<td>vector mean wind direction (360=N, 270=W, 180=S, 90=E)</td>
+</tr>
+<tr>
+<td>RH</td>
+<td>precipitation</td>
+<td>0.1 mm</td>
+<td>m</td>
+<td>mm</td>
+<td>1-hour precipitation sum</td>
+</tr>
+<tr>
+<td>DR</td>
+<td>precipitation_duration</td>
+<td>0.1 h</td>
+<td>h</td>
+<td>h</td>
+<td>precipitation duration</td>
+</tr>
+<tr>
+<td>R</td>
+<td>rain_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if rain has occurred</td>
+</tr>
+<tr>
+<td>S</td>
+<td>snow_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if snow has occurred</td>
+</tr>
+<tr>
+<td>M</td>
+<td>fog_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if fog has occurred</td>
+</tr>
+<tr>
+<td>O</td>
+<td>lightning_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if lightning has occurred</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>icing_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if icing has occurred</td>
+</tr>
+<tr>
+<td>U</td>
+<td>humidity</td>
+<td>%</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>1-hour average air humidity</td>
+</tr>
+<tr>
+<td>P</td>
+<td>air_pressure</td>
+<td>0.1 hPa</td>
+<td>Pa</td>
+<td>Pa</td>
+<td>1-hour average air pressure at sea-level</td>
+</tr>
+<tr>
+<td>VV</td>
+<td>visibility</td>
+<td>class, see below</td>
+<td>m</td>
+<td>m</td>
+<td>visibility</td>
+</tr>
+<tr>
+<td>N</td>
+<td>cloud_cover</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>1-hour average cloud cover</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>global_radiation</td>
+<td>J/cm^2</td>
+<td>J/m^2</td>
+<td>J/m^2</td>
+<td>global radiation</td>
+</tr>
+<tr>
+<td>SQ</td>
+<td>sunlight_duration</td>
+<td>0.1 hour</td>
+<td>hour</td>
+<td>hour</td>
+<td>sunlight duration</td>
+</tr>
+<tr>
+<td>WW</td>
+<td>-</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>weather code</td>
+</tr>
+<tr>
+<td>IX</td>
+<td>-</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>measurement method for the weather code</td>
+</tr>
+</tbody>
+</table>
+<h4 id="harmonie_1">Harmonie<a class="headerlink" href="#harmonie_1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Alias</th>
+<th>Original unit</th>
+<th>SI unit</th>
+<th>Human readable unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T</td>
+<td>temperature</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>1-hour average temperature</td>
+</tr>
+<tr>
+<td>T10N</td>
+<td>-</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>minimum temperature at 10 cm</td>
+</tr>
+<tr>
+<td>TD</td>
+<td>-</td>
+<td>0.1 °C</td>
+<td>K</td>
+<td>°C</td>
+<td>dew point temperature at 1.5 m</td>
+</tr>
+<tr>
+<td>FH</td>
+<td>wind_speed</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>1-hour average wind speed</td>
+</tr>
+<tr>
+<td>FF</td>
+<td>-</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>average wind speed over last 10 minutes of past hour</td>
+</tr>
+<tr>
+<td>FX</td>
+<td>wind_speed_max</td>
+<td>0.1 m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>maximum wind speed in past hour</td>
+</tr>
+<tr>
+<td>DD</td>
+<td>wind_direction</td>
+<td>°</td>
+<td>°</td>
+<td>°</td>
+<td>vector mean wind direction (360=N, 270=W, 180=S, 90=E)</td>
+</tr>
+<tr>
+<td>RH</td>
+<td>precipitation</td>
+<td>0.1 mm</td>
+<td>m</td>
+<td>mm</td>
+<td>1-hour precipitation sum</td>
+</tr>
+<tr>
+<td>DR</td>
+<td>precipitation_duration</td>
+<td>0.1 h</td>
+<td>h</td>
+<td>h</td>
+<td>precipitation duration</td>
+</tr>
+<tr>
+<td>R</td>
+<td>rain_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if rain has occurred</td>
+</tr>
+<tr>
+<td>S</td>
+<td>snow_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if snow has occurred</td>
+</tr>
+<tr>
+<td>M</td>
+<td>fog_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if fog has occurred</td>
+</tr>
+<tr>
+<td>O</td>
+<td>lightning_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if lightning has occurred</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>icing_occurred</td>
+<td>bool</td>
+<td>bool</td>
+<td>bool</td>
+<td>1 if icing has occurred</td>
+</tr>
+<tr>
+<td>U</td>
+<td>humidity</td>
+<td>%</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>1-hour average air humidity</td>
+</tr>
+<tr>
+<td>P</td>
+<td>air_pressure</td>
+<td>0.1 hPa</td>
+<td>Pa</td>
+<td>Pa</td>
+<td>1-hour average air pressure at sea-level</td>
+</tr>
+<tr>
+<td>VV</td>
+<td>visibility</td>
+<td>class, see below</td>
+<td>m</td>
+<td>m</td>
+<td>visibility</td>
+</tr>
+<tr>
+<td>N</td>
+<td>cloud_cover</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>1-hour average cloud cover</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>global_radiation</td>
+<td>J/cm^2</td>
+<td>J/m^2</td>
+<td>J/m^2</td>
+<td>global radiation</td>
+</tr>
+<tr>
+<td>SQ</td>
+<td>sunlight_duration</td>
+<td>0.1 hour</td>
+<td>hour</td>
+<td>hour</td>
+<td>sunlight duration</td>
+</tr>
+<tr>
+<td>WW</td>
+<td>-</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>weather code</td>
+</tr>
+<tr>
+<td>IX</td>
+<td>-</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>class, see below</td>
+<td>measurement method for the weather code</td>
+</tr>
+</tbody>
+</table>
+<h4 id="pluim_1">Pluim<a class="headerlink" href="#pluim_1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Alias</th>
+<th>Original unit</th>
+<th>SI unit</th>
+<th>Human readable unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>temperature</td>
+<td>temperature</td>
+<td>°C</td>
+<td>K</td>
+<td>°C</td>
+<td>predicted temperature</td>
+</tr>
+<tr>
+<td>wind_speed</td>
+<td>wind_speed</td>
+<td>km/h</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>predicted wind speed</td>
+</tr>
+<tr>
+<td>wind_direction</td>
+<td>wind_direction</td>
+<td>°</td>
+<td>°</td>
+<td>°</td>
+<td>predicted vector wind direction (360=N, 270=W, 180=S, 90=E)</td>
+</tr>
+<tr>
+<td>short_time_wind_speed</td>
+<td>wind_speed_max</td>
+<td>km/h</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>predicted maximum wind speed</td>
+</tr>
+<tr>
+<td>precipitation</td>
+<td>precipitation</td>
+<td>mm</td>
+<td>m</td>
+<td>mm</td>
+<td>predicted precipitation</td>
+</tr>
+<tr>
+<td>precipitation_sum</td>
+<td>precipitation_sum</td>
+<td>mm</td>
+<td>m</td>
+<td>mm</td>
+<td>predicted precipitation sum from the start of the prediction window</td>
+</tr>
+<tr>
+<td>cape</td>
+<td>cape</td>
+<td>J/kg</td>
+<td>kJ/kg</td>
+<td>kJ/kg</td>
+<td>convective available potential energy</td>
+</tr>
+</tbody>
+</table>
+<h3 id="knmi-weather-factor-classes">KNMI weather factor classes<a class="headerlink" href="#knmi-weather-factor-classes" title="Permanent link">&para;</a></h3>
+<h4 id="knmi-visibility-classes">KNMI visibility classes<a class="headerlink" href="#knmi-visibility-classes" title="Permanent link">&para;</a></h4>
+<p>0: &lt;100 m, 1:100-200 m, 2:200-300 m,..., 49:4900-5000 m, 50:5-6 km, 56:6-7 km, 57:7-8 km,..., 79:29-30 km, 80:30-35 km, 81:35-40 km,..., 89: &gt;70 km)</p>
+<h4 id="knmi-cloud-cover-classes">KNMI cloud cover classes<a class="headerlink" href="#knmi-cloud-cover-classes" title="Permanent link">&para;</a></h4>
+<p>Cloud cover in &#8539; parts. 9: the sky cannot be seen.</p>
+<h4 id="knmi-weather-code">KNMI weather code<a class="headerlink" href="#knmi-weather-code" title="Permanent link">&para;</a></h4>
+<p>See this page for more information on KNMI weather codes: <a href="http://bibliotheek.knmi.nl/scholierenpdf/weercodes_Nederland">http://bibliotheek.knmi.nl/scholierenpdf/weercodes_Nederland</a></p>
+<h3 id="cds_1">CDS<a class="headerlink" href="#cds_1" title="Permanent link">&para;</a></h3>
+<h4 id="era5">ERA5<a class="headerlink" href="#era5" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Alias</th>
+<th>Original unit</th>
+<th>SI unit</th>
+<th>Human readable unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t2m</td>
+<td>temperature</td>
+<td>K</td>
+<td>K</td>
+<td>°C</td>
+<td>temperature</td>
+</tr>
+<tr>
+<td>wind</td>
+<td>wind_speed</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>m/s</td>
+<td>wind speed</td>
+</tr>
+<tr>
+<td>tp</td>
+<td>precipitation</td>
+<td>m</td>
+<td>m</td>
+<td>mm</td>
+<td>total precipitation</td>
+</tr>
+<tr>
+<td>sp</td>
+<td>air_pressure</td>
+<td>Pa</td>
+<td>Pa</td>
+<td>Pa</td>
+<td>air pressure</td>
+</tr>
+<tr>
+<td>tcc</td>
+<td>cloud_cover</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>fraction</td>
+<td>total cloud cover</td>
+</tr>
+<tr>
+<td>cdir</td>
+<td>global_radiation</td>
+<td>J/m^2</td>
+<td>J/m^2</td>
+<td>J/m^2</td>
+<td>global radiation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="authors">Authors<a class="headerlink" href="#authors" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Tongyou Gu</li>
+<li>Bas Niesink</li>
+<li>Jeroen van de Logt</li>
+</ul>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>This project is licensed under the Mozilla Public License, version 2.0 - see the LICENSE directory for details</p>
+<h2 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link">&para;</a></h2>
+<p>Thanks to team Inzicht &amp; Analytics and Strategie &amp; Innovatie to make this project possible.</p>
+<p>Big thanks to guys of IT New Business &amp; R&amp;D to provide such an easy-to-use Python environment in the cloud.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2026 Alliander N.V.
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["navigation.instant"],"search":"../../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7f30b55.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3418 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Weather Provider Libraries and API">
+      
+      
+        <meta name="author" content="Alliander N.V.">
+      
+      
+        <link rel="canonical" href="https://github.com/alliander-opensource/weather-provider-api/reference/api/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../../about/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.50">
+    
+    
+      
+        <title>API reference - Weather Provider API</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.62c9b9cc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Weather Provider API" class="md-header__button md-logo" aria-label="Weather Provider API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Weather Provider API
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/alliander-opensource/weather-provider-api" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    alliander-opensource/weather-provider-api
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Weather Provider API" class="md-nav__button md-logo" aria-label="Weather Provider API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    Weather Provider API
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/alliander-opensource/weather-provider-api" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    alliander-opensource/weather-provider-api
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API Reference
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API Reference
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-weather-controller-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Weather Controller class
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherController
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_weather" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_weather
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.convert_names_and_units" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        convert_names_and_units
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.lat_lon_to_coords" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        lat_lon_to_coords
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.str_to_coords" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        str_to_coords
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_source_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_source_keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_sources
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_source" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_source
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather-base-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Weather Base classes
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherSourceBase
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherSourceBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.async_models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        async_models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherModelBase
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherModelBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.get_weather" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_weather
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.is_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        is_async
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.convert_names_and_units" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        convert_names_and_units
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.celsius_to_kelvin" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        celsius_to_kelvin
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kelvin_to_celsius" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        kelvin_to_celsius
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.tenth_celsius_to_kelvin" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        tenth_celsius_to_kelvin
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.normalize_tenths" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        normalize_tenths
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.no_conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        no_conversion
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.percentage_to_frac" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        percentage_to_frac
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kmh_to_ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        kmh_to_ms
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.dutch_wind_direction_to_degrees" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        dutch_wind_direction_to_degrees
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.knmi_visibility_class_to_meter_estimate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        knmi_visibility_class_to_meter_estimate
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherRepositoryBase
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherRepositoryBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        metadata
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.identifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        identifier
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.storage_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        storage_path
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.absolute_storage_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        absolute_storage_path
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.source_and_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        source_and_model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.oldest_date_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        oldest_date_available
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.newest_date_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        newest_date_available
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        update
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.cleanup_storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        cleanup_storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.retrieve_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        retrieve_data
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.purge_repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        purge_repository
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.safely_delete_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        safely_delete_file
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.utils.serializers.return_file_or_text_response" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        return_file_or_text_response
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  About
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-weather-controller-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Weather Controller class
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherController
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_weather" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_weather
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.convert_names_and_units" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        convert_names_and_units
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.lat_lon_to_coords" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        lat_lon_to_coords
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.str_to_coords" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        str_to_coords
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_source_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_source_keys
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_sources
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_source" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_source
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.controller.WeatherController.get_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather-base-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Weather Base classes
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherSourceBase
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherSourceBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.async_models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        async_models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_models" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_models
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherModelBase
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherModelBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.get_weather" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        get_weather
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.is_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        is_async
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.convert_names_and_units" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        convert_names_and_units
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.celsius_to_kelvin" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        celsius_to_kelvin
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kelvin_to_celsius" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        kelvin_to_celsius
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.tenth_celsius_to_kelvin" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        tenth_celsius_to_kelvin
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.normalize_tenths" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        normalize_tenths
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.no_conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        no_conversion
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.percentage_to_frac" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        percentage_to_frac
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kmh_to_ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        kmh_to_ms
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.dutch_wind_direction_to_degrees" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        dutch_wind_direction_to_degrees
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.knmi_visibility_class_to_meter_estimate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        knmi_visibility_class_to_meter_estimate
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WeatherRepositoryBase
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WeatherRepositoryBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        metadata
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.identifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        identifier
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.storage_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        storage_path
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.absolute_storage_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        absolute_storage_path
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.source_and_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        source_and_model
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.oldest_date_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        oldest_date_available
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.newest_date_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        newest_date_available
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        __init__
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        update
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.cleanup_storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        cleanup_storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.retrieve_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        retrieve_data
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.purge_repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        purge_repository
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.safely_delete_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        safely_delete_file
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weather_provider_api.routers.weather.utils.serializers.return_file_or_text_response" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        return_file_or_text_response
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<!--
+SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+
+SPDX-License-Identifier: MPL-2.0
+-->
+
+<h1 id="api-reference">API reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
+<h2 id="the-weather-controller-class">The Weather Controller class<a class="headerlink" href="#the-weather-controller-class" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="weather_provider_api.routers.weather.controller.WeatherController" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">WeatherController</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>Controller for the Weather Provider API.</p>
+<p>This class is responsible for handling all requests for weather data, including fetching data from
+the appropriate sources and models, converting units, and formatting the output.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.__init__" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__init__</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Load the available weather sources and their models into the controller.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.get_weather" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_weather</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.get_weather" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_weather</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fetch_async</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]],</span> <span class="n">begin</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">factors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">|</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get specific weather factors for a specific time and specific location(s).</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>source_id</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The weather source that need to be queried (e.g.: knmi, cds)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>model_id</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The model identifier of the model that needs to be queried (has to be a model that exists within
+        the specific source requested through source_id</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>fetch_async</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A boolean indicated if the request was made to asynchronously fetch the data or not</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>coords</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>]]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A nested 3-layer list representing a list of polygons
+        in the case of points, they are treated as a one-point polygon
+        D0: different polygons
+        D1: sequence of points in each polygon
+        D2: coordinates of each point (lat, lon in coordinates)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>begin</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The starting time of the requested output data</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>end</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3/library/datetime.html#datetime.datetime">datetime</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The ending time of the requested output data</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>factors</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A list of the requested weather factors for the output (default is all available)</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="xarray.Dataset">Dataset</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A Xarray Dataset containing the weather data for the selected model, period(s), location(s) and factor(s)</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.convert_names_and_units" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">convert_names_and_units</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.convert_names_and_units" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">convert_names_and_units</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fetch_async</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">weather_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="n">OutputUnit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert the names and units of the weather data to match the requested output unit format.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.lat_lon_to_coords" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">lat_lon_to_coords</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.lat_lon_to_coords" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">lat_lon_to_coords</span><span class="p">(</span><span class="n">lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a single pair of coordinates into a nested list format representing a single-point polygon.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.str_to_coords" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">str_to_coords</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.str_to_coords" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">str_to_coords</span><span class="p">(</span><span class="n">locations_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a string containing coordinates into a list of tuples containing those coordinates.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.get_source_keys" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_source_keys</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.get_source_keys" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_source_keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get a list of all available source keys.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.get_sources" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_sources</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.get_sources" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_sources</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">WeatherSourceBase</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get a list of all available sources.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.get_source" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_source</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.get_source" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_source</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WeatherSourceBase</span> <span class="o">|</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get a specific source by its ID.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.get_models" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_models</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.get_models" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_models</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fetch_async</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">WeatherModelBase</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get a list of all available models for a specific source.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.controller.WeatherController.get_model" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_model</span>
+
+
+<a href="#weather_provider_api.routers.weather.controller.WeatherController.get_model" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_model</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fetch_async</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WeatherModelBase</span> <span class="o">|</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get a specific model by its ID for a specific source.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="weather-base-classes">Weather Base classes<a class="headerlink" href="#weather-base-classes" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="weather_provider_api.routers.weather.base_models.source.WeatherSourceBase" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">WeatherSourceBase</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>Base class that contains the basic functionality for all sources.</p>
+<p>Any new sources should implement this as their base class!</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.models" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">models</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.models" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WeatherModelBase</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get all synchronous models from the source.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.async_models" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">async_models</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.async_models" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">async_models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WeatherModelBase</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get all asynchronous models from the source.</p>
+
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.__init__" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__init__</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_instances</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WeatherModelBase</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Initialize the WeatherSourceBase with an ID and set up the models.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_model" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_model</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_model" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_model</span><span class="p">(</span><span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fetch_async</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WeatherModelBase</span> <span class="o">|</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get a specific model from the source based on the provided model ID and whether it is an asynchronous request or not.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_models" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_models</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.source.WeatherSourceBase.get_models" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_models</span><span class="p">(</span><span class="n">fetch_async</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">WeatherModelBase</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get all models from the source based on whether it is an asynchronous request or not.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">WeatherModelBase</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>Base class for all Weather Models. All new models should use this base class!</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.__init__" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__init__</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Initialize the WeatherModelBase with default conversion dictionaries.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.get_weather" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">get_weather</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.get_weather" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_weather</span><span class="p">(</span><span class="n">coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">GeoPosition</span><span class="p">],</span> <span class="n">begin</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">weather_factors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Abstract method to get weather data for the specified coordinates and time range.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.is_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">is_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.is_async" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">is_async</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Abstract method to determine if the model is asynchronous.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.convert_names_and_units" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">convert_names_and_units</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.convert_names_and_units" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">convert_names_and_units</span><span class="p">(</span><span class="n">weather_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="n">OutputUnit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert the names and units of the weather data to match the requested output unit format.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>weather_data</code>
+            </td>
+            <td>
+                  <code><span title="xarray.Dataset">Dataset</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A Xarray Dataset containing</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>unit</code>
+            </td>
+            <td>
+                  <code><span title="weather_provider_api.routers.weather.api_models.OutputUnit">OutputUnit</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The requested output unit format</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="xarray.Dataset">Dataset</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The same dataset, but with values altered to match the requested output unit format</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.celsius_to_kelvin" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">celsius_to_kelvin</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.celsius_to_kelvin" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">celsius_to_kelvin</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a temperature from Celsius to Kelvin.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kelvin_to_celsius" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">kelvin_to_celsius</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kelvin_to_celsius" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">kelvin_to_celsius</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a temperature from Kelvin to Celsius.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.tenth_celsius_to_kelvin" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">tenth_celsius_to_kelvin</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.tenth_celsius_to_kelvin" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">tenth_celsius_to_kelvin</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a temperature from tenths of Celsius to Kelvin.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.normalize_tenths" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">normalize_tenths</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.normalize_tenths" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">normalize_tenths</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Normalize a value in tenths to its actual value.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.no_conversion" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">no_conversion</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.no_conversion" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">no_conversion</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return the value without any conversion.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.percentage_to_frac" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">percentage_to_frac</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.percentage_to_frac" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">percentage_to_frac</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a percentage value to a fraction.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kmh_to_ms" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">kmh_to_ms</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.kmh_to_ms" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">kmh_to_ms</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a speed from kilometers per hour to meters per second.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.dutch_wind_direction_to_degrees" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">dutch_wind_direction_to_degrees</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.dutch_wind_direction_to_degrees" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">dutch_wind_direction_to_degrees</span><span class="p">(</span><span class="n">xs</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert a Dutch wind direction string to degrees.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.model.WeatherModelBase.knmi_visibility_class_to_meter_estimate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">knmi_visibility_class_to_meter_estimate</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.model.WeatherModelBase.knmi_visibility_class_to_meter_estimate" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">knmi_visibility_class_to_meter_estimate</span><span class="p">(</span><span class="n">xs</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Function to transform KNMI visibility class values to an estimate of meters visibility.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>xs</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The visibility class value to be interpreted</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A numeric value containing an estimate of the meters of visibility matching the given visibility class value</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">WeatherRepositoryBase</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+
+
+
+        <p>Base class for weather repositories.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.metadata" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">metadata</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.metadata" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">metadata</span><span class="p">:</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the metadata of the repository.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.identifier" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">identifier</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.identifier" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the unique identifier for the repository.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.storage_path" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">storage_path</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.storage_path" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">storage_path</span><span class="p">:</span> <span class="n">Path</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the path where the weather data will be stored.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.absolute_storage_path" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">absolute_storage_path</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.absolute_storage_path" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">absolute_storage_path</span><span class="p">:</span> <span class="n">Path</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the absolute path where the weather data will be stored.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.source_and_model" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">source_and_model</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.source_and_model" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">source_and_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the source and model name affiliated with this repository.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.oldest_date_available" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">oldest_date_available</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.oldest_date_available" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">oldest_date_available</span><span class="p">:</span> <span class="n">date</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the oldest date for which weather data is available in the repository.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.newest_date_available" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">newest_date_available</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.newest_date_available" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">newest_date_available</span><span class="p">:</span> <span class="n">date</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the newest date for which weather data is available in the repository.</p>
+
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.__init__" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">WeatherRepositoryConfiguration</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Initialize the repository.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.update" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">update</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.update" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">update</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">run_in_testmode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">RepoUpdateResult</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Update the repository with new weather data up to the specified date.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>run_in_testmode</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether to run the update in test mode. Defaults to False.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>RepoUpdateResult</code></td>            <td>
+                  <code><span title="weather_provider_api.routers.weather.base_models.repository.RepoUpdateResult">RepoUpdateResult</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>The result of the update operation.
+</code></pre></div>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>An optional message providing additional information about the update result.
+</code></pre></div>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.cleanup_storage" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">cleanup_storage</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.cleanup_storage" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">cleanup_storage</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">RepoUpdateResult</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Clean up the storage by removing outdated or unnecessary data.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>RepoUpdateResult</code></td>            <td>
+                  <code><span title="weather_provider_api.routers.weather.base_models.repository.RepoUpdateResult">RepoUpdateResult</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>The result of the cleanup operation.
+</code></pre></div>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.retrieve_data" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">retrieve_data</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.retrieve_data" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">retrieve_data</span><span class="p">(</span><span class="n">from_date</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="n">to_date</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="n">locations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">factors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">RepoDataFetchResult</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Retrieve weather data for the specified date range.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>from_date</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="datetime.date" href="https://docs.python.org/3/library/datetime.html#datetime.date">date</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>The start date of the data retrieval range.
+</code></pre></div>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>to_date</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="datetime.date" href="https://docs.python.org/3/library/datetime.html#datetime.date">date</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>The end date of the data retrieval range.
+</code></pre></div>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>locations</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>A list of WGS84 location coordinates (latitude, longitude) for which to retrieve weather data.
+</code></pre></div>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>factors</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>A list of weather factors to retrieve (e.g., temperature, precipitation).
+</code></pre></div>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td></td>            <td>
+                  <code><span title="xarray.Dataset">Dataset</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>xr.Dataset | None:
+    The retrieved weather data as an xarray Dataset, or None if no data is available.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>RepoDataFetchResult</code></td>            <td>
+                  <code><span title="weather_provider_api.routers.weather.base_models.repository.RepoDataFetchResult">RepoDataFetchResult</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>The result of the data fetch operation, indicating success, partial success, failure,
+or no data available.
+</code></pre></div>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.purge_repository" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">purge_repository</span>
+
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.purge_repository" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">purge_repository</span><span class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RepoUpdateResult</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Permanently delete all data from the repository.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>identifier</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>The unique identifier of the repository to be purged.
+</code></pre></div>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>RepoUpdateResult</code></td>            <td>
+                  <code><span title="weather_provider_api.routers.weather.base_models.repository.RepoUpdateResult">RepoUpdateResult</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <div class="language-text highlight"><pre><span></span><code>The result of the purge operation.
+</code></pre></div>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.safely_delete_file" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">safely_delete_file</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#weather_provider_api.routers.weather.base_models.repository.WeatherRepositoryBase.safely_delete_file" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">safely_delete_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Safely delete a file from the repository storage.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>file_path</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="pathlib.Path" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path">Path</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The path of the file to be deleted.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>bool</code></td>            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>True if the file was successfully deleted, False otherwise.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="_1"><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="weather_provider_api.routers.weather.utils.serializers.return_file_or_text_response" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">return_file_or_text_response</span>
+
+
+<a href="#weather_provider_api.routers.weather.utils.serializers.return_file_or_text_response" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">return_file_or_text_response</span><span class="p">(</span><span class="n">unserialized_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">response_format</span><span class="p">:</span> <span class="n">ResponseFormat</span><span class="p">,</span> <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">WeatherContentRequestQuery</span> <span class="o">|</span> <span class="n">WeatherContentRequestMultiLocationQuery</span><span class="p">,</span> <span class="n">coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ScientificJSONResponse</span> <span class="o">|</span> <span class="n">FileResponse</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Return a file or text response based on the provided response format and data.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>unserialized_data</code>
+            </td>
+            <td>
+                  <code><span title="xarray.Dataset">Dataset</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The data to be returned in the response.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>response_format</code>
+            </td>
+            <td>
+                  <code><span title="weather_provider_api.routers.weather.api_models.ResponseFormat">ResponseFormat</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The format in which the response should be returned.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>source_id</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The ID of the source for which the data is being returned.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>model_id</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The ID of the model for which the data is being returned.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>request</code>
+            </td>
+            <td>
+                  <code><span title="weather_provider_api.routers.weather.api_models.WeatherContentRequestQuery">WeatherContentRequestQuery</span> | <span title="weather_provider_api.routers.weather.api_models.WeatherContentRequestMultiLocationQuery">WeatherContentRequestMultiLocationQuery</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The original request object containing query parameters.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>coords</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A list of coordinates for which the data is being returned.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2026 Alliander N.V.
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["navigation.instant"],"search":"../../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7f30b55.min.js"></script>
+      
+    
+  </body>
+</html>
