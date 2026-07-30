@@ -12,36 +12,13 @@ on:
 permissions:
     contents: read
 jobs:
-  # Build the Sphinx documentation
-  build:
-    runs-on:
-      group: managed
-    permissions:
-      contents: read
-    steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-      with:
-        python-version: '3.13'
-    - name: Install Dependencies
-      run: |
-        pip install sphinx piccolo-theme myst_parser
-    - name: Sphinx Build
-      run: |
-        sphinx-build ./sphinx-docs/ build_outputs_folder
-    - name: Upload GitHub Pages artifact
-      uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
-      id: deployment
-      with:
-        path: build_outputs_folder/
-  # Deploy the Sphinx documentation to GitHub Pages
+  # Build the Zensical documentation and deploy it to GitHub Pages
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on:
       group: managed
-    needs: build
     permissions:
       contents: read
       pages: write
@@ -49,11 +26,11 @@ jobs:
     steps:
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          python-version: 3.13
-      - run: pip install zensical
-      - run: zensical build --clean
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv run --only-group docs zensical build --clean
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: site
