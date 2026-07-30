@@ -21,7 +21,7 @@ jobs:
     runs-on:
       group: managed
     permissions:
-      contents: read
+      contents: write
     steps:
       # Checkout
       - name: Branch checkout
@@ -39,6 +39,9 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+      # Regenerate the lockfile so each release resolves against the latest allowed versions
+      - name: Regenerate uv.lock
+        run: uv lock --upgrade
       # Install required dependencies
       - name: Install dependencies
         run: uv sync
@@ -61,6 +64,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # Commit the regenerated lockfile back to the branch ([skip ci] avoids re-triggering)
+      - if: matrix.version == '3.13'
+        name: Commit regenerated uv.lock
+        run: |
+          if git diff --quiet -- uv.lock; then
+            echo "uv.lock is already up to date."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add uv.lock
+            git commit -m "chore: regenerate uv.lock [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
   # ---------------------------------------------------------------- #
   # |  Build image and upload it to AWS and DockerHub              | #
   # ---------------------------------------------------------------- #
