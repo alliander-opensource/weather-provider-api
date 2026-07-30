@@ -58,7 +58,6 @@ jobs:
       # Auto-merge the PR so the site publishes without manual intervention
       - name: Enable auto-merge
         if: steps.cpr.outputs.pull-request-number
-        uses: peter-evans/enable-pull-request-automerge@a660677d5469627102a1c1e11409dd063606628d # v3.0.0
-        with:
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-          merge-method: squash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --squash --auto "${{ steps.cpr.outputs.pull-request-number }}"
