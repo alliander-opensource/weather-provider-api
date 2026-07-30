@@ -74,6 +74,7 @@ jobs:
           base: ${{ github.ref_name }}
           branch: chore/uv-lock-update-${{ github.ref_name }}
           commit-message: "chore: regenerate uv.lock"
+          sign-commits: true
           title: "chore: regenerate uv.lock for ${{ github.ref_name }}"
           body: |
             Automated lockfile regeneration (`uv lock --upgrade`) from the
