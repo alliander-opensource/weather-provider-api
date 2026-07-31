@@ -14,6 +14,9 @@ jobs:
   # |  Coverage and SonarCloud.io upload                           | #
   # ---------------------------------------------------------------- #
   tests-and-sonarcloud:
+    concurrency:
+      group: version-update-evaluation-${{ github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
         version: ["3.13"]
@@ -84,6 +87,10 @@ jobs:
   # |  Build package and upload it to PyPI                         | #
   # ---------------------------------------------------------------- #
   package-creation-and-upload:
+    concurrency:
+      group: weather-provider-api-pypi-publish
+      cancel-in-progress: false
+      queue: max
     name: Create package and upload to PyPI
     needs: tests-and-sonarcloud
     runs-on:
@@ -145,6 +152,10 @@ jobs:
   # |  Build image and upload it to AWS and DockerHub              | #
   # ---------------------------------------------------------------- #
   create-and-upload-image:
+    concurrency:
+      group: weather-provider-api-container-publish
+      cancel-in-progress: false
+      queue: max
     name: Create and upload the image
     needs: tests-and-sonarcloud
     runs-on:

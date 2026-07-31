@@ -6,11 +6,13 @@ name: Documentation
 on:
   push:
     branches:
-      - master
-      - main
+      - main-*
       - release-*
 permissions:
     contents: read
+concurrency:
+  group: documentation-gh-pages-update
+  cancel-in-progress: true
 jobs:
   # Build the Zensical documentation and open a signed PR to the gh-pages branch
   deploy:
