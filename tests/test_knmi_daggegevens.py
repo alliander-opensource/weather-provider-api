@@ -16,12 +16,12 @@ from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 inseason_options = {True, False}
 
 
-@pytest.fixture()
+@pytest.fixture
 def start():
     return datetime(year=2019, month=1, day=1)
 
 
-@pytest.fixture()
+@pytest.fixture
 def end():
     return datetime(year=2019, month=1, day=31)
 

@@ -87,6 +87,7 @@ class GeoPosition:
         """Initialize a GeoPosition instance with coordinates and an optional coordinate system format."""
         self.x = x_coord
         self.y = y_coord
+        self.system: GeoCoordinateSystem | None = None
 
         if isinstance(coordinate_system, GeoCoordinateSystem):
             self.system = coordinate_system

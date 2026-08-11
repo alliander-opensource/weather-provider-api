@@ -109,7 +109,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         return output_ds
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
-        """Request known weather factors for the model."""
+        """Request known meteorological factors for the model."""
         if factors is None:
             return list(self.to_si.keys())  # type: ignore
 

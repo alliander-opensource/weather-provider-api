@@ -50,8 +50,10 @@ dev = [
     "pre-commit>=4.6.0,<5.0.0",
     "pytest>=9.1.1,<10.0.0",
     "pytest-cov>=7.1.0,<8.0.0",
+    "pytest-xdist>=3.8.0",
     "reuse>=6.2.0,<7.0.0",
     "ruff>=0.15.21,<0.16.0",
+    "types-gunicorn>=26.0.0.20260728",
     "zensical>=0.0.50",
 ]
 docs = [
@@ -138,17 +140,22 @@ docstring-code-line-length = "dynamic"
 max-args = 10
 
 [tool.pytest.ini_options]
+# Coverage flags are intentionally NOT set here so that local runs (and PyCharm's own
+# "Run with Coverage") work without conflicting with pytest-cov. Enable coverage explicitly
+# in CI, e.g.:
+#   pytest --cov --cov-branch --cov-report=xml --cov-report=term-missing
 addopts = [
-  "-rfEX -p pytester --strict-markers -n auto",
-  "--cov",
-  "--cov-branch",
-  "--cov-report=xml",
-  "--cov-report=term-missing"  # Coverage report incl missing lines in terminal
+  "-rfEX",
+  "-p", "pytester",
+  "--strict-markers",
 ]
 testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
+# Only measure the application package; never report on the test suite itself.
+source = ["weather_provider_api"]
+omit = ["tests/*"]
 
 [tool.coverage.paths]
 source = ["weather_provider_api"]

@@ -28,13 +28,14 @@ class KNMIDataPlatformDownloader:
     def __init__(self) -> None:
         """Initialize the KNMIDataPlatformDownloader."""
         self.data_platform_url = os.environ.get("KNMI_DATA_PLATFORM_URL", "https://api.dataplatform.knmi.nl/open-data")
-        self.data_platform_key = os.environ.get("KNMI_DATA_PLATFORM_KEY", None)
+        data_platform_key = os.environ.get("KNMI_DATA_PLATFORM_KEY", None)
 
-        if self.data_platform_key is None:
+        if data_platform_key is None:
             raise ValueError(
                 "The KNMI Data Platform Downloader is missing an access key! "
                 "Please set the environment variable KNMI_DATA_PLATFORM_KEY to a valid access key."
             )
+        self.data_platform_key = data_platform_key
 
         self._validate_data_platform_access_settings()
 
@@ -73,7 +74,7 @@ class KNMIDataPlatformDownloader:
         )
 
         access_url = f"{self.data_platform_url}/v1/datasets/{dataset_name}/versions/{dataset_version}/files"
-        headers = {"Authorization": self.data_platform_key}
+        headers: dict[str, str | bytes] | None = {"Authorization": self.data_platform_key}
 
         while True:
             params: dict[str, str | int | None] = {
@@ -113,7 +114,7 @@ class KNMIDataPlatformDownloader:
         )
 
         # Then we make a request to the KNMI Data Platform API to retrieve the download URL and deprecation message (if applicable) for the file
-        headers = {"Authorization": self.data_platform_key}
+        headers: dict[str, str | bytes] | None = {"Authorization": self.data_platform_key}
         response = requests.get(file_information_url, headers=headers, timeout=10)
 
         # Handle potential errors in the response

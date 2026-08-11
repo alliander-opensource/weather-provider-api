@@ -29,12 +29,12 @@ jobs:
     steps:
       # Checkout
       - name: Branch checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       # Install Python
       - name: Setup Python installation
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.version }}
       # Install uv (with built-in dependency caching)
@@ -52,19 +52,20 @@ jobs:
       # Install ecCodes dependencies
       - name: Install ecCodes
         run: sudo apt-get update && sudo apt-get install -y libeccodes0 libeccodes-dev
-      # Run tests with coverage (pytest-cov is configured via addopts in pyproject.toml,
-      # which also writes coverage.xml and prints the terminal report)
+      # Run tests with coverage. Coverage flags are passed explicitly here (not via addopts)
+      # so local/PyCharm runs are not forced to use pytest-cov. This writes coverage.xml
+      # (consumed by SonarCloud below) and prints the terminal report.
       - name: Run tests and coverage
         env:
           CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
           CDSAPI_VERIFY: 1
           KNMI_DATA_PLATFORM_KEY: ${{ secrets.KNMI_DATA_PLATFORM_KEY }}
-        run: uv run pytest
+        run: uv run pytest --cov --cov-branch --cov-report=xml --cov-report=term-missing
       # Upload coverage data to SonarCloud.io
       - if: matrix.version == '3.13'
         name: Update SonarCloud.io
-        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -99,10 +100,10 @@ jobs:
     steps:
       # Checkout
       - name: Check out source code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Configure AWS
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           role-to-assume: arn:aws:iam::325973380531:role/dnb-inno-repository-access-role
           aws-region: eu-central-1
@@ -112,7 +113,7 @@ jobs:
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
       - name: Determine current version
         run: |
           version="$(uv version --short)rc${{ github.run_number }}"

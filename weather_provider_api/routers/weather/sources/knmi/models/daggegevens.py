@@ -298,7 +298,7 @@ class DagGegevensModel(WeatherModelBase):
         }
         for weather_factor in self.to_si.keys():
             if weather_factor in dataframe_data.keys():
-                conversion_dict[weather_factor] = np.float64
+                conversion_dict[weather_factor] = int
 
         dataframe_data = dataframe_data.astype(conversion_dict)
         dataframe_data = dataframe_data.set_index(["station_code", "date"])
@@ -307,7 +307,7 @@ class DagGegevensModel(WeatherModelBase):
 
     @staticmethod
     def _prepare_weather_data(
-        coordinates: list[GeoPosition], station_id: list[np.int64], raw_ds: xr.Dataset
+        coordinates: list[GeoPosition], station_id: list[int], raw_ds: xr.Dataset
     ) -> xr.Dataset:
         # A function that prepares the weather data for return by the API, by replacing the matching station with the
         # lat/lon location that was requested, and properly formatting the dimensions.
@@ -327,7 +327,7 @@ class DagGegevensModel(WeatherModelBase):
 
         return ds
 
-    def _request_weather_factors(self, factors: list[str] | None) -> list[str]:
+    def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
         # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
         if factors is None:
             return list(self.to_si.keys())

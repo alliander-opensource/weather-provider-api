@@ -8,6 +8,7 @@ import locale
 import re
 from datetime import datetime
 from io import StringIO
+from typing import cast, SupportsInt
 
 import pandas as pd
 import requests  # type: ignore
@@ -60,9 +61,10 @@ def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> 
     )
 
     # Find the stn with the lowest distance to the location
-    min_ind: int = stn_stations["distance"].idxmin()
+    min_ind: int | str = stn_stations["distance"].idxmin()
     # Return the found stn
-    return stn_stations.loc[min_ind, "STN"].astype(int)
+    stn_value = stn_stations.loc[min_ind, "STN"]
+    return int(cast(SupportsInt, stn_value))
 
 
 def download_actuele_waarnemingen_weather() -> xr.Dataset | None:

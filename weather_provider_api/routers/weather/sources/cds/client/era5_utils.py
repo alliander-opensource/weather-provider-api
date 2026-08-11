@@ -14,7 +14,11 @@ from loguru import logger
 from pydantic import BaseModel
 
 from weather_provider_api.routers.weather.base_models.repository import RepoUpdateResult
-from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import CDS_CLIENT, CDSDataSets, CDSRequest
+from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import (
+    CDSDataSets,
+    CDSRequest,
+    get_cds_client,
+)
 from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
 
 
@@ -404,7 +408,7 @@ def download_era5_data(
 ) -> None:
     """A function to download ERA5 data."""
     try:
-        CDS_CLIENT.retrieve(  # type: ignore
+        get_cds_client().retrieve(  # type: ignore
             name=dataset.value,
             request=cds_request.request_parameters,
             target=target_location,

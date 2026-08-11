@@ -27,7 +27,7 @@ from weather_provider_api.routers.weather.utils import serializers
 from weather_provider_api.routers.weather.utils.date_helpers import parse_datetime
 from weather_provider_api.routers.weather.utils.file_helpers import remove_file
 
-app = APIRouter()
+app = APIRouter(deprecated=True)
 
 controller = WeatherController()
 

@@ -14,7 +14,7 @@ from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
-@pytest.fixture()
+@pytest.fixture
 def start():
     """Fixture for a start datetime, set to the beginning of the current year (or previous year if it's January)."""
     today = datetime.today()
@@ -22,7 +22,7 @@ def start():
     return datetime(year_to_use, 1, 1)  # The start of the current year
 
 
-@pytest.fixture()
+@pytest.fixture
 def end():
     """Fixture for an end datetime.
 

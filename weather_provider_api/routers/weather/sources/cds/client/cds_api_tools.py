@@ -13,6 +13,7 @@ https://www.apache.org/licenses/LICENSE-2.0.
 
 from datetime import date
 from enum import StrEnum
+from functools import lru_cache
 from typing import Any
 
 import cdsapi  # type: ignore
@@ -105,4 +106,11 @@ class CDSRequest(BaseModel):
         return param_dict
 
 
-CDS_CLIENT = cdsapi.Client(info_callback=_info_callback, url="https://cds.climate.copernicus.eu/api")
+@lru_cache(maxsize=1)
+def get_cds_client() -> cdsapi.Client:
+    """Return a lazily-instantiated, cached CDS API client.
+
+    The client is created on first use rather than at import time, so this module can be imported (and tested)
+    without valid CDS credentials or network access.
+    """
+    return cdsapi.Client(info_callback=_info_callback, url="https://cds.climate.copernicus.eu/api")
