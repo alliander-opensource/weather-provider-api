@@ -20,6 +20,22 @@ from weather_provider_api.routers.weather.sources.knmi.client.arome_repository i
 from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
 
 
+@pytest.fixture(autouse=True)
+def _mock_knmi_data_platform_downloader(monkeypatch: pytest.MonkeyPatch):
+    """Prevent the KNMI Data Platform Downloader from requiring an API key or network access.
+
+    HarmonieAromeRepository instantiates a KNMIDataPlatformDownloader on construction, which normally
+    requires a valid API key and performs a live validation request. For these repository tests we stub
+    its initializer so no key or network connection is needed.
+    """
+    monkeypatch.setenv("KNMI_DATA_PLATFORM_KEY", "dummy-access-key")
+    monkeypatch.setattr(
+        "weather_provider_api.routers.weather.sources.knmi.client.arome_repository."
+        "KNMIDataPlatformDownloader.__init__",
+        lambda self: None,
+    )
+
+
 def _get_mock_prefix(dummy_date: date):
     arome_repo = HarmonieAromeRepository()
     file_prefix = (
