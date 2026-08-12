@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """The list of stations used in various KNMI datasets."""
 
@@ -400,7 +398,7 @@ _stations_df.columns = ["STN", "lon", "lat", "alt", "name"]
 
 # filter on prediction and models
 def filter_stations(stns):
-    filtered_stations: pd.DataFrame = _stations_df.copy(deep=True)
+    filtered_stations = _stations_df.copy(deep=True)
     filtered_stations.set_index("STN", inplace=True)
     filtered_stations = filtered_stations.loc[stns, :]
     filtered_stations.reset_index(level=0, inplace=True)

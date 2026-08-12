@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime
 
@@ -13,7 +14,7 @@ from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
-@pytest.fixture()
+@pytest.fixture
 def start():
     """Fixture for a start datetime, set to the beginning of the current year (or previous year if it's January)."""
     today = datetime.today()
@@ -21,17 +22,20 @@ def start():
     return datetime(year_to_use, 1, 1)  # The start of the current year
 
 
-@pytest.fixture()
+@pytest.fixture
 def end():
-    """Fixture for an end datetime, set to the end of the first month of the current year (or previous year if it's January)."""
+    """Fixture for an end datetime.
+
+    Set to the end of the first month of the current year (or previous year if it's January).
+    """
     today = datetime.today()
     year_to_use = today.year if today.month != 1 else (today.year - 1)  # This year if not January, else previous year
     return datetime(year_to_use, 1, 31)  # The end of first month of the current year
 
 
 def test_retrieve_weather(
-        monkeypatch: pytest.MonkeyPatch, mock_coordinates: list[tuple[float, float]], start: datetime, end: datetime
-        ):
+    monkeypatch: pytest.MonkeyPatch, mock_coordinates: list[tuple[float, float]], start: datetime, end: datetime
+):
     """Tests the get_weather function of the UurgegevensModel class."""
     mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
     # Version 3.x will be tested without an actual connection.
@@ -76,7 +80,10 @@ def test__create_request_params():
     # as the list of weather factors
     dag_model = UurgegevensModel()
     params_result = dag_model._create_request_params(  # type: ignore
-        datetime(2019, 4, 13), datetime(2019, 4, 18), ["DUMMYSTATION"], None  # type: ignore
+        datetime(2019, 4, 13),
+        datetime(2019, 4, 18),
+        ["DUMMYSTATION"],
+        None,  # type: ignore
     )
 
     assert params_result["vars"] == "ALL"

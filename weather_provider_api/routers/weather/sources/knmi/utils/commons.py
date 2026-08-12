@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """Utilities for handling KNMI datasets."""
 
@@ -10,6 +8,7 @@ import locale
 import re
 from datetime import datetime
 from io import StringIO
+from typing import cast, SupportsInt
 
 import pandas as pd
 import requests  # type: ignore
@@ -57,13 +56,15 @@ def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> 
         A station number indicating its index in the supplied dataframe.
     """
     stn_stations["distance"] = stn_stations.apply(
-        lambda x: great_circle((x["lat"], x["lon"]), coord.get_WGS84()).km, axis=1  # type: ignore
+        lambda x: great_circle((x["lat"], x["lon"]), coord.as_wgs84).km,
+        axis=1,  # type: ignore
     )
 
     # Find the stn with the lowest distance to the location
-    min_ind: int = stn_stations["distance"].idxmin()  # type: ignore
+    min_ind: int | str = stn_stations["distance"].idxmin()
     # Return the found stn
-    return stn_stations.loc[min_ind, "STN"].astype(int)  # type: ignore
+    stn_value = stn_stations.loc[min_ind, "STN"]
+    return int(cast(SupportsInt, stn_value))
 
 
 def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
@@ -101,7 +102,7 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
 
             # Rename to the conventional naming system used for the Weather Provider API
             for dictionary_item in knmi_site_df.columns.copy(deep=True):
-                if dictionary_item in column_translations.keys():
+                if dictionary_item in column_translations:
                     knmi_site_df = knmi_site_df.rename(columns={dictionary_item: column_translations[dictionary_item]})
                 else:
                     knmi_site_df = knmi_site_df.drop(dictionary_item, axis="columns")

@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
+# This pre-commit config can be installed by running 'pre-commit install --install-hooks'.
+# All configs are set in pyproject.toml.
+
+# Hooks
+default_install_hook_types:
+-   pre-commit
+-   commit-msg
+
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    -   id: check-yaml
+        exclude: mkdocs.yml
+    -   id: end-of-file-fixer
+        exclude: .csv$
+    -   id: trailing-whitespace
+    -   id: check-toml
+    -   id: detect-private-key
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.15.21
+    hooks:
+      # Run the linter.
+    -   id: ruff
+        args: ["--fix"]
+      # Run the formatter.
+    -   id: ruff-format
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.2.0
+    hooks:
+    -   id: mypy
+        additional_dependencies:
+        -   pydantic
+        -   pandas-stubs
+        -   scipy-stubs
+        exclude: 'tests/'
+
+-   repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+    -   id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
+
+-   repo: https://github.com/codespell-project/codespell
+    rev: v2.4.2
+    hooks:
+    -   id: codespell
+        exclude: 'data/|uv.lock|PROJECT_GOVERNANCE.md'
+        args: ['--ignore-words=codespell.ignore']
+
+-   repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.11.28
+    hooks:
+    -   id: uv-lock
+
+-   repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.49.0
+    hooks:
+    -   id: markdownlint
+        args:
+        -   "--fix"
+        -   "--disable"
+        -   "MD013"
+        -   "MD041"
+
+-   repo: https://github.com/fsfe/reuse-tool
+    rev: v6.2.0
+    hooks:
+    -   id: reuse
+
+-   repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
+    rev: v0.9.0
+    hooks:
+    -   id: pre-commit-update
+
+# nb stripout for jupyter notebooks
+-   repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+    -   id: nbstripout
+        args:
+        -   "--keep-output"
+
+-   repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+    -   id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []

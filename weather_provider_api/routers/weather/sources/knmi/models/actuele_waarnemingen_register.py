@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0 AND CC-BY-2.5
 
 """KNMI current weather data aggregate fetcher."""
 
@@ -21,7 +22,6 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 class ActueleWaarnemingenRegisterModel(WeatherModelBase):
     """A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset."""
 
-    
     def __init__(self):
         super().__init__()
         self.id = "waarnemingen_register"
@@ -59,7 +59,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         end: datetime | None = None,
         weather_factors: list[str] | None = None,
     ) -> xr.Dataset:
-        """Get the weather data for the specified coordinates and time range from the KNMI Actuele Waarnemingen 48-hour register.
+        """Get weather data for specified coordinates and timerange from the KNMI Actuele Waarnemingen 48-hour register.
 
         The function that gathers and processes the requested Actuele Waarnemingen Register weather data from the
         48-hour register and returns it as a Xarray Dataset.
@@ -79,12 +79,19 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
             As this model only return the current weather data the 'begin' and 'end' values are not actually used.
         """
         updated_weather_factors = self._request_weather_factors(weather_factors)
-        
-        raw_ds = self.repository.retrieve_data()
-        if begin is not None and now - timedelta(days=1) > begin:
-            raw_ds = self.repository.get_48_hour_registry_for_station(station=coords_stn)
-        else:
-            raw_ds = self.repository.get_24_hour_registry_for_station(station=coords_stn)
+        coords_stn, _, _ = find_closest_stn_list(stations_actual, coords)
+
+        raw_ds: xr.Dataset | None = None
+        for coord_stn in coords_stn:
+            if begin is not None and datetime.now(tz=UTC) - timedelta(days=1) > begin:
+                station_ds = self.repository.get_48_hour_registry_for_station(station=coord_stn)
+            else:
+                station_ds = self.repository.get_24_hour_registry_for_station(station=coord_stn)
+
+            raw_ds = station_ds if raw_ds is None else xr.concat([raw_ds, station_ds], dim="coord")
+
+        if raw_ds is None:
+            raise ValueError("No data was returned from the KNMI Actuele Waarnemingen Register.")
 
         data_dictionary = {
             var_name: (["time", "coord"], var.values)
@@ -102,7 +109,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
         return output_ds
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
-        # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
+        """Request known meteorological factors for the model."""
         if factors is None:
             return list(self.to_si.keys())  # type: ignore
 

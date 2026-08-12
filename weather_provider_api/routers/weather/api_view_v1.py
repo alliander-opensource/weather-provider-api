@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from typing import Annotated
 
@@ -26,7 +27,7 @@ from weather_provider_api.routers.weather.utils import serializers
 from weather_provider_api.routers.weather.utils.date_helpers import parse_datetime
 from weather_provider_api.routers.weather.utils.file_helpers import remove_file
 
-app = APIRouter()
+app = APIRouter(deprecated=True)
 
 controller = WeatherController()
 

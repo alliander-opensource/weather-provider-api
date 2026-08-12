@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
 [base]
 title = "WPLA"
 full_title = "Weather Provider Libraries and API"

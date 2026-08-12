@@ -13,6 +13,7 @@ from urllib3 import Retry
 
 class WeatherAlertCode(Enum):
     """Enum class with valid Weather Alert Codes."""
+
     green = "green"
     yellow = "yellow"
     orange = "orange"
@@ -73,7 +74,7 @@ class WeatherAlert:
     def process_page(page_text: str, status_code: int, province: str) -> tuple[str, str]:
         """Parse the weather alert page for a province and retrieve its current alarm stage.
 
-        It does so by looking for a div with the class "alert" and "alert--<color>" (where color is the code of the alarm stage). 
+        It does so by looking for a div with the class "alert" and "alert--<color>" (where color is the code of the alarm stage).
         If it finds such a div, it returns the color as the alarm stage. If it doesn't find such a div, it returns an error message based on the status code.
 
         Args:
@@ -88,7 +89,7 @@ class WeatherAlert:
             color = extract_alert_color(page_text)
             if color in {item.value for item in WeatherAlertCode}:
                 return province, color
-            
+
             # If no valid code was found return an invalid data message
             return province, "No weather alert code could be found on the page"
         elif status_code == 408:
@@ -121,6 +122,7 @@ class WeatherAlert:
 
 class AlertDivParser(HTMLParser):
     """A simple HTML parser to extract the alert color from the KNMI weather alert page."""
+
     def __init__(self):
         """Initialize the AlertDivParser class."""
         super().__init__()
@@ -128,7 +130,7 @@ class AlertDivParser(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Handle the start tag of HTML elements and look for a div with the class 'alert' and 'alert--<color>'.
-        
+
         If it is, extract the color and store it in the found_color attribute.
         """
         if tag == "div":
@@ -140,6 +142,7 @@ class AlertDivParser(HTMLParser):
                     if cls.startswith("alert--"):
                         color = cls[len("alert--") :]
                         self.found_color = color
+
 
 def extract_alert_color(page_text: str) -> str | None:
     """Extract the alert color from the KNMI weather alert page using the AlertDivParser."""

@@ -1,6 +1,8 @@
-[//]: # (SPDX-FileCopyrightText: 2024-2025 Copyright Contributors to the Weather Provider API project)
+<!--
+SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
 
-[//]: # (SPDX-License-Identifier: MPL-2.0)
+SPDX-License-Identifier: MPL-2.0
+-->
 
 # Security
 
@@ -33,4 +35,3 @@ as a reward for significant security problems.
 | Version      | Support status         |
 |--------------|------------------------|
 | ***v2.x.x*** | &#10003; *- Supported* |
-

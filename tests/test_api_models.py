@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 from datetime import UTC, datetime
 
@@ -36,7 +37,7 @@ def test_custom_json_float_encoder():
     )
 
     # Test NaN
-    assert mock_response.render(float("nan")) == b'null'
+    assert mock_response.render(float("nan")) == b"null"
 
     # Test infinity
     assert mock_response.render(float("inf")) == b'"Infinity"'

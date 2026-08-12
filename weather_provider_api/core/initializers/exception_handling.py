@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
-
-"""Exception Handling
+"""Exception Handling.
 
 This module holds the API's exception handler.
 """
@@ -19,6 +17,7 @@ from weather_provider_api.config import APP_CONFIG
 
 
 async def handle_http_exception(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    """Custom exception handler for HTTP exceptions."""
     headers = getattr(exc, "headers", None)
 
     body = {"detail": exc.detail, "request": str(request.url)}
@@ -29,7 +28,7 @@ async def handle_http_exception(request: Request, exc: StarletteHTTPException) -
     return JSONResponse(body, status_code=exc.status_code, headers=headers)
 
 
-def initialize_exception_handler(application: FastAPI):
+def initialize_exception_handler(application: FastAPI) -> None:
     """The method that attaches the customized exception handling method to a FastAPI application.
 
     Args:
@@ -46,7 +45,7 @@ def initialize_exception_handler(application: FastAPI):
          initializers. By either extending the base class to enforce these or improving the code to not be dependent on
          these parameters, we can eradiate code smell and chances at Exceptions caused by not having these parameters.
     """
-    application.add_exception_handler(StarletteHTTPException, handler=handle_http_exception)
+    application.add_exception_handler(StarletteHTTPException, handler=handle_http_exception)  # type: ignore
     logger.info(f"Attached the Exception Handler to the application ({application.title})...")
 
 

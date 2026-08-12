@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 import json
 from typing import Any
@@ -27,12 +28,12 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 # Verify file was opened with correct parameters
-                mock_file.assert_called_once_with("openapi.json", "w")
+                mock_file.assert_called_once_with("openapi.json", "w", encoding="utf-8")
 
                 # Verify the spec was written to file
                 handle = mock_file()
                 written_content = "".join(call.args[0] for call in handle.write.call_args_list)
-                assert written_content == json.dumps(mock_spec)
+                assert written_content == json.dumps(mock_spec, ensure_ascii=False, indent=2)
 
     def test_generate_openapi_spec_calls_openapi_method(self):
         """Test that the v2_app.openapi() method is called."""
@@ -151,7 +152,7 @@ class TestGenerateOpenAPISpec:
 
     def test_generate_openapi_spec_overwrites_existing_file(self):
         """Test that the function overwrites an existing openapi.json file."""
-        mock_spec = {"openapi": "3.0.2", "info": {"title": "Test", "version": "1.0.0"}} # type: ignore
+        mock_spec = {"openapi": "3.0.2", "info": {"title": "Test", "version": "1.0.0"}}  # type: ignore
 
         with patch("weather_provider_api.scripts.openapi.v2_app") as mock_app:
             mock_app.openapi.return_value = mock_spec
@@ -160,7 +161,7 @@ class TestGenerateOpenAPISpec:
                 generate_openapi_spec()
 
                 # File should be opened in write mode, which overwrites
-                mock_file.assert_called_once_with("openapi.json", "w")
+                mock_file.assert_called_once_with("openapi.json", "w", encoding="utf-8")
 
     def test_generate_openapi_spec_with_empty_paths(self):
         """Test handling of OpenAPI spec with no paths defined."""
@@ -183,7 +184,7 @@ class TestGenerateOpenAPISpec:
                 assert parsed_json["paths"] == {}
 
     def test_generate_openapi_spec_json_formatting(self):
-        """Test that the JSON is written in a compact format (no indentation)."""
+        """Test that the JSON is written in a pretty-printed format."""
         mock_spec = {  # type: ignore
             "openapi": "3.0.2",
             "info": {"title": "Test", "version": "1.0.0"},
@@ -198,10 +199,10 @@ class TestGenerateOpenAPISpec:
                 handle = mock_file()
                 written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
-                # Verify it's compact JSON (no extra whitespace/newlines)
-                expected = json.dumps(mock_spec)
+                # Verify it's pretty JSON with indentation/newlines
+                expected = json.dumps(mock_spec, ensure_ascii=False, indent=2)
                 assert written_content == expected
-                assert "\n" not in written_content  # No pretty printing
+                assert "\n" in written_content
 
     def test_generate_openapi_spec_integration(self):
         """Integration test verifying the complete flow."""
@@ -228,7 +229,7 @@ class TestGenerateOpenAPISpec:
 
                 # Verify the complete interaction
                 mock_app.openapi.assert_called_once()
-                mock_file.assert_called_once_with("openapi.json", "w")
+                mock_file.assert_called_once_with("openapi.json", "w", encoding="utf-8")
 
                 handle = mock_file()
-                handle.write.assert_called_once_with(json.dumps(mock_spec))
+                handle.write.assert_called_once_with(json.dumps(mock_spec, ensure_ascii=False, indent=2))

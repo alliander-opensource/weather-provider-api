@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2022 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """Base Model class.
 
@@ -12,4 +13,5 @@ from pydantic import ConfigDict
 
 class BaseModel(PydanticBaseModel):
     """Minimal PydanticBaseMode expansion used in all base classes."""
+
     model_config = ConfigDict(from_attributes=True)

@@ -1,39 +1,64 @@
-name: Deployment to GitHub Pages
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
+name: Documentation
 on:
-    push:
-        branches:
-        - main*
+  push:
+    branches:
+      - main-*
 permissions:
-    id-token: write
-    pages: write
+    contents: read
+concurrency:
+  group: documentation-gh-pages-update
+  cancel-in-progress: true
 jobs:
-  # Build the Sphinx documentation
-  build:
-    runs-on:
-      group: managed
-    steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-    - name: Install Dependencies
-      run: |
-        pip install sphinx piccolo-theme myst_parser
-    - name: Sphinx Build
-      run: |
-        sphinx-build ./sphinx-docs/ build_outputs_folder
-    - name: Upload GitHub Pages artifact
-      uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
-      id: deployment
-      with:
-        path: build_outputs_folder/
-  # Deploy the Sphinx documentation to GitHub Pages
+  # Build the Zensical documentation and open a signed PR to the gh-pages branch
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on:
       group: managed
-    needs: build
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+      # Check out the source to build the documentation from
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Build documentation site
+        run: uv run --only-group docs zensical build --clean
+      # Check out the published branch into a subdirectory
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: gh-pages
+          path: gh-pages
+      # Replace the branch contents with the freshly built site
+      - name: Stage built site onto gh-pages
+        run: |
+          find gh-pages -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -a site/. gh-pages/
+          touch gh-pages/.nojekyll
+      # Open a signed PR with the updated site (branch protection requires a signed PR)
+      - name: Open PR to update gh-pages
+        id: cpr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          path: gh-pages
+          base: gh-pages
+          branch: chore/gh-pages-update
+          commit-message: "docs: update GitHub Pages site"
+          sign-commits: true
+          title: "docs: update GitHub Pages site"
+          body: |
+            Automated documentation build from the `${{ github.workflow }}`
+            workflow (source commit ${{ github.sha }}).
+          delete-branch: true
+      # Auto-merge the PR so the site publishes without manual intervention
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --squash --auto "${{ steps.cpr.outputs.pull-request-number }}"

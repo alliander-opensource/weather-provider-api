@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#  SPDX-FileCopyrightText: 2019-2023 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 """Main Application."""
 
@@ -43,7 +41,7 @@ def _build_api_application() -> FastAPI:
 
     # Define lifespan context manager for startup/shutdown events
     @asynccontextmanager
-    async def lifespan(app: FastAPI):
+    async def lifespan(_app: FastAPI):
         initialize_logging()
         yield
 
@@ -77,7 +75,7 @@ def _build_api_application() -> FastAPI:
 
     # Adding a redirect from the root of the application to our default view
     @application.get("/")
-    def redirect_to_docs():
+    def redirect_to_docs():  # pyright: ignore[reportUnusedFunction]
         """This function redirects the visitors to the default view from the application's base URL."""
         return RedirectResponse(url="/api/v2/docs")
 

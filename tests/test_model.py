@@ -1,5 +1,6 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
 
 # Not testing the abstract get_weather and is_async functions as they are implemented and defined outside this scope
 # Also not testing because they are just return value functions (with at most basic math applied):
@@ -66,11 +67,24 @@ def test_convert_names_and_units(mock_single_value_dataset: xr.Dataset):
     # For Pluim the original temperature format is Celsius.
     # Therefore, OutputUnit.original and OutputUnit.human should both be the original value.
     # OutputUnit.si should be Kelvin, however.
-    assert (
-        np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["temperature"][0][0], 25.0, rtol=1e-09, atol=1e-09)
+    assert np.isclose(
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["temperature"][0][0],
+        25.0,
+        rtol=1e-09,
+        atol=1e-09,
     )
-    assert np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["temperature"][0][0], 298.15, rtol=1e-09, atol=1e-09)
-    assert np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["temperature"][0][0], 25.0, rtol=1e-09, atol=1e-09)
+    assert np.isclose(
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["temperature"][0][0],
+        298.15,
+        rtol=1e-09,
+        atol=1e-09,
+    )
+    assert np.isclose(
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["temperature"][0][0],
+        25.0,
+        rtol=1e-09,
+        atol=1e-09,
+    )
 
     # For Pluim the original precipitation format is mm.
     # Therefore, OutputUnit.original and OutputUnit.human should both be the original value.
@@ -78,7 +92,12 @@ def test_convert_names_and_units(mock_single_value_dataset: xr.Dataset):
     assert (
         base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.original)["precipitation"][0][0] == 32
     )
-    assert np.isclose(base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["precipitation"][0][0], 0.032, rtol=1e-09, atol=1e-09)
+    assert np.isclose(
+        base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.si)["precipitation"][0][0],
+        0.032,
+        rtol=1e-09,
+        atol=1e-09,
+    )
     assert base_model.convert_names_and_units(mock_single_value_dataset, OutputUnit.human)["precipitation"][0][0] == 32
 
     with pytest.raises(TypeError) as e:

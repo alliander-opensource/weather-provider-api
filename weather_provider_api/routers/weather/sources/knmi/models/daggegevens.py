@@ -1,14 +1,12 @@
-#  SPDX-FileCopyrightText: 2019-2026 Alliander N.V.
-#  SPDX-License-Identifier: MPL-2.0
-
-# TODO: FIX This and the KNMI Uurgegevens model to not cut off one time unit early.
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0 AND CC-BY-2.5
 
 """KNMI day models data fetcher."""
 
 import copy
 import json
 from datetime import UTC, datetime, timedelta
-from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -28,9 +26,9 @@ from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_
 
 class DagGegevensModel(WeatherModelBase):
     """A model for the daily weather data from the KNMI, also known as "Daggegevens".
-    
-    This dataset contains daily measurements of various weather factors for a large number of stations across the 
-    Netherlands. The data can be requested for specific time periods and locations, and contains a wide variety of 
+
+    This dataset contains daily measurements of various weather factors for a large number of stations across the
+    Netherlands. The data can be requested for specific time periods and locations, and contains a wide variety of
     weather factors, such as temperature, wind speed, precipitation, and more.
     """
 
@@ -183,10 +181,10 @@ class DagGegevensModel(WeatherModelBase):
         inseason: bool = False,
     ) -> xr.Dataset:
         """Gather and process the requested weather data from the KNMI site for the Daggegevens dataset.
-        
+
         The function that gathers and processes the requested Daggegevens weather data from the KNMI site and returns
         it as a Xarray Dataset.
-        (Though this model downloads from a specific download url, the question remains whether this source is also 
+        (Though this model downloads from a specific download url, the question remains whether this source is also
         listed on the new KNMI Data Platform)
 
         Args:
@@ -230,12 +228,11 @@ class DagGegevensModel(WeatherModelBase):
 
     def _download_weather(
         self,
-        stations: List[int],
+        stations: list[int],
         start: datetime,
         end: datetime,
         weather_factors: list[str] | None = None,
         inseason: bool = False,
-        
     ):
         """A function that downloads the weather from the KNMI download location and returns it as a text
         Args:
@@ -301,7 +298,7 @@ class DagGegevensModel(WeatherModelBase):
         }
         for weather_factor in self.to_si.keys():
             if weather_factor in dataframe_data.keys():
-                conversion_dict[weather_factor] = np.float64
+                conversion_dict[weather_factor] = int
 
         dataframe_data = dataframe_data.astype(conversion_dict)
         dataframe_data = dataframe_data.set_index(["station_code", "date"])
@@ -310,7 +307,7 @@ class DagGegevensModel(WeatherModelBase):
 
     @staticmethod
     def _prepare_weather_data(
-        coordinates: List[GeoPosition], station_id: list[np.int64], raw_ds: xr.Dataset
+        coordinates: list[GeoPosition], station_id: list[int], raw_ds: xr.Dataset
     ) -> xr.Dataset:
         # A function that prepares the weather data for return by the API, by replacing the matching station with the
         # lat/lon location that was requested, and properly formatting the dimensions.
@@ -330,7 +327,7 @@ class DagGegevensModel(WeatherModelBase):
 
         return ds
 
-    def _request_weather_factors(self, factors: Optional[List[str]]) -> List[str]:
+    def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
         # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
         if factors is None:
             return list(self.to_si.keys())

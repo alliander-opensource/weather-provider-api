@@ -1,6 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from typing import Dict
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
+from typing import Any
 
 from fastapi import FastAPI
 from gunicorn.app.base import Application
@@ -18,8 +20,10 @@ class GunicornApplication(Application):
 
     """
 
-    def __init__(self, fastapi_application: FastAPI, options: Dict):
-        """Overwrite of the base method with the purpose of automatically loading a FastAPI application and deployment
+    def __init__(self, fastapi_application: FastAPI, options: dict[str, str]):
+        """Initializer for the Gunicorn application.
+
+        Overwrite of the base method with the purpose of automatically loading a FastAPI application and deployment
          options passed.
 
         Args:
@@ -34,7 +38,7 @@ class GunicornApplication(Application):
         self.fastapi_application = fastapi_application
         logger.info("Gunicorn application initialized successfully...")
 
-    def init(self, *args):
+    def init(self, *args: Any) -> dict[str, str]:  # type: ignore[override]
         """Method overwrite of the base method.
 
         If effectively loaded upon configuration loading. The returned dictionary holds configuration settings which
@@ -47,16 +51,16 @@ class GunicornApplication(Application):
             (dict): A dictionary holding the configuration settings overwrite or append in self.cfg
 
         """
-        config = {}
+        config: dict[str, str] = {}
         for key, value in self.options.items():
             # Match list to actual settings in self.cfg and add those validated with proper capitalization to the
             #  return value
-            if key.lower() in self.cfg.settings and value is not None:
+            if key.lower() in self.cfg.settings:
                 config[key.lower()] = value
 
         return config
 
-    def load(self):
+    def load(self) -> FastAPI:
         """Overwrite of the base method.
 
         Used to load the application for use.
