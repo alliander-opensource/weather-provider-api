@@ -18,7 +18,7 @@ from weather_provider_api.routers.weather.base_models.repository import (
     WeatherRepositoryConfiguration,
 )
 from weather_provider_api.routers.weather.sources.knmi.client.knmi_data_platform_downloader import (
-    KNMIDataPlatformDownloader,
+    KNMIDataPlatFormDownloadClient,
 )
 from weather_provider_api.routers.weather.sources.knmi.utils.knmi_arome_process_tar_file import (
     process_knmi_arome_cy43_p1_tar_file_into_netcdf,
@@ -52,7 +52,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         )
         self.knmi_dataset_name = "harmonie_arome_cy43_p1"
         self.knmi_dataset_version = "1.0"
-        self.knmi_data_platform_downloader = KNMIDataPlatformDownloader()
+        self.knmi_data_platform_downloader = KNMIDataPlatFormDownloadClient()
         logger.info(f"Initialized {self.__class__.__name__} with configuration:\n{self.metadata}")
 
     @property
@@ -77,7 +77,12 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         self._verify_cfgrib_installation()
 
         # Determine which files can be updated
-        files_available_for_download: list[dict[str, str | int]] = self.get_files_available_for_download()
+        files_available_for_download: list[dict[str, str | int]] | None = self.get_files_available_for_download()
+        if files_available_for_download is None or len(files_available_for_download) == 0:
+            logger.info("No files available for download. Repository is up to date.")
+            if self.knmi_data_platform_downloader.on_quota_timeout:
+                return RepoUpdateResult.TIMEOUT, "No files available for download due to quota timeout."
+            return RepoUpdateResult.SUCCESS, "No files available for download. Repository is up to date."
 
         # Get a list of the currently already downloaded files in the repository
         existing_files_in_repository = self.get_existing_files_in_repository()
@@ -90,41 +95,37 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         return update_result, update_details
 
-    def _verify_cfgrib_installation(self) -> None:
+    @staticmethod
+    def _verify_cfgrib_installation() -> None:
         """Verify that the cfgrib library is installed."""
         if find_spec("cfgrib") is None:
             error_msg = "The cfgrib library is required to read GRIB files. Please install it and verify it is working."
             logger.error(error_msg)
             raise ImportError(error_msg)
 
-    def get_files_available_for_download(self) -> list[dict[str, str | int]]:
+    def get_files_available_for_download(self) -> list[dict[str, str | int]] | None:
         """Determine which files could be updated via the KNMI Data Platform.
 
         Return:
-            list[dict[str, str | int]]:
+            list[dict[str, str | int]] | None:
                     A list of dictionaries containing information about the files that can be updated,
-                    including 'name' and 'size'.
+                    including 'name' and 'size'. If no files are available for download, return None.
         """
-        # Placeholder implementation: In a real implementation, this would check the remote source for new files
-        kdp_downloader = KNMIDataPlatformDownloader()
-
         # Retrieve the list of all available files for the relevant dataset and version from the KNMI Data Platform
-        all_files_available_on_knmi_data_platform = kdp_downloader.retrieve_file_and_size_list_for_dataset(
+        all_files_available_on_knmi_data_platform = self.knmi_data_platform_downloader.retrieve_file_and_size_list_for_dataset(
             dataset_name=self.knmi_dataset_name,
             dataset_version=self.knmi_dataset_version,
         )
 
         # Filter the list of files to those that match the targeted download pattern
-        filtered_file_list = self._filter_file_list_down_to_wanted_files(all_files_available_on_knmi_data_platform)
-
-        return filtered_file_list
+        return self._filter_file_list_down_to_wanted_files(all_files_available_on_knmi_data_platform)
 
     def cleanup_storage(self) -> RepoUpdateResult:
         """Clean up the storage by removing or archiving old or deprecated files."""
         result = RepoUpdateResult.SUCCESS
         for file in self.get_existing_files_in_repository():
-            file_path = Path(file["path"]) if isinstance(file["path"], str) else file["path"]
-            datetime_tag = self._extract_datetime_tag_from_file_name(file_name=str(file["name"]))
+            file_path = Path(file["path"])
+            datetime_tag = self._extract_datetime_tag_from_file_name(file_name=file["name"].__str__())
             if datetime_tag is None:
                 self.safely_delete_file(file_path=file_path)
                 continue
@@ -158,8 +159,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         return filtered_dataset, RepoDataFetchResult.SUCCESS
 
     def _filter_file_list_down_to_wanted_files(
-        self, file_list: list[dict[str, str | int]]
-    ) -> list[dict[str, str | int]]:
+        self, file_list: list[dict[str, str | int]] | None
+    ) -> list[dict[str, str | int]] | None:
         """Filter the list of files to those that match the expected download pattern.
 
         Files only need to be downloaded when match the set time pattern (e.g., 00:00, 06:00, 12:00, 18:00) and are not
@@ -168,16 +169,19 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         Arguments:
             file_list:
-                    A list of dictionaries containing file information, including 'name' and 'size'.
+                    A list of dictionaries containing file information, including 'name' and 'size'. Can be None.
 
         Returns:
             A filtered list of dictionaries containing only the files that match the expected download pattern.
 
         """
+        if file_list is None:
+            return None
+
         filtered_filed: list[dict[str, str | int]] = []
 
         for file in file_list:
-            file_name: str = str(file["filename"])
+            file_name: str = file["filename"].__str__()
             # First we verify that the file name contains a date and time in the expected format, and extract
             # the date and time from the file name
             try:
@@ -290,7 +294,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         # Step through each available file and determine if it needs to be (re-)downloaded and processed
         for file in available_files:
-            datetime_tag_for_file = self._extract_datetime_tag_from_file_name(file_name=str(file["filename"]))
+            datetime_tag_for_file = self._extract_datetime_tag_from_file_name(file_name=file["filename"].__str__())
 
             existing_files_with_same_datetime_tag = [
                 existing_file
@@ -381,23 +385,36 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             return RepoUpdateResult.SUCCESS
 
         if suggested_file_handling in {AromeSuggestedFileHandling.UPDATE, AromeSuggestedFileHandling.UPDATE_DEPRECATED}:
-            download_url, _ = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
+            download_result = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
                 dataset_name=self.knmi_dataset_name,
                 dataset_version=self.knmi_dataset_version,
-                file_name=str(file["filename"]),
+                file_name=file["filename"].__str__(),
             )
-            tar_file: Path = self.knmi_data_platform_downloader.retrieve_file(
-                file_name=str(file["filename"]),
+            if not download_result:
+                logger.error(f"Failed to retrieve download information for file [{file['filename']}].")
+                return RepoUpdateResult.FAILURE
+
+            download_url, _ = download_result
+            tar_file: Path | None = self.knmi_data_platform_downloader.retrieve_file(
+                file_name=file["filename"].__str__(),
                 file_size=int(file["size"]),
                 download_url=download_url,
             )
 
+            if not tar_file:
+                logger.error(f"Failed to download file [{file['filename']}].")
+                return RepoUpdateResult.FAILURE
+
             try:
+                datetime_tag: str | None = self._extract_datetime_tag_from_file_name(file_name=file["filename"].__str__())
+                if not datetime_tag:
+                    logger.error(f"Failed to extract datetime tag from file name [{file['filename']}].")
+                    return RepoUpdateResult.FAILURE
                 process_knmi_arome_cy43_p1_tar_file_into_netcdf(
                     tar_file_path=tar_file,
                     target_netcdf_file_path=self.absolute_storage_path,
-                    target_netcdf_file_name=f"{self.source_and_model['source']}_{self.source_and_model['model']}_{self._extract_datetime_tag_from_file_name(file_name=str(file['filename']))}.nc",
-                    datetime_tag=str(self._extract_datetime_tag_from_file_name(file_name=str(file["filename"]))),
+                    target_netcdf_file_name=f"{self.source_and_model['source']}_{self.source_and_model['model']}_{datetime_tag}.nc",
+                    datetime_tag=datetime_tag,
                 )
             except Exception as e:
                 logger.error(f"An error occurred while processing file [{file['filename']}]: {e}")
@@ -442,11 +459,15 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         if existing_files_with_same_datetime_tag[0]["state"] == "deprecated":
             # An existing deprecated file with the same datetime tag is present, so if a new non-deprecated file with
             # the same datetime tag is available, we can update the deprecated file with the new file
-            _, deprecation_message = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
+            download_information = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
                 dataset_name=self.knmi_dataset_name,
                 dataset_version=self.knmi_dataset_version,
-                file_name=str(file["filename"]),
+                file_name=file["filename"].__str__(),
             )
+            if not download_information:
+                logger.error(f"Failed to retrieve download information for file [{file['filename']}].")
+                return AromeSuggestedFileHandling.LEAVE_AS_IS
+            _, deprecation_message = download_information
             if deprecation_message:
                 logger.warning(
                     f"File [{file['filename']}] is available for download and can be used to update the existing "
@@ -464,11 +485,16 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         if existing_files_with_same_datetime_tag[0]["state"] == "processed":
             # A processed file exists and can be left as is unless the file has since been labeled as deprecated.
-            _, deprecation_message = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
+            download_information = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
                 dataset_name=self.knmi_dataset_name,
                 dataset_version=self.knmi_dataset_version,
-                file_name=str(file["filename"]),
+                file_name=file["filename"].__str__(),
             )
+            if not download_information:
+                logger.error(f"Failed to retrieve download information for file [{file['filename']}].")
+                return AromeSuggestedFileHandling.LEAVE_AS_IS
+
+            _, deprecation_message = download_information
             if deprecation_message:
                 logger.warning(
                     f"File [{file['filename']}] is available for download and has the same datetime tag as an existing "
@@ -527,8 +553,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             return None
         return combined_dataset
 
+    @staticmethod
     def _filter_dataset_by_locations_and_factors(
-        self, dataset: xr.Dataset, locations: list[tuple[float, float]], factors: list[str]
+            dataset: xr.Dataset, locations: list[tuple[float, float]], factors: list[str]
     ) -> xr.Dataset:
         """Filter the dataset based on the requested locations and factors.
 

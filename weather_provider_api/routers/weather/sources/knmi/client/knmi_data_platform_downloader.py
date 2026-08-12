@@ -6,31 +6,32 @@
 
 This module is loosely based on the guides and examples provided by the KNMI Data Platform.
 """
-
 import os
 import re
 import tempfile
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, UTC, timedelta
 from pathlib import Path
 
-import requests  # type: ignore
+import requests
 from loguru import logger
 
+
 _MAX_ALLOWED_FILES_PER_REQUEST = 1000
+_MAX_ALLOWED_FILES_PER_UPDATE_RUN = 2000
 
+class KNMIDataPlatFormDownloadClient:
+    """A client for downloading data from the KNMI Data Platform.
 
-class KNMIDataPlatformDownloader:
-    """A class that can be used to download files from the KNMI Data Platform.
-
-    This class is based on the access methods used for the example downloads for the KNMI Data Platform, but has
-     been modified to make sure only the intended files get downloaded and returned.
+    This client is designed to handle the downloading of files from the KNMI Data Platform, ensuring that the number
+    of files requested does not exceed the maximum allowed limit. It provides methods to download files based on
+    specific parameters and handles the necessary authentication and request formatting.
     """
 
     def __init__(self) -> None:
-        """Initialize the KNMIDataPlatformDownloader."""
+        """Initialize the KNMIDataPlatFormDownloadClient."""
         self.data_platform_url = os.environ.get("KNMI_DATA_PLATFORM_URL", "https://api.dataplatform.knmi.nl/open-data")
         data_platform_key = os.environ.get("KNMI_DATA_PLATFORM_KEY", None)
-        self.data_platform_quota_timeout: datetime | None = None
+        self.data_platform_quota_timeout: datetime = datetime.now(tz=UTC)
 
         if data_platform_key is None:
             raise ValueError(
@@ -39,7 +40,7 @@ class KNMIDataPlatformDownloader:
             )
         self.data_platform_key = data_platform_key
 
-        self._validate_data_platform_access_settings()
+        self._validate_access_settings()
 
         self.download_folder = self._validate_download_folder(
             os.environ.get("KNMI_DATA_PLATFORM_DOWNLOAD_FOLDER", None)
@@ -47,26 +48,37 @@ class KNMIDataPlatformDownloader:
 
         logger.info("KNMIDataPlatformDownloader initialized.")
 
+    @property
+    def on_quota_timeout(self) -> bool:
+        """Check if the client is currently in a quota timeout state."""
+        return datetime.now(tz=UTC) < self.data_platform_quota_timeout
+
+    @property
+    def request_headers(self) -> dict[str, str | bytes] | None:
+        """Get the request headers for the KNMI Data Platform API requests."""
+        request_headers: dict[str, str | bytes] | None = {
+            "Authorization": f"Bearer {self.data_platform_key}"
+        }
+        return request_headers
+
+    def get_dataplatform_access_url(self, dataset_name: str, dataset_version: str) -> str:
+        """Get the access URL for the KNMI Data Platform."""
+        return f"{self.data_platform_url}/v1/datasets/{dataset_name}/versions/{dataset_version}/files"
+
+
     def retrieve_file_and_size_list_for_dataset(
-        self,
-        dataset_name: str,
-        dataset_version: str,
-        max_files: int | None = None,
-    ) -> list[dict[str, str | int]]:
-        """Retrieve the list of files available for a given dataset and version from the KNMI Data Platform.
+            self, dataset_name: str, dataset_version: str, max_files: int | None = None
+    ) -> list[dict[str, str | int]] | None:
+        # Make sure we're not currently in a quota timeout state
+        if self.on_quota_timeout:
+            logger.warning(
+                "Quota timeout in effect. Cannot retrieve file list for dataset {} version {} until {}.",
+                dataset_name,
+                dataset_version,
+                self.data_platform_quota_timeout,
+            )
+            return None
 
-        Contacts the KNMI Data Platform API to retrieve the list of files available for the given dataset and version, and returns a list of file URLs to download.
-        The number of files returned is limited by the max_files parameter. Because the KNMI Data Platform API allows a maximum of 1000 files to be retrieved in a single
-        request, higher numbers will be handled via pagination.
-
-        Args:
-            dataset_name: The name of the dataset to retrieve the file list for.
-            dataset_version: The version of the dataset to retrieve the file list for.
-            max_files: The maximum number of files to retrieve from the file list. If None, all files will be retrieved.
-        """
-        if self.data_platform_quota_timeout is not None and datetime.now(tz=UTC) < self.data_platform_quota_timeout:
-            logger.warning("Hit the quota limit for the KNMI Data Platform API. No processing until the timeout expires before continuing.")
-            return []
         max_keys = (
             min(max_files, _MAX_ALLOWED_FILES_PER_REQUEST) if max_files is not None else _MAX_ALLOWED_FILES_PER_REQUEST
         )
@@ -74,31 +86,36 @@ class KNMIDataPlatformDownloader:
         file_list: list[dict[str, str | int]] = []
 
         logger.debug(
-            f"Retrieving file list for dataset [{dataset_name}] version [{dataset_version}] from the "
-            f"KNMI Data Platform API with the following parameters: max_files={max_files.__str__()}"
+            "Retrieving file list for dataset {} version {} with max keys {}.",
+            dataset_name, dataset_version, max_keys
         )
+        request_access_url = self.get_dataplatform_access_url(dataset_name, dataset_version)
 
-        access_url = f"{self.data_platform_url}/v1/datasets/{dataset_name}/versions/{dataset_version}/files"
-        headers: dict[str, str | bytes] | None = {"Authorization": self.data_platform_key}
-
+        page: int = 1
         while True:
-            params: dict[str, str | int | None] = {
+            logger.debug(
+                "Requesting page {} of file list for dataset {} version {}.",
+                page, dataset_name, dataset_version
+            )
+            request_params: dict[str, str | int | None] = {
                 "orderBy": "created",
                 "maxKeys": max_keys,
                 "sorting": "desc",
                 "nextPageToken": next_page_token,
             }
-            response = requests.get(access_url, params=params, headers=headers, timeout=10)
+            response = requests.get(request_access_url, params=request_params, headers=self.request_headers, timeout=10)
 
             if response.status_code != 200:
-                self._process_status_code_error(response.status_code, response.text)
+                self._process_irregular_response(response)
+                return None
 
             file_list.extend(response.json().get("files", []))
-            if max_files is not None and len(file_list) >= max_files:
+            if len(file_list) >= _MAX_ALLOWED_FILES_PER_UPDATE_RUN:
                 logger.debug(
-                    f"Retrieved the maximum number of files requested ({max_files}). Stopping file list retrieval."
+                    "Reached maximum allowed files per update run ({}). Stopping retrieval of file list.",
+                    _MAX_ALLOWED_FILES_PER_UPDATE_RUN
                 )
-                file_list = file_list[:max_files]  # Trim the list to the max_files limit
+                file_list = file_list[:_MAX_ALLOWED_FILES_PER_UPDATE_RUN]  # Trim the list to the max_files limit
                 break
 
             next_page_token = response.json().get("nextPageToken", None)
@@ -106,26 +123,117 @@ class KNMIDataPlatformDownloader:
                 logger.debug("No next page token found in the response, assuming this is the last page of results.")
                 break
 
+            page += 1
+
         logger.info(f"Successfully retrieved file list from the KNMI Data Platform API. ({len(file_list)} files)")
         return file_list
 
+
+    def _validate_access_settings(self) -> None:
+        """Validate the access settings for the KNMI Data Platform."""
+
+        # Check if the access key and URL are set at all
+        if not self.data_platform_key:
+            raise ValueError("KDP Access Error: access key is not set.")
+        if not self.data_platform_url:
+            raise ValueError("KDP Access Error: URL is not set.")
+
+        # Check if the access key can be used to access the KNMI Data Platform
+        ...
+
+        logger.info("Access settings validated successfully.")
+
+    @staticmethod
+    def _validate_download_folder(download_folder: str | None) -> Path:
+        """Validate the download folder for the KNMI Data Platform Downloader, ensuring it exists and is writable."""
+        validated_download_folder : Path
+
+        if download_folder is None:
+            # Set a temporary default download folder if none is provided
+            validated_download_folder = Path(tempfile.gettempdir()) / "knmi_data_platform_downloads"
+            logger.warning("No download folder specified. Using temporary folder: {}", validated_download_folder)
+        else:
+            validated_download_folder = Path(download_folder)
+
+        # Ensure the download folder exists
+        if not validated_download_folder.exists():
+            logger.warning("Download folder does not exist. Creating: {}", validated_download_folder)
+            try:
+                validated_download_folder.mkdir(parents=True, exist_ok=True)
+            except FileNotFoundError as e:
+                raise ValueError(f"Failed to create download folder: {validated_download_folder}. Error: {e}")
+            except PermissionError as e:
+                raise ValueError(f"Permission denied when creating download folder: {validated_download_folder}. Error: {e}")
+            except Exception as e:
+                raise ValueError(f"Unexpected error when creating download folder: {validated_download_folder}. Error: {e}")
+        else:
+            if not validated_download_folder.is_dir():
+                raise ValueError(f"Download folder already exists but is not a directory: {validated_download_folder}")
+
+        return validated_download_folder
+
+
+    def _process_irregular_response(self, response: requests.Response) -> None:
+        """Process irregular response from the KNMI Data Platform API."""
+        match response.status_code:
+            case 429:
+                # Quota exceeded, set the quota timeout
+                retry_after = int(response.headers.get("Retry-After", 3600))  # Default to 3600 seconds (1 hour)
+                self.data_platform_quota_timeout = datetime.now(tz=UTC) + timedelta(seconds=retry_after)
+                logger.warning(
+                    "Quota exceeded. Entering quota timeout until {}. Retry after {} seconds.",
+                    self.data_platform_quota_timeout,
+                    retry_after,
+                )
+            case 403:
+                logger.error(
+                    "Access forbidden. Check your access key and permissions. Response: {}",
+                    response.text,
+                )
+            case 404:
+                logger.error(
+                    "Resource not found. Check the requested URL and parameters. Response: {}",
+                    response.text,
+                )
+            case 500:
+                logger.error(
+                    "Internal server error at KNMI Data Platform. Response: {}",
+                    response.text,
+                )
+            case _:
+                logger.error(
+                    "Unexpected response from KNMI Data Platform. Status code: {}, Response: {}",
+                    response.status_code,
+                    response.text,
+                )
+                raise ValueError(
+                    f"Unexpected response from KNMI Data Platform. Status code: {response.status_code}, "
+                    f"Response: {response.text}"
+                )
+
     def retrieve_download_information_for_file(
-        self, file_name: str, dataset_name: str, dataset_version: str
-    ) -> tuple[str, str | None]:
-        """Retrieve relevant information for downloading a file from the KNMI Data Platform."""
-        # First we build the file information retrieval url
-        file_information_url = (
-            f"{self.data_platform_url}/v1/datasets/{dataset_name}/versions/{dataset_version}/files/{file_name}/url"
-        )
+            self, file_name: str, dataset_name: str, dataset_version: str
+    ) -> tuple[str, str | None] | None:
+        # Make sure we're not currently in a quota timeout state
+        if self.on_quota_timeout:
+            logger.warning(
+                "Quota timeout in effect. Cannot retrieve download information for file {} in dataset {} version {} until {}.",
+                file_name,
+                dataset_name,
+                dataset_version,
+                self.data_platform_quota_timeout,
+            )
+            return None
+        # Make a request to the KNMI Data Platform to get the download information for the specified file
+        file_information_url = self.get_dataplatform_access_url(dataset_name, dataset_version) + f"/{file_name}/url"
+        response = requests.get(file_information_url, headers=self.request_headers, timeout=10)
 
-        # Then we make a request to the KNMI Data Platform API to retrieve the download URL and deprecation message (if applicable) for the file
-        headers: dict[str, str | bytes] | None = {"Authorization": self.data_platform_key}
-        response = requests.get(file_information_url, headers=headers, timeout=10)
-
-        # Handle potential errors in the response
+        # Check the response status code and handle accordingly
         if response.status_code != 200:
-            self._process_status_code_error(response.status_code, response.text)
+            self._process_irregular_response(response)
+            return None
 
+        # Extract the temporary download URL and deprecation message from the response
         download_url: str | None = response.json().get("temporaryDownloadUrl", None)
         deprecation_message: str | None = response.headers.get("X-KNMI-Deprecation")
 
@@ -136,7 +244,7 @@ class KNMIDataPlatformDownloader:
 
         return download_url, deprecation_message
 
-    def retrieve_file(self, file_name: str, file_size: int, download_url: str) -> Path:
+    def retrieve_file(self, file_name: str, file_size: int, download_url: str) -> Path | None:
         """Retrieve a specific file from the KNMI Data Platform, and save it to the download folder.
 
         Args:
@@ -144,6 +252,14 @@ class KNMIDataPlatformDownloader:
             file_size: The expected size of the file to retrieve, used for validation.
             download_url: The temporary download URL for the file to retrieve.
         """
+        if self.on_quota_timeout:
+            logger.warning(
+                "Quota timeout in effect. Cannot download file {} until {}.",
+                file_name,
+                self.data_platform_quota_timeout,
+            )
+            return None
+
         logger.info(f"Starting download of file [{file_name}] from the KNMI Data Platform.")
 
         # First we check if the file already exists in the download folder, and if it does, we check if the size matches the expected size.
@@ -159,97 +275,6 @@ class KNMIDataPlatformDownloader:
         self._download_and_save_file_by_name_and_size(download_url, file_name, file_size)
 
         return self.download_folder.joinpath(file_name)
-
-    def _validate_data_platform_access_settings(self) -> None:
-        """Validate the access settings for the KNMI Data Platform, by making a test request to the API."""
-        try:
-            self.retrieve_file_and_size_list_for_dataset(
-                dataset_name="waarschuwingen_nederland_48h", dataset_version="1.0", max_files=1
-            )
-            logger.info("Successfully validated access settings for the KNMI Data Platform API.")
-        except Exception as e:
-            if "Quota exceeded" in str(e) or self.data_platform_quota_timeout is not None:
-                logger.warning("Access verified, but Quota exceeded for the KNMI Data Platform API. "
-                           "You may have exceeded your quota. Continuing with caution and setting a timeout for "
-                           "the next hour.")
-            else:
-                raise ValueError(
-                    f"Failed to validate access settings for the KNMI Data Platform API. Error: {e}") from e
-
-    @staticmethod
-    def _validate_download_folder(download_folder: str | None) -> Path:
-        """Validate the download folder, and create it if it does not exist."""
-        validated_folder: Path
-
-        if download_folder is None:
-            validated_folder = Path(tempfile.gettempdir()) / "knmi_data_platform_downloads"
-            validated_folder.mkdir(parents=False, exist_ok=True)
-            logger.warning(
-                f"No download folder specified for the KNMI Data Platform Downloader, using temporary folder: [{validated_folder}]"
-            )
-            return validated_folder
-
-        validated_folder = Path(download_folder)
-        if validated_folder.exists():
-            logger.info(
-                f"Using specified existing download folder for the KNMI Data Platform Downloader: [{validated_folder}]"
-            )
-            return validated_folder
-
-        try:
-            validated_folder.mkdir(parents=False, exist_ok=False)
-            logger.info(f"Created download folder for the KNMI Data Platform Downloader: [{validated_folder}]")
-            logger.info(
-                f"Using specified existing download folder for the KNMI Data Platform Downloader: [{validated_folder}]"
-            )
-            return validated_folder
-        except FileNotFoundError as e:
-            raise ValueError(
-                f"The specified download folder for the KNMI Data Platform Downloader does not exist, and could not be created: [{validated_folder}]"
-            ) from e
-        except FileExistsError as e:
-            raise ValueError(
-                f"The specified download folder for the KNMI Data Platform Downloader already exists, but is not a directory: [{validated_folder}]"
-            ) from e
-        except Exception as e:
-            raise ValueError(
-                f"An error occurred while validating the specified download folder for the KNMI Data Platform Downloader: [{validated_folder}]. Error: {e}"
-            ) from e
-
-    def _process_status_code_error(self, status_code: int, response_text: str) -> None:
-        """Process an error response from the KNMI Data Platform API, and raise a descriptive ValueError."""
-        if status_code == 400:
-            raise ValueError(f"Bad request to the KNMI Data Platform API. Response: {response_text}")
-        elif status_code == 401:
-            raise ValueError(
-                f"Unauthorized access to the KNMI Data Platform API. Check your API key. Response: {response_text}"
-            )
-        elif status_code == 403:
-            if "Quota exceeded" in response_text:
-                self.data_platform_quota_timeout = datetime.now(tz=UTC) + timedelta(hours=1)
-                raise ValueError(
-                    f"Quota exceeded for the KNMI Data Platform API. You may have exceeded your quota. Response: {response_text}"
-                )
-            raise ValueError(
-                f"Forbidden access to the KNMI Data Platform API. Check your permissions. Response: {response_text}"
-            )
-        elif status_code == 404:
-            raise ValueError(
-                f"Dataset or version not found in the KNMI Data Platform API. Check your dataset name and version. Response: {response_text}"
-            )
-        elif status_code ==429:
-            self.data_platform_quota_timeout = datetime.now(tz=UTC) + timedelta(hours=1)
-            raise ValueError(
-                f"Too many requests to the KNMI Data Platform API. You may have exceeded your quota. Response: {response_text}"
-            )
-        elif status_code == 500:
-            raise ValueError(
-                f"Internal server error in the KNMI Data Platform API. Try again later. Response: {response_text}"
-            )
-        else:
-            raise ValueError(
-                f"Unexpected error from the KNMI Data Platform API. Status code: {status_code}. Response: {response_text}"
-            )
 
     def _download_and_save_file_by_name_and_size(
         self, temporary_download_url: str, file_name: str, file_size: int
@@ -269,7 +294,7 @@ class KNMIDataPlatformDownloader:
         response = requests.get(temporary_download_url, timeout=10)
 
         if response.status_code != 200:
-            self._process_status_code_error(response.status_code, response.text)
+            self._process_irregular_response(response)
 
         filename_of_download = str(re.findall("filename=(.+)", response.headers["content-disposition"])[0]).strip('"')
 
@@ -292,3 +317,4 @@ class KNMIDataPlatformDownloader:
                 f"Actual size: {total_bytes_transferred} bytes."
             )
         logger.info(f"File [{file_name}] downloaded and saved successfully with the expected file size.")
+
