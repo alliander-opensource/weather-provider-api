@@ -64,6 +64,9 @@ class KNMIDataPlatformDownloader:
             dataset_version: The version of the dataset to retrieve the file list for.
             max_files: The maximum number of files to retrieve from the file list. If None, all files will be retrieved.
         """
+        if self.data_platform_quota_timeout is not None and datetime.now(tz=UTC) < self.data_platform_quota_timeout:
+            logger.warning("Hit the quota limit for the KNMI Data Platform API. No processing until the timeout expires before continuing.")
+            return []
         max_keys = (
             min(max_files, _MAX_ALLOWED_FILES_PER_REQUEST) if max_files is not None else _MAX_ALLOWED_FILES_PER_REQUEST
         )
