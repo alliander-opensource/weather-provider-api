@@ -82,12 +82,13 @@ class KNMIDataPlatFormDownloadClient:
         max_keys = (
             min(max_files, _MAX_ALLOWED_FILES_PER_REQUEST) if max_files is not None else _MAX_ALLOWED_FILES_PER_REQUEST
         )
+        max_files: int = min(max_files, _MAX_ALLOWED_FILES_PER_UPDATE_RUN) if max_files is not None else _MAX_ALLOWED_FILES_PER_UPDATE_RUN
         next_page_token = None
         file_list: list[dict[str, str | int]] = []
 
         logger.debug(
-            "Retrieving file list for dataset {} version {} with max keys {}.",
-            dataset_name, dataset_version, max_keys
+            "Retrieving file list for dataset {} version {} with a maximum of {} files.",
+            dataset_name, dataset_version, max_files
         )
         request_access_url = self.get_dataplatform_access_url(dataset_name, dataset_version)
 
@@ -110,12 +111,12 @@ class KNMIDataPlatFormDownloadClient:
                 return None
 
             file_list.extend(response.json().get("files", []))
-            if len(file_list) >= _MAX_ALLOWED_FILES_PER_UPDATE_RUN:
+            if max_files is not None and len(file_list) >= max_files:
                 logger.debug(
                     "Reached maximum allowed files per update run ({}). Stopping retrieval of file list.",
-                    _MAX_ALLOWED_FILES_PER_UPDATE_RUN
+                    max_files
                 )
-                file_list = file_list[:_MAX_ALLOWED_FILES_PER_UPDATE_RUN]  # Trim the list to the max_files limit
+                file_list = file_list[:max_files]  # Trim the list to the max_files limit
                 break
 
             next_page_token = response.json().get("nextPageToken", None)
@@ -186,10 +187,19 @@ class KNMIDataPlatFormDownloadClient:
                     retry_after,
                 )
             case 403:
-                logger.error(
-                    "Access forbidden. Check your access key and permissions. Response: {}",
-                    response.text,
-                )
+                if "Quota exceeded" in response.text:
+                    retry_after = int(response.headers.get("Retry-After", 3600))  # Default to 3600 seconds (1 hour)
+                    self.data_platform_quota_timeout = datetime.now(tz=UTC) + timedelta(seconds=retry_after)
+                    logger.warning(
+                        "Quota exceeded. Entering quota timeout until {}. Retry after {} seconds.",
+                        self.data_platform_quota_timeout,
+                        retry_after,
+                    )
+                else:
+                    logger.error(
+                        "Access forbidden. Check your access key and permissions. Response: {}",
+                        response.text,
+                    )
             case 404:
                 logger.error(
                     "Resource not found. Check the requested URL and parameters. Response: {}",

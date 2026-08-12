@@ -31,7 +31,7 @@ def _mock_knmi_data_platform_downloader(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("KNMI_DATA_PLATFORM_KEY", "dummy-access-key")
     monkeypatch.setattr(
         "weather_provider_api.routers.weather.sources.knmi.client.arome_repository."
-        "KNMIDataPlatformDownloader.__init__",
+        "KNMIDataPlatFormDownloadClient.__init__",
         lambda self: None,
     )
 
