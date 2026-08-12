@@ -10,6 +10,7 @@ This module is loosely based on the guides and examples provided by the KNMI Dat
 import os
 import re
 import tempfile
+from datetime import datetime, timedelta, UTC
 from pathlib import Path
 
 import requests  # type: ignore
@@ -29,6 +30,7 @@ class KNMIDataPlatformDownloader:
         """Initialize the KNMIDataPlatformDownloader."""
         self.data_platform_url = os.environ.get("KNMI_DATA_PLATFORM_URL", "https://api.dataplatform.knmi.nl/open-data")
         data_platform_key = os.environ.get("KNMI_DATA_PLATFORM_KEY", None)
+        self.data_platform_quota_timeout: datetime | None = None
 
         if data_platform_key is None:
             raise ValueError(
@@ -70,7 +72,7 @@ class KNMIDataPlatformDownloader:
 
         logger.debug(
             f"Retrieving file list for dataset [{dataset_name}] version [{dataset_version}] from the "
-            f"KNMI Data Platform API with the following parameters: max_files={max_files}"
+            f"KNMI Data Platform API with the following parameters: max_files={max_files.__str__()}"
         )
 
         access_url = f"{self.data_platform_url}/v1/datasets/{dataset_name}/versions/{dataset_version}/files"
@@ -163,9 +165,16 @@ class KNMIDataPlatformDownloader:
             )
             logger.info("Successfully validated access settings for the KNMI Data Platform API.")
         except Exception as e:
-            raise ValueError(f"Failed to validate access settings for the KNMI Data Platform API. Error: {e}") from e
+            if "Quota exceeded" in str(e) or self.data_platform_quota_timeout is not None:
+                logger.warning("Access verified, but Quota exceeded for the KNMI Data Platform API. "
+                           "You may have exceeded your quota. Continuing with caution and setting a timeout for "
+                           "the next hour.")
+            else:
+                raise ValueError(
+                    f"Failed to validate access settings for the KNMI Data Platform API. Error: {e}") from e
 
-    def _validate_download_folder(self, download_folder: str | None) -> Path:
+    @staticmethod
+    def _validate_download_folder(download_folder: str | None) -> Path:
         """Validate the download folder, and create it if it does not exist."""
         validated_folder: Path
 
@@ -213,12 +222,22 @@ class KNMIDataPlatformDownloader:
                 f"Unauthorized access to the KNMI Data Platform API. Check your API key. Response: {response_text}"
             )
         elif status_code == 403:
+            if "Quota exceeded" in response_text:
+                self.data_platform_quota_timeout = datetime.now(tz=UTC) + timedelta(hours=1)
+                raise ValueError(
+                    f"Quota exceeded for the KNMI Data Platform API. You may have exceeded your quota. Response: {response_text}"
+                )
             raise ValueError(
                 f"Forbidden access to the KNMI Data Platform API. Check your permissions. Response: {response_text}"
             )
         elif status_code == 404:
             raise ValueError(
                 f"Dataset or version not found in the KNMI Data Platform API. Check your dataset name and version. Response: {response_text}"
+            )
+        elif status_code ==429:
+            self.data_platform_quota_timeout = datetime.now(tz=UTC) + timedelta(hours=1)
+            raise ValueError(
+                f"Too many requests to the KNMI Data Platform API. You may have exceeded your quota. Response: {response_text}"
             )
         elif status_code == 500:
             raise ValueError(
