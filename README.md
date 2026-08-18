@@ -9,9 +9,9 @@ SPDX-License-Identifier: MPL-2.0
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=security_rating)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=bugs)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=coverage)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/weather-provider-api?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/weather-provider-api)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/weather-provider-api?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads%2Fmonth)](https://pepy.tech/projects/weather-provider-api)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_weather-provider-api&metric=coverage)](https://sonarcloud.io/dashboard?id=alliander-opensource_weather-provider-api)
 
 > :warning: **Due to changes in the way that CDS delivers data, ERA5 data does not currently process sea level data
 > for the time being. This will be fixed in a future release.**
