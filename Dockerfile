@@ -17,16 +17,16 @@ RUN pip install poetry
 # Setup WPLA user and switch to WPLA user
 ARG APP_USER=wpla-user
 
-RUN groupadd --system "$APP_USER" && \
-    useradd --system --gid "$APP_USER" --create-home --home "$APP_HOME" "$APP_USER"
+RUN groupadd --system -g 65532 "$APP_USER" && \
+    useradd --system --gid 65532 --create-home --home "$APP_HOME" "$APP_USER"
 
 WORKDIR $APP_HOME
 
 USER $APP_USER
 
-COPY --chown=$APP_USER:$APP_USER ./pyproject.toml ./pyproject.toml
-COPY --chown=$APP_USER:$APP_USER ./weather_provider_api ./weather_provider_api
-COPY --chown=$APP_USER:$APP_USER ./var_maps ./var_maps
+COPY --chown=65532:65532 ./pyproject.toml ./pyproject.toml
+COPY --chown=65532:65532 ./weather_provider_api ./weather_provider_api
+COPY --chown=65532:65532 ./var_maps ./var_maps
 
 RUN poetry config virtualenvs.in-project true && \
     poetry install --no-interaction --no-ansi -v --no-root
