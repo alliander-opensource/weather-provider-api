@@ -16,10 +16,16 @@ RUN pip install poetry
 
 # Setup WPLA user and switch to WPLA user
 ARG APP_USER=wpla-user
+ARG APP_UID=65532
+ARG APP_GID=65532
 
-RUN groupadd --system -g 65532 "$APP_USER" && \
-    useradd --system --gid 65532 --create-home --home "$APP_HOME" "$APP_USER"
-
+RUN groupadd --system --gid "$APP_GID" "$APP_USER" && \
+    useradd --system \
+      --uid "$APP_UID" \
+      --gid "$APP_GID" \
+      --create-home \
+      --home-dir "$APP_HOME" \
+      "$APP_USER"
 WORKDIR $APP_HOME
 
 USER $APP_USER
