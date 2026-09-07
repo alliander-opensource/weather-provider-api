@@ -58,7 +58,7 @@ dev = [
 ]
 docs = [
     "mkdocstrings-python>=2.0.5",
-    "zensical>=0.0.50,<0.0.51",
+    "zensical>=0.0.50,<0.0.60",
 ]
 
 [build-system]
