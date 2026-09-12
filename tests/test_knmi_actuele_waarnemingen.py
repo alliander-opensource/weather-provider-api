@@ -19,13 +19,13 @@ from weather_provider_api.routers.weather.sources.knmi.utils.commons import (
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
-@pytest.fixture()
+@pytest.fixture
 def start():
     """Fixture for providing a start datetime for the tests."""
     return datetime(2018, 1, 1)
 
 
-@pytest.fixture()
+@pytest.fixture
 def end():
     """Fixture for providing an end datetime for the tests."""
     return datetime(2018, 1, 31)

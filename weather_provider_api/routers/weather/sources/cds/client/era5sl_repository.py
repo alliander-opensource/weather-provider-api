@@ -89,7 +89,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         )
 
     def cleanup_storage(self) -> RepoUpdateResult:
-        """Cleans up the storage by deleting all files that are outside of the repository's scope."""
+        """Cleans up the storage by deleting all files that are outside the repository's scope."""
         self._delete_files_outside_of_scope()
 
         return RepoUpdateResult.SUCCESS

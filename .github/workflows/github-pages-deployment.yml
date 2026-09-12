@@ -15,8 +15,7 @@ concurrency:
 jobs:
   # Build the Zensical documentation and open a signed PR to the gh-pages branch
   deploy:
-    runs-on:
-      group: managed
+    runs-on: mgd-ubuntu24-x64-4c16g
     permissions:
       contents: write
       pull-requests: write

@@ -1,8 +1,9 @@
-# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+ # SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
 
 import glob
+import shutil
 import tempfile
 import zipfile
 from datetime import UTC, date, datetime, timedelta
@@ -154,8 +155,12 @@ def _era5_update_month(update_settings: Era5UpdateSettings, update_month: date, 
                 with zipfile.ZipFile(month_file_name, "r") as zip_ref:
                     zip_ref.extractall(temp_dir)
                 # Save the data_0.nc file to the month_file_name location
+                # NOTE: shutil.move (rather than Path.rename/os.rename) is used because the temp
+                # directory and the target storage location can reside on different filesystems/devices
+                # (e.g. /tmp vs. a mounted volume), and rename() fails with "Invalid cross-device link"
+                # in that case. shutil.move falls back to a copy+delete when a direct rename isn't possible.
                 data_file = Path(temp_dir).joinpath("data_0.nc")
-                data_file.rename(month_file_name)
+                shutil.move(str(data_file), str(month_file_name))
 
             _format_downloaded_file(month_file_name, update_settings.factor_dictionary)
 

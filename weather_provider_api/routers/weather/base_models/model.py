@@ -81,7 +81,7 @@ class WeatherModelBase(metaclass=ABCMeta):
                 new_data = conversion_dict[var_name]["convert"](weather_data[var_name]).astype(dtype_value)
 
             weather_data = weather_data.drop_vars(var_name)
-            weather_data[new_name] = new_data
+            weather_data[new_name] = new_data.variable
 
         return weather_data
 

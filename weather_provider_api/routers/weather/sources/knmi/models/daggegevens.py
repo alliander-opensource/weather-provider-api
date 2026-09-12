@@ -319,9 +319,10 @@ class DagGegevensModel(WeatherModelBase):
         data_dict = {var_name: (["coord", "time"], var.values) for var_name, var in ds.data_vars.items()}
         timeline = pd.DatetimeIndex(ds.coords["date"].values)
 
+        mindex_coords = xr.Coordinates.from_pandas_multiindex(coords_to_pd_index(coordinates), "coord")
         ds = xr.Dataset(
             data_vars=data_dict,
-            coords={"time": timeline, "coord": coords_to_pd_index(coordinates)},
+            coords={"time": timeline, **mindex_coords},
         )
         ds = ds.unstack("coord")
 

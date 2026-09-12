@@ -47,7 +47,8 @@ def mock_single_value_dataset(mock_coordinates: list[tuple[float, float]]):
         )
         for weather_factor in mock_factor
     }
-    ds = xr.Dataset(data_vars=data_dict, coords={"time": timeline, "coord": coord_indices})
+    mindex_coords = xr.Coordinates.from_pandas_multiindex(coord_indices, "coord")
+    ds = xr.Dataset(data_vars=data_dict, coords={"time": timeline, **mindex_coords})
 
     # Fill the single temperature value with 25 degrees Celsius
     ds["temperature"].data = [[np.float64(25), np.float64(25)]]

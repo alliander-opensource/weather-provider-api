@@ -101,9 +101,10 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
 
         timeline = raw_ds.coords["time"].values
 
+        mindex_coords = xr.Coordinates.from_pandas_multiindex(coords_to_pd_index(coords), "coord")
         output_ds = xr.Dataset(
             data_vars=data_dictionary,
-            coords={"time": timeline, "coord": coords_to_pd_index(coords)},
+            coords={"time": timeline, **mindex_coords},
         )
         output_ds = output_ds.unstack("coord")
         return output_ds

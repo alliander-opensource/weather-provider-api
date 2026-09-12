@@ -23,7 +23,7 @@ class MockResponseFormat(StrEnum):
     mock_format = "mock_format"
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_response_query(mock_factors: list[str]) -> WeatherContentRequestQuery:
     """Returns a mock WeatherContentRequestQuery for testing purposes."""
     result = WeatherContentRequestQuery(
@@ -61,16 +61,21 @@ def test_file_or_text_response_forged_response_format(
     mock_response_query: WeatherContentRequestQuery,
 ):
     # TEST 1: Non-existing ResponseFormat is intercepted by Class
-    with pytest.raises(ValueError) as e:
+    class FakeEnum(StrEnum):
+        """A fake enum for testing purposes."""
+        fake_format = "fake_format"
+    response_format = FakeEnum.fake_format
+
+    with pytest.raises(NotImplementedError) as e:
         return_file_or_text_response(
             mock_dataset,
-            ResponseFormat("mock_format"),
+            response_format,  # type: ignore[arg-type]
             "knmi",
             "pluim",
             mock_response_query,
             mock_coordinates,
         )
-    assert str(e.value.args[0]) == "'mock_format' is not a valid ResponseFormat"
+    assert str(e.value.args[0]) == f"Cannot create response for the {response_format} response format"
 
 
 def test_file_or_text_response_netcdf4_with_timezone_aware_time(

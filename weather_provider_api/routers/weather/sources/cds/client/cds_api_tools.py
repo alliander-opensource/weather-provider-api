@@ -35,9 +35,9 @@ _DEFAULT_VARIABLES = [
 def _info_callback(*args: tuple[Any, ...], **kwargs: dict[str, Any]) -> None:
     """This is a callback function that is used to print information about the download process."""
     if len(args) > 0 or len(kwargs) > 0:
-        logger.info("Callback received:")
-        logger.info(" - args: ", *args)
-        logger.info(" - kwargs: ", **kwargs)
+        logger.debug("Callback received:")
+        logger.debug(" - args: %s", args)
+        logger.debug(" - kwargs: %s", kwargs)
 
 
 class CDSDataSets(StrEnum):

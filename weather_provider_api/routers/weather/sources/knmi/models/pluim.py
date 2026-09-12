@@ -184,10 +184,11 @@ class PluimModel(WeatherModelBase):
             ]
             # Select only the stations in coords_stn_ind order
             values_selected = [[row[i] for i in coords_stn_ind] for row in values_time_major]
+            mindex_coords = xr.Coordinates.from_pandas_multiindex(coords_to_pd_index(coordinates), "coord")
             arr_dict[weather_factor] = xr.DataArray(
                 data=values_selected,
                 dims=["time", "coord"],
-                coords={"time": timeline, "coord": coords_to_pd_index(coordinates)},
+                coords={"time": timeline, **mindex_coords},
                 name=weather_factor,
             )
             ds = xr.merge(arr_dict.values(), join="outer")  # type: ignore
