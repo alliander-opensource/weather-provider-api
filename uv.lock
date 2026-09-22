@@ -1355,6 +1355,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-env"
+version = "1.7.1"
+source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
+dependencies = [
+    { name = "pytest" },
+    { name = "python-dotenv" },
+]
+sdist = { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/32/72/d3e125d18f798b2968430b77dba991c69df354ec649db4c1480ac9bc2ab4/pytest_env-1.7.1.tar.gz", hash = "sha256:f2c5aed2621dbfc73c2866a710e2e456409495c5ac10905612c9509b3ee631a2", size = 17091, upload-time = "2026-09-08T14:49:44.487Z" }
+wheels = [
+    { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/e9/82/fd9f2855bb9d48022942c2123f287d006b7569ae9b2cae8939f94a25fdf6/pytest_env-1.7.1-py3-none-any.whl", hash = "sha256:22341b945305b65ef4e53d7c678982cfd64b5c5800afdf7d37caad2362ea002c", size = 10361, upload-time = "2026-09-08T14:49:43.288Z" },
+]
+
+[[package]]
 name = "pytest-xdist"
 version = "3.8.0"
 source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
@@ -1398,6 +1411,15 @@ dependencies = [
 sdist = { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/91/96/0f93e27c9f60a650838f2118159aa115fd5732c0716247917b7ba7ede665/python_discovery-1.6.0.tar.gz", hash = "sha256:6393b4eae1be8b2182670635e7baff89ac21cb9f8e86fd1ff40c7b1144febb4c", size = 82849, upload-time = "2026-08-28T17:30:02.366Z" }
 wheels = [
     { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/43/5e/21abf578182fb15006a57faf3711a1e659e29d600d19b6e557eae908c81d/python_discovery-1.6.0-py3-none-any.whl", hash = "sha256:d4e244cf17b8b29819ed78003d55fbacf86eda23425b075454fff9271b79377a", size = 38451, upload-time = "2026-08-28T17:30:01.236Z" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.2.3"
+source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
+sdist = { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/6a/53/ed9d74092561d4b01a2ef1349d52cdbc135e526c245f366b089cfca6de49/python_dotenv-1.2.3.tar.gz", hash = "sha256:a20a594dabeaa385725aa239d5244871c143ecb356add8a20fcf23773a6c3a35", size = 58945, upload-time = "2026-08-16T16:54:54.067Z" }
+wheels = [
+    { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/0d/17/c5c6b53ddc18f297992099b3d9ec16c855c0ccc83263a21fe4d1c625ec6c/python_dotenv-1.2.3-py3-none-any.whl", hash = "sha256:904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9", size = 22780, upload-time = "2026-08-16T16:54:52.473Z" },
 ]
 
 [[package]]
@@ -1788,6 +1810,7 @@ dev = [
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-env" },
     { name = "pytest-xdist" },
     { name = "reuse" },
     { name = "ruff" },
@@ -1838,6 +1861,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.6.0,<5.0.0" },
     { name = "pytest", specifier = ">=9.1.1,<10.0.0" },
     { name = "pytest-cov", specifier = ">=7.1.0,<8.0.0" },
+    { name = "pytest-env", specifier = ">=1.2.0,<2.0.0" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "reuse", specifier = ">=6.2.0,<7.0.0" },
     { name = "ruff", specifier = ">=0.16.0,<0.17.0" },

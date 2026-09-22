@@ -23,6 +23,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
     """A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset."""
 
     def __init__(self):
+        """ActueleWaarnemingenRegisterModel initializer."""
         super().__init__()
         self.id = "waarnemingen_register"
         self.name = "KNMI Actuele Waarnemingen - 48 uur register"

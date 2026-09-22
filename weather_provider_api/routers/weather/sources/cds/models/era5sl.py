@@ -119,12 +119,12 @@ class ERA5SLModel(WeatherModelBase):
             A list of weather factors (in string format) only factors that match those of the ERA5SL dataset.
         """
         if weather_factors is None:
-            weather_factors = [era5sl_factors[x] for x in era5sl_factors.keys()]
+            weather_factors = [era5sl_factors[x] for x in era5sl_factors]
 
         # Lookup using the generic long name
         weather_factors_long_names = [x for x in weather_factors if x in era5sl_factors.values()]
         # Lookup using the CDS' own short name
-        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors.keys()]
+        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors]
 
         # Merge the results
         weather_factors = weather_factors_long_names + weather_factors_short_names

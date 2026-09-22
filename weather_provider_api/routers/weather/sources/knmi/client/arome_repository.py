@@ -112,9 +112,11 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
                     including 'name' and 'size'. If no files are available for download, return None.
         """
         # Retrieve the list of all available files for the relevant dataset and version from the KNMI Data Platform
-        all_files_available_on_knmi_data_platform = self.knmi_data_platform_downloader.retrieve_file_and_size_list_for_dataset(
-            dataset_name=self.knmi_dataset_name,
-            dataset_version=self.knmi_dataset_version,
+        all_files_available_on_knmi_data_platform = (
+            self.knmi_data_platform_downloader.retrieve_file_and_size_list_for_dataset(
+                dataset_name=self.knmi_dataset_name,
+                dataset_version=self.knmi_dataset_version,
+            )
         )
 
         # Filter the list of files to those that match the targeted download pattern
@@ -218,10 +220,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         """
         existing_files: list[dict[str, str | Path]] = []
 
-        # List all files with .nc or .deprecated.nc suffixes
-        all_files_in_storage_folder = list(self.absolute_storage_path.glob("*.nc")) + list(
-            self.absolute_storage_path.glob("*.deprecated.nc")
-        )
+        # List all files with an .nc suffix, including raw and deprecated files.
+        all_files_in_storage_folder = list(self.absolute_storage_path.glob("*.nc"))
 
         for file in all_files_in_storage_folder:
             file_path = Path(file)
@@ -323,8 +323,9 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             if datetime.now(UTC) > cutoff_time:
                 update_result = RepoUpdateResult.TIMEOUT
                 update_message = (
-                    f"The update process has reached the maximum runtime of {self.config.maximum_runtime_seconds} seconds. "
-                    f"{successfully_processed_files_count} out of {processed_files_count} files were processed successfully. "
+                    f"The update process has reached the maximum runtime of "
+                    f"{self.config.maximum_runtime_seconds} seconds. {successfully_processed_files_count} out "
+                    f"of {processed_files_count} files were processed successfully. "
                     "Please check the logs for more details."
                 )
                 break
@@ -348,7 +349,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         Arguments:
             file:
-                    A dictionary containing information about the file that can be updated, including 'filename' and 'size'.
+                    A dictionary containing information about the file that can be updated, including 'filename'
+                    and 'size'.
             existing_files_with_same_datetime_tag:
                     A list of dictionaries containing information about the files that are already present in the
                      repository and have the same datetime tag as the file being processed, including
@@ -378,48 +380,79 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             return RepoUpdateResult.SUCCESS
 
         if suggested_file_handling == AromeSuggestedFileHandling.DEPRECATE:
-            # Rename the existing file to deprecate it
-            for existing_file in existing_files_with_same_datetime_tag:
-                if existing_file["state"] == "processed":
-                    self._deprecate_existing_file(existing_file["path"])  # type: ignore
+            self._deprecate_processed_files(existing_files_with_same_datetime_tag)
             return RepoUpdateResult.SUCCESS
 
         if suggested_file_handling in {AromeSuggestedFileHandling.UPDATE, AromeSuggestedFileHandling.UPDATE_DEPRECATED}:
-            download_result = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
-                dataset_name=self.knmi_dataset_name,
-                dataset_version=self.knmi_dataset_version,
-                file_name=file["filename"].__str__(),
+            return self._download_and_process_file(file)
+
+        return RepoUpdateResult.SUCCESS
+
+    def _deprecate_processed_files(self, existing_files: list[dict[str, str | Path]]) -> None:
+        """Deprecate processed files from a matching forecast cycle.
+
+        Args:
+            existing_files (list[dict[str, str | Path]]): Existing files for one datetime tag.
+        """
+        for existing_file in existing_files:
+            if existing_file["state"] == "processed":
+                self._deprecate_existing_file(existing_file["path"])  # type: ignore
+
+    def _download_and_process_file(self, file: dict[str, str | int]) -> RepoUpdateResult:
+        """Download and convert one AROME archive.
+
+        Args:
+            file (dict[str, str | int]): Available file metadata containing ``filename`` and ``size``.
+
+        Returns:
+            RepoUpdateResult: Whether download and conversion succeeded.
+        """
+        file_name = file["filename"].__str__()
+        download_result = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
+            dataset_name=self.knmi_dataset_name,
+            dataset_version=self.knmi_dataset_version,
+            file_name=file_name,
+        )
+        if not download_result:
+            logger.error(f"Failed to retrieve download information for file [{file['filename']}].")
+            return RepoUpdateResult.FAILURE
+
+        download_url, _ = download_result
+        tar_file = self.knmi_data_platform_downloader.retrieve_file(
+            file_name=file_name,
+            file_size=int(file["size"]),
+            download_url=download_url,
+        )
+        if not tar_file:
+            logger.error(f"Failed to download file [{file['filename']}].")
+            return RepoUpdateResult.FAILURE
+
+        return self._process_downloaded_file(file_name, tar_file)
+
+    def _process_downloaded_file(self, file_name: str, tar_file: Path) -> RepoUpdateResult:
+        """Convert a downloaded AROME archive into the repository NetCDF file.
+
+        Args:
+            file_name (str): Name of the downloaded archive.
+            tar_file (Path): Path to the downloaded archive.
+
+        Returns:
+            RepoUpdateResult: Whether conversion succeeded.
+        """
+        try:
+            datetime_tag = self._extract_datetime_tag_from_file_name(file_name=file_name)
+            if not datetime_tag:
+                logger.error(f"Failed to extract datetime tag from file name [{file_name}].")
+                return RepoUpdateResult.FAILURE
+            process_knmi_arome_cy43_p1_tar_file_into_netcdf(
+                tar_file_path=tar_file,
+                target_netcdf_file_path=self.absolute_storage_path,
+                target_netcdf_file_name=f"{self.source_and_model['source']}_{self.source_and_model['model']}_{datetime_tag}.nc",
+                datetime_tag=datetime_tag,
             )
-            if not download_result:
-                logger.error(f"Failed to retrieve download information for file [{file['filename']}].")
-                return RepoUpdateResult.FAILURE
-
-            download_url, _ = download_result
-            tar_file: Path | None = self.knmi_data_platform_downloader.retrieve_file(
-                file_name=file["filename"].__str__(),
-                file_size=int(file["size"]),
-                download_url=download_url,
-            )
-
-            if not tar_file:
-                logger.error(f"Failed to download file [{file['filename']}].")
-                return RepoUpdateResult.FAILURE
-
-            try:
-                datetime_tag: str | None = self._extract_datetime_tag_from_file_name(file_name=file["filename"].__str__())
-                if not datetime_tag:
-                    logger.error(f"Failed to extract datetime tag from file name [{file['filename']}].")
-                    return RepoUpdateResult.FAILURE
-                process_knmi_arome_cy43_p1_tar_file_into_netcdf(
-                    tar_file_path=tar_file,
-                    target_netcdf_file_path=self.absolute_storage_path,
-                    target_netcdf_file_name=f"{self.source_and_model['source']}_{self.source_and_model['model']}_{datetime_tag}.nc",
-                    datetime_tag=datetime_tag,
-                )
-            except Exception as e:
-                logger.error(f"An error occurred while processing file [{file['filename']}]: {e}")
-                return RepoUpdateResult.FAILURE
-
+        except Exception as error:
+            logger.error(f"An error occurred while processing file [{file_name}]: {error}")
+            return RepoUpdateResult.FAILURE
         return RepoUpdateResult.SUCCESS
 
     def _determine_suggested_file_handling(
@@ -442,7 +475,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         """
         if len(existing_files_with_same_datetime_tag) == 0:
             logger.info(
-                f"No existing file with the same datetime tag as file [{file['filename']}] was found in the repository. "
+                f"No existing file with the same datetime tag as file [{file['filename']}] was found in the "
+                f"repository. "
                 "The file can be downloaded and added to the repository without deprecating any existing files."
             )
             return AromeSuggestedFileHandling.UPDATE
@@ -478,7 +512,8 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
                 )
                 return AromeSuggestedFileHandling.LEAVE_AS_IS
             logger.info(
-                f"File [{file['filename']}] is available for download and can be used to update the existing deprecated "
+                f"File [{file['filename']}] is available for download and can be used to update the existing "
+                f"deprecated "
                 "file with the same datetime tag. The existing deprecated file will be updated with the new file."
             )
             return AromeSuggestedFileHandling.UPDATE_DEPRECATED
@@ -555,7 +590,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
     @staticmethod
     def _filter_dataset_by_locations_and_factors(
-            dataset: xr.Dataset, locations: list[tuple[float, float]], factors: list[str]
+        dataset: xr.Dataset, locations: list[tuple[float, float]], factors: list[str]
     ) -> xr.Dataset:
         """Filter the dataset based on the requested locations and factors.
 

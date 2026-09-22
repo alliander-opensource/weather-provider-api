@@ -5,6 +5,7 @@
 """Tests for the KNMIDataPlatFormDownloadClient, focused on Data Platform quota handling."""
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 import requests  # type: ignore
@@ -31,6 +32,13 @@ class _MockResponse:
 
     def json(self):  # type: ignore
         return self._json_data
+
+    def raise_for_status(self):  # type: ignore
+        if self.status_code != 200:
+            raise requests.HTTPError(f"status {self.status_code}")
+
+    def iter_content(self, chunk_size: int):  # type: ignore
+        yield from self._json_data.get("chunks", [])
 
 
 def _build_downloader(monkeypatch: pytest.MonkeyPatch) -> KNMIDataPlatFormDownloadClient:
@@ -84,9 +92,7 @@ def test_quota_exceeded_403_enters_timeout(monkeypatch: pytest.MonkeyPatch):
     assert downloader.on_quota_timeout is False
 
     def _mock_get_quota(*args, **kwargs):  # type: ignore
-        return _MockResponse(
-            403, text="Quota exceeded for this API key", headers={"Retry-After": "3600"}
-        )
+        return _MockResponse(403, text="Quota exceeded for this API key", headers={"Retry-After": "3600"})
 
     monkeypatch.setattr(requests, "get", _mock_get_quota)
 
@@ -113,3 +119,94 @@ def test_forbidden_403_does_not_enter_quota_timeout(monkeypatch: pytest.MonkeyPa
     assert result is None
     assert downloader.data_platform_quota_timeout == original_timeout
     assert downloader.on_quota_timeout is False
+
+
+def test_retrieve_file_list_paginates_and_respects_max_files(monkeypatch: pytest.MonkeyPatch):
+    """Combine pages and trim the result to the requested maximum."""
+    downloader = _build_downloader(monkeypatch)
+    responses = iter(
+        [
+            _MockResponse(200, json_data={"files": [{"filename": "first"}], "nextPageToken": "next"}),
+            _MockResponse(200, json_data={"files": [{"filename": "second"}], "nextPageToken": None}),
+        ]
+    )
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: next(responses))
+
+    result = downloader.retrieve_file_and_size_list_for_dataset("dataset", "1.0", max_files=2)
+
+    assert result == [{"filename": "first"}, {"filename": "second"}]
+
+
+@pytest.mark.parametrize("status_code", [404, 500])
+def test_retrieve_file_list_returns_none_for_known_error_responses(
+    monkeypatch: pytest.MonkeyPatch, status_code: int
+):
+    """Known API errors abort file-list retrieval without raising."""
+    downloader = _build_downloader(monkeypatch)
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: _MockResponse(status_code, text="failed"))
+
+    assert downloader.retrieve_file_and_size_list_for_dataset("dataset", "1.0") is None
+
+
+def test_retrieve_download_information_returns_url_and_deprecation_message(monkeypatch: pytest.MonkeyPatch):
+    """Extract download metadata from a successful API response."""
+    downloader = _build_downloader(monkeypatch)
+    monkeypatch.setattr(
+        requests,
+        "get",
+        lambda *args, **kwargs: _MockResponse(
+            200,
+            json_data={"temporaryDownloadUrl": "https://example.test/file"},
+            headers={"X-KNMI-Deprecation": "replace me"},
+        ),
+    )
+
+    result = downloader.retrieve_download_information_for_file("file.nc", "dataset", "1.0")
+
+    assert result == ("https://example.test/file", "replace me")
+
+
+def test_retrieve_download_information_rejects_missing_url(monkeypatch: pytest.MonkeyPatch):
+    """Reject a successful response that has no temporary download URL."""
+    downloader = _build_downloader(monkeypatch)
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: _MockResponse(200, text="missing url"))
+
+    with pytest.raises(ValueError, match="temporaryDownloadUrl"):
+        downloader.retrieve_download_information_for_file("file.nc", "dataset", "1.0")
+
+
+def test_retrieve_file_reuses_matching_file_and_downloads_missing_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Reuse a correctly sized local file and download a missing one."""
+    downloader = _build_downloader(monkeypatch)
+    downloader.download_folder = tmp_path
+    existing_file = tmp_path / "existing.nc"
+    existing_file.write_bytes(b"ok")
+
+    monkeypatch.setattr(
+        downloader,
+        "_download_and_save_file_by_name_and_size",
+        lambda url, file_name, file_size: (tmp_path / file_name).write_bytes(b"new"),
+    )
+
+    assert downloader.retrieve_file("existing.nc", 2, "unused") == existing_file
+    assert downloader.retrieve_file("new.nc", 3, "unused") == tmp_path / "new.nc"
+
+
+def test_download_and_save_rejects_unexpected_file_size(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Raise when the downloaded byte count differs from the expected size."""
+    downloader = _build_downloader(monkeypatch)
+    downloader.download_folder = tmp_path
+    monkeypatch.setattr(
+        requests,
+        "get",
+        lambda *args, **kwargs: _MockResponse(
+            200,
+            headers={"content-disposition": 'attachment; filename="download.nc"'},
+            json_data={"chunks": [b"abc"]},
+        ),
+    )
+
+    with pytest.raises(EOFError, match="expected file size: 4"):
+        downloader._download_and_save_file_by_name_and_size("url", "requested.nc", 4)

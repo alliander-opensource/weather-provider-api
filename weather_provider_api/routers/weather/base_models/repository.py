@@ -188,7 +188,8 @@ class WeatherRepositoryBase(ABC):
             RepoUpdateResult:
                     The result of the purge operation.
         """
-        # Verify that the provided identifier matches the repository's identifier to prevent accidental purging of the wrong repository
+        # Verify that the provided identifier matches the repository's identifier to prevent accidental purging
+        # of the wrong repository.
         if identifier != self.identifier:
             logger.error(
                 f"Identifier mismatch: provided '{identifier}' does not match repository identifier "
@@ -266,7 +267,8 @@ class WeatherRepositoryBase(ABC):
                 file_date: date = datetime.strptime(file_date_str, self.config.temporal_file_identifier).date()
 
                 logger.exception(
-                    f"Checking file '{file}' with extracted date '{file_date}' against period from {from_date} to {to_date}."
+                    f"Checking file '{file}' with extracted date '{file_date}' against period "
+                    f"from {from_date} to {to_date}."
                 )
                 if from_date <= file_date <= to_date:
                     matching_files.append(file)

@@ -30,6 +30,7 @@ def process_knmi_arome_cy43_p1_tar_file_into_netcdf(
     Args:
         tar_file_path (Path): The path to the KNMI AROME CY43 P1 tar file.
         target_netcdf_file_path (Path): The path where the processed netCDF file will be saved.
+        target_netcdf_file_name (str): The target filename that the file will be saved in.
         datetime_tag (str): A datetime tag associated with the prediction data.
 
     Returns:

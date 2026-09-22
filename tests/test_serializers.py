@@ -63,7 +63,9 @@ def test_file_or_text_response_forged_response_format(
     # TEST 1: Non-existing ResponseFormat is intercepted by Class
     class FakeEnum(StrEnum):
         """A fake enum for testing purposes."""
+
         fake_format = "fake_format"
+
     response_format = FakeEnum.fake_format
 
     with pytest.raises(NotImplementedError) as e:

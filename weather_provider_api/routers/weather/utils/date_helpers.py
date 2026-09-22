@@ -20,7 +20,21 @@ def parse_datetime(
     raise_errors: bool = False,
     loc: list[str] | None = None,
 ) -> datetime | None:
-    """Parse a datetime string into a datetime object, with options to round up missing time and raise errors."""
+    """Parse a datetime string with optional rounding and validation.
+
+    Args:
+        datetime_string (str | None): Datetime value to parse.
+        round_missing_time_up (bool): Round a date-only value to 23:59:59.
+        round_to_days (bool): Round a date-only value to the following midnight.
+        raise_errors (bool): Raise an HTTP 422 error instead of returning ``None`` for invalid input.
+        loc (list[str] | None): Validation-error location for an invalid value.
+
+    Returns:
+        datetime | None: Parsed datetime, or ``None`` when the input is absent or invalid.
+
+    Raises:
+        HTTPException: If parsing fails and ``raise_errors`` is ``True``.
+    """
     if datetime_string is None:
         return None
 
@@ -64,7 +78,20 @@ def validate_begin_and_end(
     data_start: date | None = None,
     data_end: date | None = None,
 ) -> tuple[datetime, datetime]:
-    """Check the given date parameters and replace them with default values if they aren't valid."""
+    """Validate and clamp a requested period to the available data range.
+
+    Args:
+        start (datetime | None): Requested period start.
+        end (datetime | None): Requested period end.
+        data_start (date | None): Earliest available date.
+        data_end (date | None): Latest available date.
+
+    Returns:
+        tuple[datetime, datetime]: Validated UTC start and end datetimes.
+
+    Raises:
+        HTTPException: If a required bound is missing or the period is outside the available range.
+    """
     if not start or not end:
         raise HTTPException(status_code=422, detail="Both [start] and [end] parameters must be provided")
 
@@ -101,7 +128,15 @@ def validate_begin_and_end(
 
 
 def subtract_months(dt: date, months: int) -> date:
-    """Subtract a number of months from a datetime, correctly handling year changes and varying month lengths."""
+    """Subtract whole months from a date and normalize the result to month start.
+
+    Args:
+        dt (date): Date from which to subtract months.
+        months (int): Number of months to subtract.
+
+    Returns:
+        date: First day of the resulting month.
+    """
     year = dt.year
     month = dt.month - months
     while month <= 0:
@@ -111,7 +146,14 @@ def subtract_months(dt: date, months: int) -> date:
 
 
 def strftime_to_regex(fmt: str) -> str:
-    """Convert a strftime format string to a regex pattern."""
+    """Convert supported strftime directives to a regular-expression pattern.
+
+    Args:
+        fmt (str): Format string containing supported strftime directives.
+
+    Returns:
+        str: Regular-expression pattern corresponding to ``fmt``.
+    """
     # Regex pattern for two digits
     replacements = {
         "%Y": r"\d{4}",

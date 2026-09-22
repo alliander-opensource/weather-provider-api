@@ -251,7 +251,14 @@ class PluimModel(WeatherModelBase):
         return timeline, all_values
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
-        # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
+        """Filter requested factors to names supported by the Pluim model.
+
+        Args:
+            factors (list[str] | None): Requested factor names, or ``None`` for all factors.
+
+        Returns:
+            list[str]: Supported factor names without duplicates.
+        """
         if factors is None:
             return list(self.to_si.keys())  # type: ignore
 

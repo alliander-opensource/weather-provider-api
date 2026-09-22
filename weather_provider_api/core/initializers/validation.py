@@ -35,12 +35,14 @@ def initialize_api_validation(application: FastAPI) -> None:
         """The method that validated the API validity.
 
         Args:
-            request:    The request to evaluate
-            call_next:  The call_next object for the request (what to do next if this step doesn't raise any exceptions)
+            request (Request): The request to evaluate.
+            call_next (Any): Callable for the next middleware or endpoint.
 
         Returns:
-            The next step to execute for this request. This is either the original call_next, or an
-             HTTP Exception trigger for an APIExpiredException.
+            Any: The downstream response, or an error response when the API has expired.
+
+        Raises:
+            APIExpiredException: When raised while validating API expiration dates.
 
         """
         api_prefix = r"/api/v"

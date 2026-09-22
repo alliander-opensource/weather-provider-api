@@ -47,21 +47,19 @@ class WeatherController:  # pragma: no cover
         """Get specific weather factors for a specific time and specific location(s).
 
         Args:
-            source_id:  The weather source that need to be queried (e.g.: knmi, cds)
-            model_id:   The model identifier of the model that needs to be queried (has to be a model that exists within
-                        the specific source requested through source_id
-            fetch_async:    A boolean indicated if the request was made to asynchronously fetch the data or not
-            coords:     A nested 3-layer list representing a list of polygons
-                        in the case of points, they are treated as a one-point polygon
-                        D0: different polygons
-                        D1: sequence of points in each polygon
-                        D2: coordinates of each point (lat, lon in coordinates)
-            begin:      The starting time of the requested output data
-            end:        The ending time of the requested output data
-            factors:    A list of the requested weather factors for the output (default is all available)
+            source_id (str): Weather source to query, such as ``knmi`` or ``cds``.
+            model_id (str): Identifier of the model to query for the selected source.
+            fetch_async (bool): Whether the request was made to fetch data asynchronously.
+            coords (list[list[tuple[float, float]]]): Nested polygons of latitude/longitude coordinates.
+            begin (datetime.datetime | None): Start of the requested output period.
+            end (datetime.datetime | None): End of the requested output period.
+            factors (list[str] | None): Requested weather factors, or all available factors when omitted.
 
         Returns:
-            A Xarray Dataset containing the weather data for the selected model, period(s), location(s) and factor(s)
+            xr.Dataset | None: Weather data for the selected model, period, locations, and factors.
+
+        Raises:
+            UnknownModelException: If the model is not available for the selected source.
         """
         model = self.get_model(source_id, model_id, fetch_async)
         if not model:
@@ -87,7 +85,21 @@ class WeatherController:  # pragma: no cover
         weather_data: xr.Dataset,
         unit: OutputUnit,
     ) -> xr.Dataset:
-        """Convert the names and units of the weather data to match the requested output unit format."""
+        """Convert weather variable names and units to the requested output format.
+
+        Args:
+            source_id (str): Identifier of the weather source.
+            model_id (str): Identifier of the weather model.
+            fetch_async (bool): Whether to resolve an asynchronous model.
+            weather_data (xr.Dataset): Weather data to convert.
+            unit (OutputUnit): Target unit system.
+
+        Returns:
+            xr.Dataset: Weather data with converted names and units.
+
+        Raises:
+            UnknownModelException: If the model is not available for the selected source.
+        """
         model = self.get_model(source_id, model_id, fetch_async)
         if not model:
             raise UnknownModelException(f"Model '{model_id}' not found for source '{source_id}'")
@@ -107,7 +119,10 @@ class WeatherController:  # pragma: no cover
         for str_coordinate in str_coordinates_list:
             no_spaces_str_coordinate: str = str_coordinate[1:-1].replace(" ", "")
             split_str_coordinate: list[str] = no_spaces_str_coordinate.split(",")
-            coordinate: tuple[float, float] = (float(split_str_coordinate[0]), float(split_str_coordinate[1]))
+            coordinate: tuple[float, float] = (
+                float(split_str_coordinate[0]),
+                float(split_str_coordinate[1]),
+            )
             coordinate_list.append([coordinate])
 
         return coordinate_list
@@ -141,12 +156,29 @@ class WeatherController:  # pragma: no cover
         return source.get_model(model_id, fetch_async)
 
     def _validate_source(self, source_id: str):
-        """Validate that the provided source ID corresponds to a known source."""
+        """Validate that a source identifier corresponds to a known source.
+
+        Args:
+            source_id (str): Source identifier to validate.
+
+        Raises:
+            UnknownSourceException: If the source identifier is unknown.
+        """
         if source_id not in self.sources:
             raise UnknownSourceException
 
     def _validate_source_and_model(self, source_id: str, model_id: str, fetch_async: bool = False):
-        """Validate that the provided source ID and model ID correspond to known entities."""
+        """Validate that source and model identifiers correspond to known entities.
+
+        Args:
+            source_id (str): Source identifier to validate.
+            model_id (str): Model identifier to validate.
+            fetch_async (bool): Whether to include asynchronous models.
+
+        Raises:
+            UnknownSourceException: If the source identifier is unknown.
+            UnknownModelException: If the model identifier is unknown for the source.
+        """
         self._validate_source(source_id)
         if self.sources[source_id].get_model(model_id, fetch_async) is None:
             raise UnknownModelException
@@ -176,6 +208,16 @@ class WeatherController:  # pragma: no cover
     def _tuples_to_geo_positions(
         coords: list[tuple[float, float]],
     ) -> list[GeoPosition]:
-        # Convert the Tuples in a list to a list of Geo Positions
+        """Convert latitude/longitude tuples into GeoPosition instances.
+
+        Args:
+            coords (list[tuple[float, float]]): Latitude/longitude coordinate tuples.
+
+        Returns:
+            list[GeoPosition]: Coordinates represented as GeoPosition instances.
+
+        Raises:
+            ValueError: If a coordinate cannot be represented by a valid GeoPosition.
+        """
         geo_positions = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in coords]
         return geo_positions
