@@ -4,7 +4,12 @@
 
 import pytest
 
-from weather_provider_api.routers.weather.api_view_v2 import header_accept_type
+from weather_provider_api.routers.weather.api_models import get_weather_content_request_multi_location_query
+from weather_provider_api.routers.weather.api_view_v2 import (
+    get_sync_weather_multi_loc,
+    header_accept_type,
+)
+from weather_provider_api.versions.v2 import app
 
 
 @pytest.mark.parametrize(
@@ -25,6 +30,20 @@ from weather_provider_api.routers.weather.api_view_v2 import header_accept_type
 def test_header_accept_type(accept_string: str, expected_output: str):
     """Test the header_accept_type function for various MIME types."""
     assert header_accept_type(accept=str(accept_string)) == expected_output
+
+
+def test_multi_location_route_uses_multi_location_query_dependency():
+    """The multi-location route exposes and parses a locations query parameter."""
+    ret_args = get_sync_weather_multi_loc.__annotations__["ret_args"]
+    assert ret_args.__metadata__[0].dependency is get_weather_content_request_multi_location_query
+
+    parameters = app.openapi()["paths"]["/weather/sources/{source_id}/models/{model_id}/multiple-locations/"]["get"][
+        "parameters"
+    ]
+    parameter_names = {parameter["name"] for parameter in parameters}
+    assert "locations" in parameter_names
+    assert "lat" not in parameter_names
+    assert "lon" not in parameter_names
 
 
 # The get_source, get_sources and get_sync_models only pass on requests to other functions and do not need to be tested

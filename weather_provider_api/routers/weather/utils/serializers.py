@@ -56,8 +56,12 @@ def return_file_or_text_response(
             return json_dataset_response(patched_unserialized_data)
         case ResponseFormat.netcdf4 | ResponseFormat.netcdf3:
             file_path = to_netcdf(patched_unserialized_data, response_format)
-            mime = "application/x-netcdf4"
-            extension = ".v4.nc"
+            if response_format == ResponseFormat.netcdf4:
+                mime = "application/x-netcdf4"
+                extension = ".v4.nc"
+            else:
+                mime = "application/x-netcdf3"
+                extension = ".v3.nc"
             return file_response(file_path, mime, source_id, model_id, request, extension), file_path
         case _:
             raise NotImplementedError(f"Cannot create response for the {response_format.name} response format")

@@ -17,6 +17,7 @@ from weather_provider_api.routers.weather.api_models import (
     WeatherFormattingRequestQuery,
     WeatherModel,
     WeatherSource,
+    get_weather_content_request_multi_location_query,
     get_weather_content_request_query,
     get_weather_formatting_request_query,
 )
@@ -132,7 +133,7 @@ async def get_sync_weather_multi_loc(
     cleanup_tasks: BackgroundTasks,
     ret_args: Annotated[
         WeatherContentRequestMultiLocationQuery,
-        Depends(get_weather_content_request_query),
+        Depends(get_weather_content_request_multi_location_query),
     ],
     fmt_args: Annotated[WeatherFormattingRequestQuery, Depends(get_weather_formatting_request_query)],
     accept: Annotated[ResponseFormat, Depends(header_accept_type)],

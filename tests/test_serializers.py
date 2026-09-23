@@ -109,3 +109,34 @@ def test_file_or_text_response_netcdf4_with_timezone_aware_time(
         assert "UTC" not in str(loaded_dataset.time.dtype)
 
     Path(file_path).unlink(missing_ok=True)
+
+
+@pytest.mark.parametrize(
+    ("response_format", "expected_media_type", "expected_extension"),
+    [
+        (ResponseFormat.netcdf4, "application/x-netcdf4", ".v4.nc"),
+        (ResponseFormat.netcdf3, "application/x-netcdf3", ".v3.nc"),
+    ],
+)
+def test_file_or_text_response_netcdf_metadata(
+    response_format: ResponseFormat,
+    expected_media_type: str,
+    expected_extension: str,
+    mock_coordinates: list[tuple[float, float]],
+    mock_dataset: xr.Dataset,
+    mock_response_query: WeatherContentRequestQuery,
+):
+    """Use format-specific MIME types and filename extensions for NetCDF responses."""
+    response, file_path = return_file_or_text_response(
+        mock_dataset,
+        response_format,
+        "knmi",
+        "pluim",
+        mock_response_query,
+        mock_coordinates,
+    )
+
+    assert response.media_type == expected_media_type
+    assert response.headers["content-disposition"].endswith(f"{expected_extension}\"")
+    assert file_path is not None
+    Path(file_path).unlink(missing_ok=True)

@@ -83,6 +83,41 @@ def test_get_weather_response_fetches_formats_and_registers_cleanup(monkeypatch:
     assert cleanup_tasks.tasks[0].args == ("temporary-response-file",)
 
 
+def test_get_weather_response_uses_accept_when_response_format_is_omitted(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Use the Accept-header format when no response format query parameter is provided."""
+    ret_args, _ = _request_args()
+    fmt_args = WeatherFormattingRequestQuery(units=OutputUnit.si)
+    captured: dict[str, object] = {}
+
+    class FakeController:
+        def get_weather(self, *args, **kwargs):  # type: ignore
+            return _weather_dataset()
+
+        def convert_names_and_units(self, *args, **kwargs):  # type: ignore
+            return _weather_dataset()
+
+    def fake_serializer(*args, **kwargs):  # type: ignore
+        captured["response_format"] = args[1]
+        return Response(content=b"ok"), None
+
+    monkeypatch.setattr(api_view_common, "controller", FakeController())
+    monkeypatch.setattr(api_view_common.serializers, "return_file_or_text_response", fake_serializer)  # type: ignore
+
+    asyncio.run(
+        api_view_common.get_weather_response(
+            source_id="knmi",
+            model_id="arome",
+            cleanup_tasks=BackgroundTasks(),
+            ret_args=ret_args,
+            fmt_args=fmt_args,
+            accept=ResponseFormat.csv,
+            coords=[[(52.0, 5.0)]],
+        )
+    )
+
+    assert captured["response_format"] == ResponseFormat.csv
+
+
 def test_get_weather_response_uses_explicit_response_coordinates(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that supplied response coordinates bypass coordinate extraction from the dataset."""
     ret_args, fmt_args = _request_args()

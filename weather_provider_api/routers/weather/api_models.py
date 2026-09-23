@@ -92,8 +92,8 @@ class WeatherFormattingRequestQuery(BaseModel):
         default=OutputUnit.si,
         description="Unit of weather factors",
     )
-    response_format: ResponseFormat = Field(
-        default=ResponseFormat.netcdf4,
+    response_format: ResponseFormat | None = Field(
+        default=None,
         description="Response format (overrides mime-types from Accept HTTP header)",
     )
 
@@ -244,7 +244,7 @@ result_mime_types = defaultdict(
 _FACTORS_QUERY = Query(None, description=FACTORS_DESCRIPTION)
 _UNITS_QUERY = Query(OutputUnit.si, description="Unit of weather factors")
 _RESPONSE_FORMAT_QUERY = Query(
-    ResponseFormat.netcdf4,
+    None,
     description="Response format (overrides mime-types from Accept HTTP header)",
 )
 
@@ -261,10 +261,30 @@ def get_weather_content_request_query(
     return WeatherContentRequestQuery(begin=begin, end=end, lat=lat, lon=lon, factors=factors)
 
 
+# Dependency function to build WeatherContentRequestMultiLocationQuery from query params
+def get_weather_content_request_multi_location_query(
+    begin: str = Query(None, description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()]),
+    end: str = Query(None, description=TO_DATE_AND_TIME, examples=[_yesterday_end()]),
+    locations: str = Query(
+        None,
+        description="Locations in either WGS84 (lat,lon) or RD (x,y) format, in parentheses, separated by a comma",
+        examples=["(52.1, 5.18), (52.2, 5.22)"],
+    ),
+    factors: list[str] | None = _FACTORS_QUERY,
+) -> WeatherContentRequestMultiLocationQuery:
+    """Retrieve a WeatherContentRequestMultiLocationQuery from query parameters."""
+    return WeatherContentRequestMultiLocationQuery(
+        begin=begin,
+        end=end,
+        locations=locations,
+        factors=factors,
+    )
+
+
 # Dependency function to build WeatherFormattingRequestQuery from query params
 def get_weather_formatting_request_query(
     units: OutputUnit = _UNITS_QUERY,
-    response_format: ResponseFormat = _RESPONSE_FORMAT_QUERY,
+    response_format: ResponseFormat | None = _RESPONSE_FORMAT_QUERY,
 ) -> "WeatherFormattingRequestQuery":
     """Format parameters into a WeatherFormattingRequestQuery object."""
     return WeatherFormattingRequestQuery(units=units, response_format=response_format)

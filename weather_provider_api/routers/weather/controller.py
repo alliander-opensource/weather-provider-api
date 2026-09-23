@@ -9,6 +9,7 @@ import re
 
 import numpy as np
 import xarray as xr
+from fastapi import HTTPException
 
 from weather_provider_api.routers.weather.api_models import OutputUnit
 from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
@@ -114,18 +115,21 @@ class WeatherController:  # pragma: no cover
     @staticmethod
     def str_to_coords(locations_string: str) -> list[list[tuple[float, float]]]:
         """Convert a string containing coordinates into a list of tuples containing those coordinates."""
-        str_coordinates_list = re.findall(r"\(\d{1,3}.?\d*,\s?\d{1,3}.?\d*\)", locations_string)
-        coordinate_list: list[list[tuple[float, float]]] = []
-        for str_coordinate in str_coordinates_list:
-            no_spaces_str_coordinate: str = str_coordinate[1:-1].replace(" ", "")
-            split_str_coordinate: list[str] = no_spaces_str_coordinate.split(",")
-            coordinate: tuple[float, float] = (
-                float(split_str_coordinate[0]),
-                float(split_str_coordinate[1]),
-            )
-            coordinate_list.append([coordinate])
+        number_pattern = r"[+-]?(?:\d+(?:\.\d+)?|\.\d+)"
+        coordinate_pattern = rf"\(\s*{number_pattern}\s*,\s*{number_pattern}\s*\)"
+        locations_pattern = rf"\s*{coordinate_pattern}(?:\s*,\s*{coordinate_pattern})*\s*"
 
-        return coordinate_list
+        if not locations_string or re.fullmatch(locations_pattern, locations_string) is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Invalid locations format. Expected '(latitude, longitude), ...'.",
+            )
+
+        coordinates = re.findall(
+            rf"\(\s*({number_pattern})\s*,\s*({number_pattern})\s*\)",
+            locations_string,
+        )
+        return [[(float(latitude), float(longitude))] for latitude, longitude in coordinates]
 
     def get_source_keys(self) -> list[str]:
         """Get a list of all available source keys."""

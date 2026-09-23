@@ -72,7 +72,7 @@ class WeatherModelBase(metaclass=ABCMeta):
 
         data_vars: list[str] = list(weather_data.data_vars)  # type: ignore
         for var_name in data_vars:
-            if var_name not in data_vars or var_name not in conversion_dict:
+            if var_name not in conversion_dict:
                 continue
 
             new_name = var_name

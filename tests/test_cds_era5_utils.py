@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -259,3 +259,35 @@ def test_era5_update_month_skips_current_file_and_handles_update_errors(
     (tmp_path / "era5sl_2026_09.nc").unlink()
     monkeypatch.setattr(era5_utils, "_download_month", lambda *args: (_ for _ in ()).throw(RuntimeError("failed")))
     assert era5_utils._era5_update_month(settings, date(2026, 9, 1), False) == era5_utils.RepoUpdateResult.FAILURE  # type: ignore[reportPrivateUsage]
+
+
+def test_era5_update_month_by_month_includes_lower_bound_month(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Process the repository's oldest configured month when it is the current update month."""
+    target_month = date(2026, 1, 1)
+    settings = era5_utils.Era5UpdateSettings(
+        era5_dataset_to_update_from=CDSDataSets.ERA5SL,
+        era5_product_type=None,
+        filename_prefix="era5sl",
+        target_storage_location=tmp_path,
+        repository_time_range=(target_month, date(2026, 9, 1)),
+        factors_to_process=["temperature"],
+        factor_dictionary={},
+    )
+    processed_months: list[date] = []
+    monkeypatch.setattr(era5_utils, "_get_update_month", lambda _: target_month)
+    monkeypatch.setattr(
+        era5_utils,
+        "_era5_update_month",
+        lambda _settings, update_month, _test_mode: processed_months.append(update_month)
+        or era5_utils.RepoUpdateResult.SUCCESS,
+    )
+    starting_moment = datetime.now(UTC)
+
+    era5_utils._era5_update_month_by_month(  # type: ignore[reportPrivateUsage]
+        settings,
+        starting_moment,
+        starting_moment + timedelta(hours=1),
+        False,
+    )
+
+    assert processed_months == [target_month]

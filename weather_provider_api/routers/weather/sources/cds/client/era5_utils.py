@@ -80,7 +80,7 @@ def _era5_update_month_by_month(
     update_month = _get_update_month(update_settings)
     target_update_month = update_settings.repository_time_range[0].replace(day=1)
 
-    while update_month > target_update_month:
+    while update_month >= target_update_month:
         logger.info(f" > Processing month: {update_month.year}-{update_month.month}")
         if datetime.now(UTC) + timedelta(minutes=average_time_per_month_in_minutes) > cutoff_time:
             logger.warning(

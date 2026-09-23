@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
+import weather_provider_api.routers.weather.base_models.repository as repository_module
 from weather_provider_api.routers.weather.base_models.repository import (
     RepoDataFetchResult,
     RepoUpdateResult,
@@ -120,3 +121,20 @@ def test_purge_repository_requires_matching_identifier(repository: ConcreteRepos
     assert repository.purge_repository(repository.identifier) == RepoUpdateResult.SUCCESS
     assert not repository.storage_path.exists()
     assert repository.purge_repository(repository.identifier) == RepoUpdateResult.SUCCESS
+
+
+def test_purge_repository_removes_relative_storage_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Purge removes a repository configured with a path relative to the storage root."""
+    monkeypatch.setattr(repository_module, "APP_STORAGE_FOLDER", tmp_path)
+    relative_repository = ConcreteRepository(
+        WeatherRepositoryConfiguration(
+            identifier="Relative test repository",
+            storage_path=Path("relative-repository"),
+            affiliated_source_and_model=("test", "model"),
+        )
+    )
+    marker = relative_repository.absolute_storage_path / "marker.txt"
+    marker.touch()
+
+    assert relative_repository.purge_repository(relative_repository.identifier) == RepoUpdateResult.SUCCESS
+    assert not relative_repository.absolute_storage_path.exists()
