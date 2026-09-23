@@ -21,7 +21,6 @@ dependencies = [
     "accept-types>=0.4.1,<0.5.0",
     "cdsapi>=0.7.7,<0.8.0",
     "cfgrib>=0.9.15.1,<0.10.0.0",
-    "coverage==7.16.0",
     "dask>=2026.7.1,<2027.0.0",
     "eccodes>=2.47.0,<3.0.0",
     "fastapi>=0.141.0,<0.142.0",
@@ -32,22 +31,21 @@ dependencies = [
     "netcdf4>=1.7.4,<2.0.0",
     "numpy>=2.5.1",
     "pandas>=3.0.3,<4.0.0",
-    "pydantic>=2.13.4,<3.0.0",
+    "pydantic>=2.13.5,<3.0.0",
     "requests>=2.34.2,<3.0.0",
     "slowapi>=0.1.10,<0.2.0",
     "starlette>=1.4.0,<2.0.0",
     "starlette-prometheus>=0.10.0,<0.11.0",
     "types-gunicorn==26.2.0.20260827",
     "urllib3>=2.7.0,<3.0.0",
-    "uvicorn>=0.52.0,<0.53.0",
+    "uvicorn>=0.53.0,<0.54.0",
     "xarray>=2026.7.0,<2027.0.0",
 ]
 
 [dependency-groups]
 dev = [
-    "coverage>=7.15.0,<8.0.0",
+    "coverage>=7.16.1,<8.0.0",
     "deptry>=0.25.1",
-    "fawltydeps>=0.20.0,<0.21.0",
     "hypothesis>=6.167.1",
     "mypy>=2.2.0,<3.0.0",
     "pandas-stubs>=3.0.3.260530",
@@ -59,12 +57,11 @@ dev = [
     "reuse>=6.2.0,<7.0.0",
     "ruff>=0.16.0,<0.17.0",
     "types-gunicorn>=26.0.0.20260728",
-    "vulture>=2.16",
-    "zensical>=0.0.50",
+    "vulture>=2.16"
 ]
 docs = [
     "mkdocstrings-python>=2.0.5",
-    "zensical>=0.0.50,<0.0.51",
+    "zensical>=0.0.62",
 ]
 
 [build-system]
