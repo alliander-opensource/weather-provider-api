@@ -342,3 +342,6 @@ Temporary Items
 /.pycrunch-config.yaml
 /TESTING_GROUNDS.ipynb
 pytest.ini
+
+# Exclude lock file due to differences in OS and IS repositories
+uv.lock
