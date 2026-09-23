@@ -21,7 +21,7 @@
           "sync"
         ],
         "summary": "Get Sources",
-        "description": "List all of the Weather Sources available.\n\nAn API route that returns a list of all the Weather Sources available from the WeatherController.\nEach Source contains information about the source and a list of the Models available for that Source.\n\nArgs:\n    None\nReturns:\n    A list of all Source available from the WeatherController",
+        "description": "List all the sources known by the controller.",
         "operationId": "get_sources_weather_sources_get",
         "responses": {
           "200": {
@@ -47,7 +47,7 @@
           "sync"
         ],
         "summary": "Get Source",
-        "description": "List all the Models available  for the Source.\n\nAn API route that returns a list of all the Models available for the given Source ID.\n\nArgs:\n    source_id: The source ID for the given source\nReturns:\n    A list of all Models available for the given source",
+        "description": "Get a specific source by its ID.",
         "operationId": "get_source_weather_sources__source_id__get",
         "parameters": [
           {
@@ -90,7 +90,7 @@
           "sync"
         ],
         "summary": "Get Sync Models",
-        "description": "List all the synchronous Models available for the selected Source.\n\nAn API function that returns all of the synchronous models available for the given source.\n\nArgs:\n    source_id: The source ID for the given source\nReturns:\n    A list of all synchronous Models available for the given source",
+        "description": "List all synchronous models supported by the selected source.",
         "operationId": "get_sync_models_weather_sources__source_id__models_get",
         "parameters": [
           {
@@ -137,7 +137,7 @@
           "sync"
         ],
         "summary": "Get Sync Weather",
-        "description": "Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.).\n\nThis data is then formatted as the requested output format (output unit system and file format) before returning the requested data.\n\n(Please note that as some models are predictive or otherwise restricted in the periods available for requests,\nthat sometimes the 'begin' and 'end' values will be altered to match these restrictions.)\nAn API function that retrieves specific weather data for a specific Weather Model and returns it as the\nrequested output format and units.\n\nArgs:\n    request:        The original request object containing query parameters.\n    source_id:      The Source ID of the Source to request the weather data from.\n    model_id:       The Model ID for the Model to request the weather data from.\n    cleanup_tasks:  A BackgroundTasks object to hold any pending cleanup tasks for when the data request is\n                    finished.\n    ret_args:       A WeatherContentRequestQuery object holding the parameters for the weather data request to\n                    use.\n    fmt_args:       A WeatherFormattingRequestQuery object holding the parameters for the output format and\n                    units to use.\n    accept:         Header type to use for the output file.\n                    Rounded to the most likely value using header_accept_type().\n\nReturns:\n    The weather data in the requested format for the requested parameters.",
+        "description": "Request weather data for a specific Model using the given settings (location, period, weather factors, e.g.).\n\nThis data is then formatted as the requested output format (output unit system and file format) before returning\nthe requested data.\n\n(Please note that as some models are predictive or otherwise restricted in the periods available for requests,\nthat sometimes the 'begin' and 'end' values will be altered to match these restrictions.)\nAn API function that retrieves specific weather data for a specific Weather Model and returns it as the\nrequested output format and units.\n\nArgs:\n    request:        The original request object containing query parameters.\n    source_id:      The Source ID of the Source to request the weather data from.\n    model_id:       The Model ID for the Model to request the weather data from.\n    cleanup_tasks:  A BackgroundTasks object to hold any pending cleanup tasks for when the data request is\n                    finished.\n    ret_args:       A WeatherContentRequestQuery object holding the parameters for the weather data request to\n                    use.\n    fmt_args:       A WeatherFormattingRequestQuery object holding the parameters for the output format and\n                    units to use.\n    accept:         Header type to use for the output file.\n                    Rounded to the most likely value using header_accept_type().\n\nReturns:\n    The weather data in the requested format for the requested parameters.",
         "operationId": "get_sync_weather_weather_sources__source_id__models__model_id__get",
         "parameters": [
           {
@@ -166,7 +166,7 @@
               "type": "string",
               "description": "From date and time",
               "examples": [
-                "2026-08-11 00:00"
+                "2026-09-22 00:00"
               ],
               "title": "Begin"
             },
@@ -180,7 +180,7 @@
               "type": "string",
               "description": "To date and time",
               "examples": [
-                "2026-08-11 23:59"
+                "2026-09-22 23:59"
               ],
               "title": "End"
             },
@@ -251,9 +251,16 @@
             "in": "query",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/ResponseFormat",
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ResponseFormat"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Response format (overrides mime-types from Accept HTTP header)",
-              "default": "netcdf4"
+              "title": "Response Format"
             },
             "description": "Response format (overrides mime-types from Accept HTTP header)"
           },
@@ -293,7 +300,7 @@
           "alerts"
         ],
         "summary": "Get Alarm",
-        "description": "Fetch the WeatherAlarm status for all the provinces from KNMI Weer Alarm and returns the results.\n\nAn API Function that reads the status of the Weer Alarm pages on the KNMI Site and returns them.\n\nReturns:\n    A formatted text containing the current Weather Alert Status for each of the provinces.",
+        "description": "Fetch the current weather alarm status for all provinces.",
         "operationId": "get_alarm_weather_alarms_knmi_get",
         "responses": {
           "200": {
@@ -358,7 +365,7 @@
               "type": "string",
               "description": "From date and time",
               "examples": [
-                "2026-08-11 00:00"
+                "2026-09-22 00:00"
               ],
               "title": "Begin"
             },
@@ -372,39 +379,25 @@
               "type": "string",
               "description": "To date and time",
               "examples": [
-                "2026-08-11 23:59"
+                "2026-09-22 23:59"
               ],
               "title": "End"
             },
             "description": "To date and time"
           },
           {
-            "name": "lat",
+            "name": "locations",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "number",
-              "description": "GPS Latitude or RD x-coordinate",
+              "type": "string",
+              "description": "Locations in either WGS84 (lat,lon) or RD (x,y) format, in parentheses, separated by a comma",
               "examples": [
-                52.1
+                "(52.1, 5.18), (52.2, 5.22)"
               ],
-              "title": "Lat"
+              "title": "Locations"
             },
-            "description": "GPS Latitude or RD x-coordinate"
-          },
-          {
-            "name": "lon",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "description": "GPS Longitude or RD y-coordinate",
-              "examples": [
-                5.18
-              ],
-              "title": "Lon"
-            },
-            "description": "GPS Longitude or RD y-coordinate"
+            "description": "Locations in either WGS84 (lat,lon) or RD (x,y) format, in parentheses, separated by a comma"
           },
           {
             "name": "factors",
@@ -443,9 +436,16 @@
             "in": "query",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/ResponseFormat",
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ResponseFormat"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Response format (overrides mime-types from Accept HTTP header)",
-              "default": "netcdf4"
+              "title": "Response Format"
             },
             "description": "Response format (overrides mime-types from Accept HTTP header)"
           },

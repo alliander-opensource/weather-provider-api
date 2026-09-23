@@ -188,7 +188,8 @@ class WeatherRepositoryBase(ABC):
             RepoUpdateResult:
                     The result of the purge operation.
         """
-        # Verify that the provided identifier matches the repository's identifier to prevent accidental purging of the wrong repository
+        # Verify that the provided identifier matches the repository's identifier to prevent accidental purging
+        # of the wrong repository.
         if identifier != self.identifier:
             logger.error(
                 f"Identifier mismatch: provided '{identifier}' does not match repository identifier "
@@ -200,12 +201,14 @@ class WeatherRepositoryBase(ABC):
         try:
             # Implement the logic to permanently delete all data from the repository
             # This is a placeholder implementation and should be replaced with actual deletion logic
-            logger.info(f"Purging repository '{self.identifier}' at path '{self.storage_path}'...")
-            shutil.rmtree(self.storage_path)  # Remove the entire storage directory and its contents
+            logger.info(f"Purging repository '{self.identifier}' at path '{self.absolute_storage_path}'...")
+            shutil.rmtree(self.absolute_storage_path)  # Remove the entire storage directory and its contents
             logger.info(f"Repository '{self.identifier}' purged successfully.")
             return RepoUpdateResult.SUCCESS
         except FileNotFoundError:
-            logger.warning(f"Repository '{self.identifier}' not found at path '{self.storage_path}'. Nothing to purge.")
+            logger.warning(
+                f"Repository '{self.identifier}' not found at path '{self.absolute_storage_path}'. Nothing to purge."
+            )
             return RepoUpdateResult.SUCCESS  # Consider it a success if the repository is already absent
         except PermissionError as e:
             logger.error(f"Permission error while purging repository '{self.identifier}': {e}")
@@ -266,7 +269,8 @@ class WeatherRepositoryBase(ABC):
                 file_date: date = datetime.strptime(file_date_str, self.config.temporal_file_identifier).date()
 
                 logger.exception(
-                    f"Checking file '{file}' with extracted date '{file_date}' against period from {from_date} to {to_date}."
+                    f"Checking file '{file}' with extracted date '{file_date}' against period "
+                    f"from {from_date} to {to_date}."
                 )
                 if from_date <= file_date <= to_date:
                     matching_files.append(file)

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import glob
+import shutil
 import tempfile
 import zipfile
 from datetime import UTC, date, datetime, timedelta
@@ -79,7 +80,7 @@ def _era5_update_month_by_month(
     update_month = _get_update_month(update_settings)
     target_update_month = update_settings.repository_time_range[0].replace(day=1)
 
-    while update_month > target_update_month:
+    while update_month >= target_update_month:
         logger.info(f" > Processing month: {update_month.year}-{update_month.month}")
         if datetime.now(UTC) + timedelta(minutes=average_time_per_month_in_minutes) > cutoff_time:
             logger.warning(
@@ -113,64 +114,110 @@ def _era5_update_month_by_month(
 
 
 def _era5_update_month(update_settings: Era5UpdateSettings, update_month: date, test_mode: bool) -> RepoUpdateResult:
-    """A function to update a variant of ERA5 data into the repository."""
+    """Update one month of ERA5 data in the repository.
+
+    Args:
+        update_settings (Era5UpdateSettings): ERA5 dataset and storage settings.
+        update_month (date): Month to download and process.
+        test_mode (bool): Whether to download only the first day of the month.
+
+    Returns:
+        RepoUpdateResult: Whether the monthly update succeeded.
+    """
     logger.debug(f" > Processing month: {update_month.year}-{update_month.month}")
 
     month_file_base = f"{update_settings.filename_prefix}_{update_month.year}_{update_month.month:02d}"
     month_file = update_settings.target_storage_location / f"{month_file_base}"
     threshold_date = (datetime.now(UTC) - timedelta(days=5)).replace(day=1).date()
 
-    if file_requires_update(month_file, update_month, threshold_date):
-        logger.debug(f" > File {month_file} requires update.")
-        month_file_name = month_file.with_suffix(Era5FileSuffixes.UNFORMATTED)
+    if not file_requires_update(month_file, update_month, threshold_date):
+        return RepoUpdateResult.SUCCESS
 
-        # Only the first day of each month in test mode, otherwise all days:
-        day = [str(i) for i in range(1, 32)] if not test_mode else ["1"]
-
-        try:
-            download_era5_data(
-                update_settings.era5_dataset_to_update_from,
-                CDSRequest(
-                    product_type=[update_settings.era5_product_type]
-                    if update_settings.era5_product_type is not None
-                    else None,
-                    variables=update_settings.factors_to_process,
-                    year=[str(update_month.year)],
-                    month=[str(update_month.month)],
-                    day=day,
-                    time=[f"{hour:02d}:00" for hour in range(24)],
-                ),
-                target_location=str(month_file_name),
-            )
-
-            logger.debug("Stored file at: ", month_file_name)
-
-            if update_settings.era5_dataset_to_update_from == CDSDataSets.ERA5SL:
-                # We need to recombine multiple files into one for ERA5SL, as the data is split into multiple files
-                _recombine_multiple_files(month_file_name)
-            elif update_settings.era5_dataset_to_update_from == CDSDataSets.ERA5LAND:
-                # Unpack the file
-                temp_dir = tempfile.mkdtemp()
-                with zipfile.ZipFile(month_file_name, "r") as zip_ref:
-                    zip_ref.extractall(temp_dir)
-                # Save the data_0.nc file to the month_file_name location
-                data_file = Path(temp_dir).joinpath("data_0.nc")
-                data_file.rename(month_file_name)
-
-            _format_downloaded_file(month_file_name, update_settings.factor_dictionary)
-
-            month_file_name.rename(month_file.with_suffix(Era5FileSuffixes.FORMATTED))
-            logger.debug("Renamed to: ", month_file.with_suffix(Era5FileSuffixes.FORMATTED))
-            _finalize_formatted_file(month_file, update_month, threshold_date)
-
-        except Exception as e:
-            logger.error(f" > Failed to update ERA5 data for {update_month}. Reason: {e}")
-            return RepoUpdateResult.FAILURE
+    logger.debug(f" > File {month_file} requires update.")
+    month_file_name = month_file.with_suffix(Era5FileSuffixes.UNFORMATTED)
+    try:
+        _download_month(update_settings, update_month, test_mode, month_file_name)
+        _prepare_downloaded_month(update_settings, month_file_name)
+        _format_and_finalize_month(update_settings, month_file, month_file_name, update_month, threshold_date)
+    except Exception as error:
+        logger.error(f" > Failed to update ERA5 data for {update_month}. Reason: {error}")
+        return RepoUpdateResult.FAILURE
 
     return RepoUpdateResult.SUCCESS
 
 
+def _download_month(
+    update_settings: Era5UpdateSettings, update_month: date, test_mode: bool, target_file: Path
+) -> None:
+    """Download one ERA5 month to an unformatted file.
+
+    Args:
+        update_settings (Era5UpdateSettings): ERA5 dataset and request settings.
+        update_month (date): Month to download.
+        test_mode (bool): Whether to request only the first day.
+        target_file (Path): Destination for the downloaded archive or NetCDF file.
+    """
+    days = ["1"] if test_mode else [str(day) for day in range(1, 32)]
+    request = CDSRequest(
+        product_type=[update_settings.era5_product_type] if update_settings.era5_product_type is not None else None,
+        variables=update_settings.factors_to_process,
+        year=[str(update_month.year)],
+        month=[str(update_month.month)],
+        day=days,
+        time=[f"{hour:02d}:00" for hour in range(24)],
+    )
+    download_era5_data(update_settings.era5_dataset_to_update_from, request, target_location=str(target_file))
+    logger.debug("Stored file at: ", target_file)
+
+
+def _prepare_downloaded_month(update_settings: Era5UpdateSettings, month_file: Path) -> None:
+    """Convert a downloaded dataset archive into a single NetCDF file.
+
+    Args:
+        update_settings (Era5UpdateSettings): ERA5 dataset settings.
+        month_file (Path): Downloaded file to prepare.
+    """
+    if update_settings.era5_dataset_to_update_from == CDSDataSets.ERA5SL:
+        _recombine_multiple_files(month_file)
+    elif update_settings.era5_dataset_to_update_from == CDSDataSets.ERA5LAND:
+        temp_dir = tempfile.mkdtemp()
+        with zipfile.ZipFile(month_file, "r") as zip_ref:
+            zip_ref.extractall(temp_dir)
+        shutil.move(str(Path(temp_dir) / "data_0.nc"), str(month_file))
+
+
+def _format_and_finalize_month(
+    update_settings: Era5UpdateSettings,
+    month_file: Path,
+    unformatted_file: Path,
+    update_month: date,
+    threshold_date: date,
+) -> None:
+    """Format, rename, and finalize a downloaded ERA5 month.
+
+    Args:
+        update_settings (Era5UpdateSettings): ERA5 formatting settings.
+        month_file (Path): Base path for the monthly file.
+        unformatted_file (Path): Downloaded unformatted file.
+        update_month (date): Month being finalized.
+        threshold_date (date): Date used to determine retention state.
+    """
+    _format_downloaded_file(unformatted_file, update_settings.factor_dictionary)
+    formatted_file = month_file.with_suffix(Era5FileSuffixes.FORMATTED)
+    unformatted_file.rename(formatted_file)
+    logger.debug("Renamed to: ", formatted_file)
+    _finalize_formatted_file(month_file, update_month, threshold_date)
+
+
 def _get_update_month(update_settings: Era5UpdateSettings) -> date:
+    """Determine the first month that should be updated for an ERA5 repository.
+
+    Args:
+        update_settings (Era5UpdateSettings): Repository range and factor settings.
+
+    Returns:
+        date: First day of the month containing the latest available data.
+    """
     _normal_first_moment_available_for_era5 = (datetime.now(UTC) - timedelta(days=5)).date()
     update_moment = update_settings.repository_time_range[1]
 
@@ -198,20 +245,21 @@ def _verify_first_day_available_for_era5(update_moment: date, update_settings: E
 
     while True:
         try:
-            download_era5_data(
-                dataset=update_settings.era5_dataset_to_update_from,
-                cds_request=CDSRequest(
-                    product_type=[update_settings.era5_product_type]
-                    if update_settings.era5_product_type is not None
-                    else None,
-                    variables=["soil_temperature_level_1"],  # A factor that exists in all supported ERA5 datasets
-                    year=[str(update_moment.year)],
-                    month=[str(update_moment.month)],
-                    day=[str(update_moment.day)],
-                    time=[f"{hour:02d}:00" for hour in range(2)],
-                ),
-                target_location=tempfile.NamedTemporaryFile().name,
-            )
+            with tempfile.TemporaryDirectory() as temp_dir:
+                download_era5_data(
+                    dataset=update_settings.era5_dataset_to_update_from,
+                    cds_request=CDSRequest(
+                        product_type=[update_settings.era5_product_type]
+                        if update_settings.era5_product_type is not None
+                        else None,
+                        variables=["soil_temperature_level_1"],  # A factor that exists in all supported ERA5 datasets
+                        year=[str(update_moment.year)],
+                        month=[str(update_moment.month)],
+                        day=[str(update_moment.day)],
+                        time=[f"{hour:02d}:00" for hour in range(2)],
+                    ),
+                    target_location=str(Path(temp_dir) / "era5.nc"),
+                )
             break
         except Exception as e:
             logger.debug(f" > Failed to download ERA5 data for {update_moment}. Reason: {e}")

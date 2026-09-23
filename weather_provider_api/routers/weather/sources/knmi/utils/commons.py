@@ -6,9 +6,9 @@
 
 import locale
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from io import StringIO
-from typing import cast, SupportsInt
+from typing import SupportsInt, cast
 
 import pandas as pd
 import requests  # type: ignore
@@ -68,7 +68,10 @@ def _find_closest_stn_single(stn_stations: pd.DataFrame, coord: GeoPosition) -> 
 
 
 def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
-    """A function that downloads the current weather data from the KNMI site for the Actuele Waarnemingen model and returns it as a Xarray Dataset."""
+    """A function that downloads the current weather data from the KNMI site for the Actuele Waarnemingen model.
+
+    And then returns it as a Xarray Dataset.
+    """
     raw_ds = None
 
     try:
@@ -109,16 +112,21 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
 
             current_observation_moment = _retrieve_observation_moment(knmi_site_response.text)
             knmi_site_df["time"] = current_observation_moment
-            knmi_site_df["time"] = knmi_site_df["time"].astype("datetime64[ns]")
+            knmi_site_df["time"] = (
+                pd.to_datetime(knmi_site_df["time"], utc=True)
+                .dt.tz_convert("UTC")
+                .dt.tz_localize(None)
+                .astype("datetime64[ns]")
+            )
             if "wind_direction" in knmi_site_df:
                 knmi_site_df["wind_direction"] = knmi_site_df["wind_direction"].str.strip("\n")
 
-            knmi_site_df["STN"] = knmi_site_df["station"].apply(lambda x: stations_actual_reversed[x.upper()])
+            knmi_site_df["STN"] = knmi_site_df["station"].apply(lambda x: stations_actual_reversed[x.upper()]) # type: ignore
 
             stations_actual_indexed = stations_actual.set_index("STN")
 
-            knmi_site_df["lat"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lat"])
-            knmi_site_df["lon"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lon"])
+            knmi_site_df["lat"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lat"]) # type: ignore
+            knmi_site_df["lon"] = knmi_site_df["STN"].apply(lambda x: stations_actual_indexed.loc[x, "lon"]) # type: ignore
             knmi_site_df = knmi_site_df.drop("station", axis="columns")
 
             # Rebuild the index
@@ -134,7 +142,8 @@ def download_actuele_waarnemingen_weather() -> xr.Dataset | None:
             raw_ds = knmi_site_df.to_xarray()
         else:
             logger.error(
-                f"Failed to retrieve KNMI Waarnemingen data. Received status code {knmi_site_response.status_code} when trying to access the site."
+                f"Failed to retrieve KNMI Waarnemingen data. Received status code {knmi_site_response.status_code} "
+                f"when trying to access the site."
             )
 
     except (requests.exceptions.RequestException, IndexError) as expected_error:
@@ -171,12 +180,13 @@ def _retrieve_observation_moment(html_body: str) -> datetime:
             return dt
         except locale.Error:
             logger.warning(
-                "No locale could be determined for KNMI Waarnemingen datetime transformation. Using local datetime instead."
+                "No locale could be determined for KNMI Waarnemingen datetime transformation. "
+                "Using local datetime instead."
             )
-            return datetime.now()
+            return datetime.now(tz=UTC)
         except (ValueError, AttributeError, TypeError) as e:
             logger.error(f"Error parsing KNMI Waarnemingen datetime: {e}. Using local datetime instead.")
-            return datetime.now()
+            return datetime.now(tz=UTC)
     else:
         logger.warning("No date match found in KNMI Waarnemingen HTML. Using local datetime instead.")
         current_locale = locale.getlocale(locale.LC_TIME)

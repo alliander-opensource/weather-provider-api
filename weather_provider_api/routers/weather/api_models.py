@@ -43,11 +43,21 @@ class ResponseFormat(StrEnum):
     csv = "csv"
 
 
-def _yesterday_midnight():
+def _yesterday_midnight() -> str:
+    """Return yesterday's midnight in UTC as a formatted datetime string.
+
+    Returns:
+        str: Yesterday at 00:00 UTC in ``YYYY-MM-DD HH:MM`` format.
+    """
     return (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d 00:00")
 
 
-def _yesterday_end():
+def _yesterday_end() -> str:
+    """Return the end of yesterday in UTC as a formatted datetime string.
+
+    Returns:
+        str: Yesterday at 23:59 UTC in ``YYYY-MM-DD HH:MM`` format.
+    """
     return (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d 23:59")
 
 
@@ -82,8 +92,8 @@ class WeatherFormattingRequestQuery(BaseModel):
         default=OutputUnit.si,
         description="Unit of weather factors",
     )
-    response_format: ResponseFormat = Field(
-        default=ResponseFormat.netcdf4,
+    response_format: ResponseFormat | None = Field(
+        default=None,
         description="Response format (overrides mime-types from Accept HTTP header)",
     )
 
@@ -164,7 +174,11 @@ class ScientificJSONResponse(StarletteResponse):
     media_type = "application/json"
 
     def render(self, content: Any) -> bytes:
-        """Render the content as JSON, ensuring that floats are formatted to a maximum of 4 decimal places and that NaN and Infinity values are handled appropriately."""
+        """Render the content as JSON.
+
+        This ensures that floats are formatted to a maximum of 4 decimal places and that NaN and Infinity values
+        are handled appropriately.
+        """
         # If the top-level value is a float, wrap it in a list so FloatEncoder.default is called
         return json.dumps(sanitize_for_json(content), allow_nan=True).encode("utf-8")
 
@@ -227,24 +241,50 @@ result_mime_types = defaultdict(
 )
 
 
+_FACTORS_QUERY = Query(None, description=FACTORS_DESCRIPTION)
+_UNITS_QUERY = Query(OutputUnit.si, description="Unit of weather factors")
+_RESPONSE_FORMAT_QUERY = Query(
+    None,
+    description="Response format (overrides mime-types from Accept HTTP header)",
+)
+
+
 # Dependency function to build WeatherContentRequestQuery from query params
 def get_weather_content_request_query(
     begin: str = Query(None, description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()]),
     end: str = Query(None, description=TO_DATE_AND_TIME, examples=[_yesterday_end()]),
     lat: float = Query(..., description="GPS Latitude or RD x-coordinate", examples=[52.10]),
     lon: float = Query(..., description="GPS Longitude or RD y-coordinate", examples=[5.18]),
-    factors: list[str] | None = Query(None, description=FACTORS_DESCRIPTION),
+    factors: list[str] | None = _FACTORS_QUERY,
 ) -> WeatherContentRequestQuery:
     """Retrieve a WeatherContentRequestQuery from query parameters."""
     return WeatherContentRequestQuery(begin=begin, end=end, lat=lat, lon=lon, factors=factors)
 
 
+# Dependency function to build WeatherContentRequestMultiLocationQuery from query params
+def get_weather_content_request_multi_location_query(
+    begin: str = Query(None, description=FROM_DATE_AND_TIME, examples=[_yesterday_midnight()]),
+    end: str = Query(None, description=TO_DATE_AND_TIME, examples=[_yesterday_end()]),
+    locations: str = Query(
+        None,
+        description="Locations in either WGS84 (lat,lon) or RD (x,y) format, in parentheses, separated by a comma",
+        examples=["(52.1, 5.18), (52.2, 5.22)"],
+    ),
+    factors: list[str] | None = _FACTORS_QUERY,
+) -> WeatherContentRequestMultiLocationQuery:
+    """Retrieve a WeatherContentRequestMultiLocationQuery from query parameters."""
+    return WeatherContentRequestMultiLocationQuery(
+        begin=begin,
+        end=end,
+        locations=locations,
+        factors=factors,
+    )
+
+
 # Dependency function to build WeatherFormattingRequestQuery from query params
 def get_weather_formatting_request_query(
-    units: OutputUnit = Query(OutputUnit.si, description="Unit of weather factors"),
-    response_format: ResponseFormat = Query(
-        ResponseFormat.netcdf4,
-        description="Response format (overrides mime-types from Accept HTTP header)",
-    ),
+    units: OutputUnit = _UNITS_QUERY,
+    response_format: ResponseFormat | None = _RESPONSE_FORMAT_QUERY,
 ) -> "WeatherFormattingRequestQuery":
+    """Format parameters into a WeatherFormattingRequestQuery object."""
     return WeatherFormattingRequestQuery(units=units, response_format=response_format)

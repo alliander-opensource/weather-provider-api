@@ -62,7 +62,7 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         end: datetime | None = None,
         weather_factors: list[str] | None = None,
     ) -> xr.Dataset:
-        """Gather and process the requested Actuele Waarnemingen weather data from the KNMI site and return it as a Xarray Dataset.
+        """Gather and process the requested Actuele Waarnemingen weather data from KNMI and return it as a xr.Dataset.
 
         The function that gathers and processes the requested Actuele Waarnemingen weather data from the KNMI site
         and returns it as a Xarray Dataset.
@@ -116,11 +116,14 @@ class ActueleWaarnemingenModel(WeatherModelBase):
         return ds
 
     def is_async(self) -> bool:  # pragma: no cover
-        """Determine if the model is asynchronous. For the Actuele Waarnemingen model, this returns False as it is a synchronous model."""
+        """Determine if the model is asynchronous.
+
+        For the Actuele Waarnemingen model, this returns False as it is a synchronous model.
+        """
         return self.async_model
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
-        # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
+        """Implementation of the Base Weather Model function that returns a list of known weather factors."""
         if factors is None:
             return list(self.to_si.keys())  # type: ignore
 

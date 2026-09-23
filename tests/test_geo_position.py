@@ -4,7 +4,7 @@
 
 import pytest
 
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition, GeoCoordinateSystem
+from weather_provider_api.routers.weather.utils.geo_position import GeoCoordinateSystem, GeoPosition
 
 
 @pytest.fixture

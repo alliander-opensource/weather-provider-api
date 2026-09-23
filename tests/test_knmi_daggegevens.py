@@ -60,11 +60,13 @@ def test__download_weather(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(requests, "post", mock_request_post)  # type: ignore
 
+    start = datetime(year=2020, month=3, day=1)
+    end = datetime(year=2020, month=3, day=2)
     with pytest.raises(requests.HTTPError) as e:
-        assert dag_model._download_weather(  # type: ignore
+        dag_model._download_weather(  # type: ignore
             [1, 2],
-            datetime(year=2020, month=3, day=1),
-            datetime(year=2020, month=3, day=2),
+            start,
+            end,
             None,
             False,
         )

@@ -42,6 +42,14 @@ def _build_api_application() -> FastAPI:
     # Define lifespan context manager for startup/shutdown events
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        """Initialize application logging for the application lifespan.
+
+        Args:
+            _app (FastAPI): Application managed by the lifespan context.
+
+        Yields:
+            None: Control during the running application lifespan.
+        """
         initialize_logging()
         yield
 

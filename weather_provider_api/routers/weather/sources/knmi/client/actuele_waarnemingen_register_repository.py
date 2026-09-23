@@ -90,10 +90,11 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         return self._delete_files_outside_of_scope()
 
     def _update_file_with_new_data(self, new_data_ds: xr.Dataset, update_moment: datetime) -> RepoDataFetchResult:
-        """This method updates any existing data file with new data.
+        """Update the observation file with data that is sufficiently new.
 
-        If the file doesn't exist, it will be created. If the file does exist, the new data will be merged with the existing
-        data, ensuring that there are no duplicate time entries. The file will then be saved with the merged data.
+        A new file is created when no valid storage file exists. Existing data is
+        extended only when its latest observation is at least five minutes older
+        than ``update_moment``.
 
         Args:
             new_data_ds (xr.Dataset):   A Xarray Dataset holding the data to append / create the data file with.
@@ -104,58 +105,97 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
             RepoDataFetchResult: An enum indicating the result of the data fetch attempt.
 
         """
-        storage_dataset: xr.Dataset | None = None
-        if self.storage_filename.exists():
-            logger.info(f"Trying to load existing file at [{self.storage_filename}] to update with new data.")
-            try:
-                storage_dataset = xr.load_dataset(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
-            except Exception as e:
-                logger.error(f"An error occured while trying to open the existing file: {e}")
-                logger.info("Attempting to delete existing file to create a new one")
-                self.safely_delete_file(self.storage_filename)
-                storage_dataset = None
+        storage_dataset = self._load_storage_dataset()
 
         logger.info(f"Storing new data retrieved at [{update_moment}] into file")
 
         if storage_dataset is None:
-            # New file
-            new_data_ds.to_netcdf(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
+            self._store_dataset(new_data_ds)
             return RepoDataFetchResult.SUCCESS
 
-        # Existing file
-        # Check if the latest time in the stored data is at least 5 minutes older than update_moment
-        if "time" in storage_dataset:
-            latest_time = storage_dataset["time"].values.max()
-            # Convert numpy.datetime64 or similar to Python datetime
-            if hasattr(latest_time, "astype"):
-                latest_time = latest_time.astype("M8[ms]").astype("O")
-            if isinstance(latest_time, (list, tuple)):
-                latest_time = latest_time[0]  # type: ignore
-            if isinstance(latest_time, np.datetime64):
-                latest_time = latest_time.astype("M8[ms]").astype(datetime)
-            if isinstance(latest_time, datetime):
-                # Ensure latest_time is timezone-aware (UTC)
-                if latest_time.tzinfo is None:
-                    latest_time = latest_time.replace(tzinfo=UTC)
-                time_diff = update_moment - latest_time
-                if time_diff < timedelta(minutes=5):
-                    logger.info(
-                        f"Latest stored time {latest_time} is less than 5 minutes older than update moment {update_moment}. Not updating file to avoid duplicates."
-                    )
-                    return RepoDataFetchResult.NO_DATA_AVAILABLE
-                else:
-                    logger.info(
-                        f"Latest stored time {latest_time} is at least 5 minutes older than update moment {update_moment}."
-                    )
-                    new_dataset_to_store = xr.merge([storage_dataset, new_data_ds], compat="override")  # type: ignore
-                    new_dataset_to_store.to_netcdf(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
-                    logger.info("File updated successfully with new data.")
-                    return RepoDataFetchResult.SUCCESS
-            else:
-                logger.warning(f"Could not parse latest_time from storage_dataset: {latest_time}")
+        latest_time = self._latest_storage_time(storage_dataset)
+        if latest_time is None:
+            raise ValueError(
+                'No "time" variable found in storage_dataset. Please check the contents of the existing file.'
+            )
 
-        logger.warning('No "time" variable found in storage_dataset.')
-        raise ValueError('No "time" variable found in storage_dataset. Please check the contents of the existing file.')
+        time_diff = update_moment - latest_time
+        if time_diff < timedelta(minutes=5):
+            logger.info(
+                f"Latest stored time {latest_time} is less than 5 minutes older than update moment "
+                f"{update_moment}. Not updating file to avoid duplicates."
+            )
+            return RepoDataFetchResult.NO_DATA_AVAILABLE
+
+        logger.info(
+            f"Latest stored time {latest_time} is at least 5 minutes older than update "
+            f"moment {update_moment}."
+        )
+        self._append_dataset(storage_dataset, new_data_ds)
+        logger.info("File updated successfully with new data.")
+        return RepoDataFetchResult.SUCCESS
+
+    def _load_storage_dataset(self) -> xr.Dataset | None:
+        """Load the current storage dataset, deleting it when it is unreadable.
+
+        Returns:
+            xr.Dataset | None: Existing dataset, or ``None`` when no usable file exists.
+        """
+        if not self.storage_filename.exists():
+            return None
+
+        logger.info(f"Trying to load existing file at [{self.storage_filename}] to update with new data.")
+        try:
+            return xr.load_dataset(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
+        except Exception as error:
+            logger.error(f"An error occured while trying to open the existing file: {error}")
+            logger.info("Attempting to delete existing file to create a new one")
+            self.safely_delete_file(self.storage_filename)
+            return None
+
+    @staticmethod
+    def _latest_storage_time(storage_dataset: xr.Dataset) -> datetime | None:
+        """Extract and normalize the latest observation timestamp.
+
+        Args:
+            storage_dataset (xr.Dataset): Stored observations.
+
+        Returns:
+            datetime | None: Latest timestamp in UTC, or ``None`` when it cannot be parsed.
+        """
+        if "time" not in storage_dataset:
+            logger.warning('No "time" variable found in storage_dataset.')
+            return None
+
+        latest_time = storage_dataset["time"].values.max()
+        if hasattr(latest_time, "astype"):
+            latest_time = latest_time.astype("M8[ms]").astype("O")
+        if isinstance(latest_time, (list, tuple)):
+            latest_time = latest_time[0]  # type: ignore
+        if isinstance(latest_time, np.datetime64):
+            latest_time = latest_time.astype("M8[ms]").astype(datetime)
+        if not isinstance(latest_time, datetime):
+            logger.warning(f"Could not parse latest_time from storage_dataset: {latest_time}")
+            return None
+        return latest_time.replace(tzinfo=UTC) if latest_time.tzinfo is None else latest_time
+
+    def _store_dataset(self, dataset: xr.Dataset) -> None:
+        """Write a dataset to the repository storage file.
+
+        Args:
+            dataset (xr.Dataset): Dataset to write.
+        """
+        dataset.to_netcdf(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
+
+    def _append_dataset(self, storage_dataset: xr.Dataset, new_data_ds: xr.Dataset) -> None:
+        """Append new observations to the stored dataset and persist the result.
+
+        Args:
+            storage_dataset (xr.Dataset): Existing observations.
+            new_data_ds (xr.Dataset): New observations to append.
+        """
+        new_dataset_to_store = xr.concat([storage_dataset, new_data_ds], dim="time")
+        self._store_dataset(new_dataset_to_store)
 
     def get_24_hour_registry_for_station(self, station: int) -> xr.Dataset:
         """Obtain the last 24 hours of data of Actuele Waarnemingen and returns it for single station.
@@ -191,6 +231,11 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         return stored_data_ds
 
     def _delete_files_outside_of_scope(self) -> RepoUpdateResult:
+        """Remove observations outside the repository's configured time window.
+
+        Returns:
+            RepoUpdateResult: Result of loading, filtering, and saving the repository data.
+        """
         logger.info(f"Deleting files outside of scope [{self.oldest_date_available} - {self.newest_date_available}]")
         if self.storage_filename.exists():
             try:
@@ -264,9 +309,6 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
             else:
                 station_ds = self.get_24_hour_registry_for_station(station=station)
 
-            if raw_ds is None:
-                raw_ds = station_ds
-            else:
-                raw_ds = xr.merge([raw_ds, station_ds], compat="override")  # type: ignore
+            raw_ds = station_ds if raw_ds is None else xr.merge([raw_ds, station_ds], compat="override")  # type: ignore
 
         return raw_ds, RepoDataFetchResult.SUCCESS

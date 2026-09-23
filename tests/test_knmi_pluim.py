@@ -12,13 +12,13 @@ from weather_provider_api.routers.weather.sources.knmi.models.pluim import Pluim
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
 
 
-@pytest.fixture()
+@pytest.fixture
 def starting_moment() -> datetime:
     """Returns a datetime object representing the current moment in UTC."""
     return datetime.now(UTC)
 
 
-@pytest.fixture()
+@pytest.fixture
 def ending_moment() -> datetime:
     """Returns a datetime object representing 15 days from the current moment in UTC."""
     return datetime.now(UTC) + timedelta(days=15)

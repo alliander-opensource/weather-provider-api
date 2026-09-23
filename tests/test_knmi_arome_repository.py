@@ -10,11 +10,15 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from unittest.mock import PropertyMock, patch
 
+import numpy as np
 import pytest
+import xarray as xr
 from loguru import logger
 
 from weather_provider_api.core.initializers.logging_handler import initialize_logging
+from weather_provider_api.routers.weather.base_models.repository import RepoUpdateResult
 from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
+    AromeSuggestedFileHandling,
     HarmonieAromeRepository,
 )
 from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
@@ -167,3 +171,250 @@ def test_arome_repository_remove_file(_get_mock_repository_dir: Path, caplog: py
         non_existing_file = arome_repo.storage_path.joinpath("DEF_DOESNT_EXIST.NOPE")
         result = arome_repo.safely_delete_file(non_existing_file)
         assert result is False
+
+
+def test_filter_file_list_down_to_wanted_files() -> None:
+    """Test filtering by filename date, supported hour, and available date range."""
+    repository = HarmonieAromeRepository()
+    current_date = datetime.now(UTC).date()
+    prefix = "knmi_arome_"
+    valid_file = f"{prefix}{current_date:%Y%m%d}00.nc"
+    invalid_hour = f"{prefix}{current_date:%Y%m%d}03.nc"
+    invalid_date = f"{prefix}{(current_date + timedelta(days=1)):%Y%m%d}00.nc"
+
+    result = repository._filter_file_list_down_to_wanted_files(  # type: ignore[reportPrivateUsage]
+        [
+            {"filename": valid_file, "size": 1},
+            {"filename": invalid_hour, "size": 1},
+            {"filename": invalid_date, "size": 1},
+            {"filename": "not-an-arome-file.nc", "size": 1},
+        ]
+    )
+
+    assert result == [{"filename": valid_file, "size": 1}]
+    assert repository._filter_file_list_down_to_wanted_files(None) is None  # type: ignore[reportPrivateUsage]
+
+
+def test_determine_suggested_file_handling(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the handling recommendation for new, processed, deprecated, and duplicate files."""
+    repository = HarmonieAromeRepository()
+    file = {"filename": "knmi_arome_2026092200.tar", "size": 1}
+    downloader = repository.knmi_data_platform_downloader
+
+    assert repository._determine_suggested_file_handling(file, []) == AromeSuggestedFileHandling.UPDATE  # type: ignore[reportPrivateUsage]
+    assert (
+        repository._determine_suggested_file_handling(file, [{"state": "unexpected", "path": Path("file")}])
+        == AromeSuggestedFileHandling.UPDATE  # type: ignore[reportPrivateUsage]
+    )
+    assert (
+        repository._determine_suggested_file_handling(
+            file,
+            [
+                {"state": "processed", "path": Path("file")},
+                {"state": "deprecated", "path": Path("file.deprecated")},
+            ],
+        )
+        == AromeSuggestedFileHandling.LEAVE_AS_IS  # type: ignore[reportPrivateUsage]
+    )
+
+    monkeypatch.setattr(downloader, "retrieve_download_information_for_file", lambda **kwargs: ("url", None))
+    assert (
+        repository._determine_suggested_file_handling(file, [{"state": "processed", "path": Path("file")}])
+        == AromeSuggestedFileHandling.LEAVE_AS_IS  # type: ignore[reportPrivateUsage]
+    )
+    assert (
+        repository._determine_suggested_file_handling(file, [{"state": "deprecated", "path": Path("file")}])
+        == AromeSuggestedFileHandling.UPDATE_DEPRECATED  # type: ignore[reportPrivateUsage]
+    )
+
+    monkeypatch.setattr(
+        downloader,
+        "retrieve_download_information_for_file",
+        lambda **kwargs: ("url", "file has been deprecated"),
+    )
+    assert (
+        repository._determine_suggested_file_handling(file, [{"state": "processed", "path": Path("file")}])
+        == AromeSuggestedFileHandling.DEPRECATE  # type: ignore[reportPrivateUsage]
+    )
+    assert (
+        repository._determine_suggested_file_handling(file, [{"state": "deprecated", "path": Path("file")}])
+        == AromeSuggestedFileHandling.LEAVE_AS_IS  # type: ignore[reportPrivateUsage]
+    )
+
+
+def test_process_file_update_test_mode() -> None:
+    """Test that test mode skips downloading and processing."""
+    repository = HarmonieAromeRepository()
+
+    result = repository._process_file_update(  # type: ignore[reportPrivateUsage]
+        {"name": "knmi_arome_2026092200.tar", "filename": "knmi_arome_2026092200.tar", "size": 1},
+        [],
+        run_in_testmode=True,
+    )
+
+    assert result == RepoUpdateResult.SUCCESS
+
+
+def test_filter_dataset_by_locations_and_factors() -> None:
+    """Test selection of nearest locations and requested available factors."""
+    dataset = xr.Dataset(
+        {
+            "temperature": (("time", "latitude", "longitude"), np.ones((1, 2, 2))),
+            "humidity": (("time", "latitude", "longitude"), np.zeros((1, 2, 2))),
+        },
+        coords={"time": [datetime(2026, 9, 22)], "latitude": [51.8, 52.0], "longitude": [5.7, 5.9]},
+    )
+
+    result = HarmonieAromeRepository._filter_dataset_by_locations_and_factors(  # type: ignore[reportPrivateUsage]
+        dataset,
+        locations=[(51.87, 5.71)],
+        factors=["temperature", "missing_factor"],
+    )
+
+    assert list(result.data_vars) == ["temperature"]
+    assert result.latitude.values.tolist() == [51.8]
+    assert result.longitude.values.tolist() == [5.7]
+
+
+def test_update_returns_success_or_timeout_when_no_files_are_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test update results when the data platform has no files to process."""
+    repository = HarmonieAromeRepository()
+    monkeypatch.setattr(repository, "get_files_available_for_download", lambda: [])
+    repository.knmi_data_platform_downloader.data_platform_quota_timeout = datetime.now(UTC) - timedelta(minutes=1)
+
+    result, message = repository.update()
+    assert result == RepoUpdateResult.SUCCESS
+    assert "up to date" in message
+
+    repository.knmi_data_platform_downloader.data_platform_quota_timeout = datetime.now(UTC) + timedelta(hours=1)
+    result, message = repository.update()
+    assert result == RepoUpdateResult.TIMEOUT
+    assert "quota timeout" in message
+
+
+def test_process_file_updates_fails_when_more_than_half_the_files_fail(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Stop processing when the failure ratio indicates a broken update run."""
+    repository = HarmonieAromeRepository()
+    monkeypatch.setattr(
+        repository,
+        "_process_file_update",
+        lambda file, existing_files, run_in_testmode: RepoUpdateResult.FAILURE,
+    )
+    files = [{"filename": f"knmi_arome_2026092{index}00.tar", "size": 1} for index in range(3)]
+
+    result, message = repository._process_file_updates(files, [], run_in_testmode=False)  # type: ignore[reportPrivateUsage]
+
+    assert result == RepoUpdateResult.FAILURE
+    assert "More than 50%" in message
+
+
+@pytest.mark.parametrize(
+    ("download_information", "downloaded_file", "expected_result"),
+    [
+        (None, None, RepoUpdateResult.FAILURE),
+        (("https://example.test/arome.tar", None), None, RepoUpdateResult.FAILURE),
+        (("https://example.test/arome.tar", None), Path("arome.tar"), RepoUpdateResult.SUCCESS),
+    ],
+)
+def test_download_and_process_file_handles_download_outcomes(
+    monkeypatch: pytest.MonkeyPatch,
+    download_information: tuple[str, str | None] | None,
+    downloaded_file: Path | None,
+    expected_result: RepoUpdateResult,
+) -> None:
+    """Return failure for unavailable download steps and process successful downloads."""
+    repository = HarmonieAromeRepository()
+    downloader = repository.knmi_data_platform_downloader
+    monkeypatch.setattr(downloader, "retrieve_download_information_for_file", lambda **kwargs: download_information)
+    monkeypatch.setattr(downloader, "retrieve_file", lambda **kwargs: downloaded_file)
+    process_calls: list[tuple[str, Path]] = []
+
+    def process_downloaded_file(file_name: str, tar_file: Path) -> RepoUpdateResult:
+        process_calls.append((file_name, tar_file))
+        return RepoUpdateResult.SUCCESS
+
+    monkeypatch.setattr(repository, "_process_downloaded_file", process_downloaded_file)
+
+    result = repository._download_and_process_file(  # type: ignore[reportPrivateUsage]
+        {"filename": "knmi_arome_2026092200.tar", "size": 1}
+    )
+
+    assert result == expected_result
+    if downloaded_file:
+        assert process_calls == [("knmi_arome_2026092200.tar", downloaded_file)]
+    else:
+        assert process_calls == []
+
+
+def test_process_downloaded_file_returns_failure_for_invalid_filename() -> None:
+    """Reject an archive whose filename does not contain a datetime tag."""
+    repository = HarmonieAromeRepository()
+
+    result = repository._process_downloaded_file("invalid.tar", Path("invalid.tar"))  # type: ignore[reportPrivateUsage]
+
+    assert result == RepoUpdateResult.FAILURE
+
+
+def test_process_downloaded_file_returns_failure_when_processing_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Convert processing exceptions into a repository failure result."""
+    repository = HarmonieAromeRepository()
+    monkeypatch.setattr(
+        "weather_provider_api.routers.weather.sources.knmi.client.arome_repository."
+        "process_knmi_arome_cy43_p1_tar_file_into_netcdf",
+        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("conversion failed")),
+    )
+
+    result = repository._process_downloaded_file(  # type: ignore[reportPrivateUsage]
+        "knmi_arome_2026092200.tar", Path("arome.tar")
+    )
+
+    assert result == RepoUpdateResult.FAILURE
+
+
+def test_process_file_update_dispatches_to_deprecate_or_download(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Dispatch the suggested handling action to the matching operation."""
+    repository = HarmonieAromeRepository()
+    file = {"filename": "knmi_arome_2026092200.tar", "size": 1}
+    existing_files = [{"state": "processed", "path": Path("existing.nc")}]
+    calls: list[str] = []
+
+    monkeypatch.setattr(
+        repository,
+        "_determine_suggested_file_handling",
+        lambda file, existing_files: AromeSuggestedFileHandling.DEPRECATE,
+    )
+    monkeypatch.setattr(repository, "_deprecate_processed_files", lambda files: calls.append("deprecate"))
+    assert repository._process_file_update(file, existing_files, run_in_testmode=False) == RepoUpdateResult.SUCCESS  # type: ignore[reportPrivateUsage]
+
+    monkeypatch.setattr(
+        repository,
+        "_determine_suggested_file_handling",
+        lambda file, existing_files: AromeSuggestedFileHandling.UPDATE,
+    )
+    monkeypatch.setattr(repository, "_download_and_process_file", lambda file: calls.append("download") or RepoUpdateResult.SUCCESS)
+    assert repository._process_file_update(file, existing_files, run_in_testmode=False) == RepoUpdateResult.SUCCESS  # type: ignore[reportPrivateUsage]
+
+    assert calls == ["deprecate", "download"]
+
+
+def test_get_existing_files_in_repository_classifies_and_skips_unknown_files(
+    _get_mock_repository_dir: Path,
+) -> None:
+    """Classify supported repository suffixes and ignore invalid names."""
+    with patch.object(HarmonieAromeRepository, "storage_path", new_callable=PropertyMock) as mock_path:
+        mock_path.return_value = _get_mock_repository_dir
+        repository = HarmonieAromeRepository()
+        if repository.absolute_storage_path.exists():
+            shutil.rmtree(repository.absolute_storage_path)
+        repository.absolute_storage_path.mkdir(parents=True)
+        repository.absolute_storage_path.joinpath("knmi_arome_2026092200.nc").touch()
+        repository.absolute_storage_path.joinpath("knmi_arome_2026092200.raw.nc").touch()
+        repository.absolute_storage_path.joinpath("knmi_arome_2026092200.deprecated.nc").touch()
+        repository.absolute_storage_path.joinpath("not-an-arome-file.nc").touch()
+
+        result = repository.get_existing_files_in_repository()
+
+    assert {file["state"] for file in result} == {"processed", "raw", "deprecated"}
+    assert len(result) == 3

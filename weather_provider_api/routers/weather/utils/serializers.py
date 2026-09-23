@@ -56,8 +56,12 @@ def return_file_or_text_response(
             return json_dataset_response(patched_unserialized_data)
         case ResponseFormat.netcdf4 | ResponseFormat.netcdf3:
             file_path = to_netcdf(patched_unserialized_data, response_format)
-            mime = "application/x-netcdf4"
-            extension = ".v4.nc"
+            if response_format == ResponseFormat.netcdf4:
+                mime = "application/x-netcdf4"
+                extension = ".v4.nc"
+            else:
+                mime = "application/x-netcdf3"
+                extension = ".v3.nc"
             return file_response(file_path, mime, source_id, model_id, request, extension), file_path
         case _:
             raise NotImplementedError(f"Cannot create response for the {response_format.name} response format")
@@ -71,7 +75,20 @@ def file_response(
     request: WeatherContentRequestQuery | WeatherContentRequestMultiLocationQuery,
     extension: str,
 ) -> FileResponse:
-    """Create a FileResponse for the given file path, MIME type, and file name."""
+    """Create a file response with a generated weather-data filename.
+
+    Args:
+        file_path (str): Path to the response file.
+        mime (str): Response MIME type.
+        source_id (str): Weather source identifier.
+        model_id (str): Weather model identifier.
+        request (WeatherContentRequestQuery | WeatherContentRequestMultiLocationQuery):
+            Request containing the requested time range.
+        extension (str): File extension to append to the generated filename.
+
+    Returns:
+        FileResponse: Response serving the generated file.
+    """
     file_name = f"weather_{source_id}_{model_id}_{request.begin}-{request.end}{extension}".replace(" ", "T").replace(
         ":", ""
     )
@@ -79,7 +96,14 @@ def file_response(
 
 
 def patch_unserialized_data(unserialized_data: xr.Dataset) -> xr.Dataset:
-    """Patch the unserialized data to ensure it is in the correct format for response generation."""
+    """Prepare a dataset for coordinate-based response generation.
+
+    Args:
+        unserialized_data (xr.Dataset): Dataset to prepare.
+
+    Returns:
+        xr.Dataset: Dataset with multidimensional latitude and longitude coordinates indexed.
+    """
     # Ensure 'lat' and 'lon' are set as xindexes for selection
     if (
         "lat" in unserialized_data.coords
@@ -118,8 +142,8 @@ def to_netcdf(unserialized_data: xr.Dataset, response_format: ResponseFormat) ->
     """Convert the unserialized data to a NetCDF file and return the file path."""
     unserialized_data = _normalize_time_coordinate_for_netcdf(unserialized_data)
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
-    file_path = temp_file.name
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        file_path = temp_file.name
     if response_format == ResponseFormat.netcdf4:
         unserialized_data.to_netcdf(file_path, mode="w", format="NETCDF4", engine="netcdf4")  # type: ignore
     elif response_format == ResponseFormat.netcdf3:

@@ -89,7 +89,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         )
 
     def cleanup_storage(self) -> RepoUpdateResult:
-        """Cleans up the storage by deleting all files that are outside of the repository's scope."""
+        """Cleans up the storage by deleting all files that are outside the repository's scope."""
         self._delete_files_outside_of_scope()
 
         return RepoUpdateResult.SUCCESS
@@ -102,7 +102,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         Returns:
             Nothing. Successful means the all files outside the scope were deleted.
         """
-        prefix = str(self.absolute_storage_path / "cds_era5sl_")
+        prefix = str(self.absolute_storage_path / f"cds_{self.source_and_model['model']}_")
         prefix_len = len(prefix)
         for file_path in glob.glob(f"{prefix}*.nc"):
             # Expecting filenames like .../cds_era5sl_YYYY-MM.nc
@@ -147,7 +147,7 @@ class ERA5SLRepository(WeatherRepositoryBase):
         Returns:
             A list of files (in string format) that indicate the files containing data for the requested period.
         """
-        prefix = str(self.absolute_storage_path / "cds_era5sl_")
+        prefix = str(self.absolute_storage_path / f"cds_{self.source_and_model['model']}_")
         prefix_len = len(prefix)
         last_day_of_end_month = to_date.replace(day=calendar.monthrange(to_date.year, to_date.month)[1]).day
         list_of_required_files: list[Path] = []

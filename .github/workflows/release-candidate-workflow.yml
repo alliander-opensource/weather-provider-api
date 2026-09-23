@@ -21,8 +21,7 @@ jobs:
       matrix:
         version: ["3.13"]
     name: Testing and updating SonarCloud
-    runs-on:
-      group: managed
+    runs-on: mgd-ubuntu24-x64-4c16g
     permissions:
       contents: write
       pull-requests: write
@@ -90,8 +89,7 @@ jobs:
   create-and-upload-image:
     name: Create and upload image
     needs: tests-and-sonarcloud
-    runs-on:
-      group: managed
+    runs-on: mgd-ubuntu24-x64-4c16g
     permissions:
       id-token: write
       contents: read
