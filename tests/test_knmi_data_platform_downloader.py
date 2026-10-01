@@ -42,7 +42,7 @@ class _MockResponse:
 
 
 def _build_downloader(monkeypatch: pytest.MonkeyPatch) -> KNMIDataPlatFormDownloadClient:
-    """Create a downloader instance with a mocked, successful validation request."""
+    """Create a downloader with HTTP requests mocked to succeed by default."""
     monkeypatch.setenv("KNMI_DATA_PLATFORM_KEY", "dummy-access-key")
 
     def _mock_get_ok(*args, **kwargs):  # type: ignore
@@ -64,7 +64,7 @@ def test_quota_exceeded_429_enters_timeout(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(requests, "get", _mock_get_too_many)
 
     before = datetime.now(tz=UTC)
-    result = downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files=1)
+    result = downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files_allowed=1)
 
     # The call is aborted (returns None) and the client enters a quota timeout roughly one hour out.
     assert result is None
@@ -83,7 +83,7 @@ def test_calls_skipped_while_in_quota_timeout(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(requests, "get", _fail_if_called)
 
-    assert downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files=1) is None
+    assert downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files_allowed=1) is None
 
 
 def test_quota_exceeded_403_enters_timeout(monkeypatch: pytest.MonkeyPatch):
@@ -97,7 +97,7 @@ def test_quota_exceeded_403_enters_timeout(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(requests, "get", _mock_get_quota)
 
     before = datetime.now(tz=UTC)
-    result = downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files=1)
+    result = downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files_allowed=1)
 
     assert result is None
     assert downloader.on_quota_timeout is True
@@ -114,7 +114,7 @@ def test_forbidden_403_does_not_enter_quota_timeout(monkeypatch: pytest.MonkeyPa
 
     monkeypatch.setattr(requests, "get", _mock_get_forbidden)
 
-    result = downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files=1)
+    result = downloader.retrieve_file_and_size_list_for_dataset("some_dataset", "1.0", max_files_allowed=1)
 
     assert result is None
     assert downloader.data_platform_quota_timeout == original_timeout
@@ -132,7 +132,7 @@ def test_retrieve_file_list_paginates_and_respects_max_files(monkeypatch: pytest
     )
     monkeypatch.setattr(requests, "get", lambda *args, **kwargs: next(responses))
 
-    result = downloader.retrieve_file_and_size_list_for_dataset("dataset", "1.0", max_files=2)
+    result = downloader.retrieve_file_and_size_list_for_dataset("dataset", "1.0", max_files_allowed=2)
 
     assert result == [{"filename": "first"}, {"filename": "second"}]
 

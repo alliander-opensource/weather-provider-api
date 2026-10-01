@@ -52,8 +52,17 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         )
         self.knmi_dataset_name = "harmonie_arome_cy43_p1"
         self.knmi_dataset_version = "1.0"
-        self.knmi_data_platform_downloader = KNMIDataPlatFormDownloadClient()
+        self._knmi_data_platform_downloader: KNMIDataPlatFormDownloadClient | None = None
         logger.info(f"Initialized {self.__class__.__name__} with configuration:\n{self.metadata}")
+
+    @property
+    def knmi_data_platform_downloader(self) -> KNMIDataPlatFormDownloadClient:
+        """Return the KNMI Data Platform client, initializing it on first use."""
+        downloader = self._knmi_data_platform_downloader
+        if downloader is None:
+            downloader = KNMIDataPlatFormDownloadClient()
+            self._knmi_data_platform_downloader = downloader
+        return downloader
 
     @property
     def oldest_date_available(self) -> date:
@@ -127,7 +136,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         result = RepoUpdateResult.SUCCESS
         for file in self.get_existing_files_in_repository():
             file_path = Path(file["path"])
-            datetime_tag = self._extract_datetime_tag_from_file_name(file_name=file["name"].__str__())
+            datetime_tag = self._extract_datetime_tag_from_file_name(file_name=str(file["name"]))
             if datetime_tag is None:
                 self.safely_delete_file(file_path=file_path)
                 continue
@@ -154,7 +163,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             filtered_dataset = self._gather_data_from_files_and_combine_into_dataset(
                 required_files_for_data, locations, factors
             )
-        except Exception as e:
+        except (OSError, ValueError, KeyError, IndexError, RuntimeError) as e:
             logger.error(f"An error occurred while retrieving data from the repository: {e}")
             return None, RepoDataFetchResult.FAILURE
 
@@ -183,7 +192,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         filtered_filed: list[dict[str, str | int]] = []
 
         for file in file_list:
-            file_name: str = file["filename"].__str__()
+            file_name: str = str(file["filename"])
             # First we verify that the file name contains a date and time in the expected format, and extract
             # the date and time from the file name
             try:
@@ -294,7 +303,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
 
         # Step through each available file and determine if it needs to be (re-)downloaded and processed
         for file in available_files:
-            datetime_tag_for_file = self._extract_datetime_tag_from_file_name(file_name=file["filename"].__str__())
+            datetime_tag_for_file = self._extract_datetime_tag_from_file_name(file_name=str(file["filename"]))
 
             existing_files_with_same_datetime_tag = [
                 existing_file
@@ -407,7 +416,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         Returns:
             RepoUpdateResult: Whether download and conversion succeeded.
         """
-        file_name = file["filename"].__str__()
+        file_name = str(file["filename"])
         download_result = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
             dataset_name=self.knmi_dataset_name,
             dataset_version=self.knmi_dataset_version,
@@ -447,10 +456,11 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             process_knmi_arome_cy43_p1_tar_file_into_netcdf(
                 tar_file_path=tar_file,
                 target_netcdf_file_path=self.absolute_storage_path,
-                target_netcdf_file_name=f"{self.source_and_model['source']}_{self.source_and_model['model']}_{datetime_tag}.nc",
+                target_netcdf_file_name=f"{self.source_and_model['source']}_{self.source_and_model['model']}"
+                                        f"_{datetime_tag}.nc",
                 datetime_tag=datetime_tag,
             )
-        except Exception as error:
+        except (OSError, ValueError, KeyError, RuntimeError) as error:
             logger.error(f"An error occurred while processing file [{file_name}]: {error}")
             return RepoUpdateResult.FAILURE
         return RepoUpdateResult.SUCCESS
@@ -496,7 +506,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             download_information = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
                 dataset_name=self.knmi_dataset_name,
                 dataset_version=self.knmi_dataset_version,
-                file_name=file["filename"].__str__(),
+                file_name=str(file["filename"]),
             )
             if not download_information:
                 logger.error(f"Failed to retrieve download information for file [{file['filename']}].")
@@ -523,7 +533,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
             download_information = self.knmi_data_platform_downloader.retrieve_download_information_for_file(
                 dataset_name=self.knmi_dataset_name,
                 dataset_version=self.knmi_dataset_version,
-                file_name=file["filename"].__str__(),
+                file_name=str(file["filename"]),
             )
             if not download_information:
                 logger.error(f"Failed to retrieve download information for file [{file['filename']}].")
@@ -579,7 +589,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
                     combined_dataset = filtered_dataset
                 else:
                     combined_dataset = xr.concat([combined_dataset, filtered_dataset], dim="time")
-            except Exception as e:
+            except (OSError, ValueError, KeyError, IndexError, RuntimeError) as e:
                 logger.error(f"An error occurred while reading file [{file}]: {e}")
                 raise e
 
@@ -629,7 +639,7 @@ class HarmonieAromeRepository(WeatherRepositoryBase):
         try:
             existing_file_path.rename(deprecated_file_path)
             logger.info(f"File [{existing_file_path}] has been deprecated and renamed to [{deprecated_file_path}].")
-        except Exception as e:
+        except OSError as e:
             logger.error(f"An error occurred while deprecating file [{existing_file_path}]: {e}")
             return RepoUpdateResult.FAILURE
 

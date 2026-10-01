@@ -65,7 +65,7 @@ class KNMIDataPlatFormDownloadClient:
         return f"{self.data_platform_url}/v1/datasets/{dataset_name}/versions/{dataset_version}/files"
 
     def retrieve_file_and_size_list_for_dataset(
-        self, dataset_name: str, dataset_version: str, max_files: int | None = None
+        self, dataset_name: str, dataset_version: str, max_files_allowed: int | None = None
     ) -> list[dict[str, str | int]] | None:
         """Retrieve a file and sizes list for the specified dataset."""
         # Make sure we're not currently in a quota timeout state
@@ -79,11 +79,12 @@ class KNMIDataPlatFormDownloadClient:
             return None
 
         max_keys = (
-            min(max_files, _MAX_ALLOWED_FILES_PER_REQUEST) if max_files is not None else _MAX_ALLOWED_FILES_PER_REQUEST
+            min(max_files_allowed, _MAX_ALLOWED_FILES_PER_REQUEST) if max_files_allowed is not None
+            else _MAX_ALLOWED_FILES_PER_REQUEST
         )
         max_files: int = (
-            min(max_files, _MAX_ALLOWED_FILES_PER_UPDATE_RUN)
-            if max_files is not None
+            min(max_files_allowed, _MAX_ALLOWED_FILES_PER_UPDATE_RUN)
+            if max_files_allowed is not None
             else _MAX_ALLOWED_FILES_PER_UPDATE_RUN
         )
         next_page_token = None
@@ -115,7 +116,7 @@ class KNMIDataPlatFormDownloadClient:
                 return None
 
             file_list.extend(response.json().get("files", []))
-            if max_files is not None and len(file_list) >= max_files:
+            if len(file_list) >= max_files:
                 logger.debug(
                     "Reached maximum allowed files per update run ({}). Stopping retrieval of file list.", max_files
                 )
@@ -141,7 +142,8 @@ class KNMIDataPlatFormDownloadClient:
             raise ValueError("KDP Access Error: URL is not set.")
 
         # Check if the access key can be used to access the KNMI Data Platform
-        ...
+        # TODO: Build a proper validation mechanism to check if the access key is valid
+        #       and can be used to access the KNMI Data Platform.
 
         logger.info("Access settings validated successfully.")
 

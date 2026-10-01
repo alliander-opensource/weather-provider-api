@@ -5,6 +5,7 @@
 import io
 import tarfile
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -60,7 +61,7 @@ def test_build_lat_lon_grid() -> None:
 
 def test_process_grib_message_to_dataset() -> None:
     """Test conversion of a supported GRIB message into an xarray dataset."""
-    message = {
+    message: dict[str, Any] = {
         "typeOfLevel": "heightAboveGround",
         "level": 0,
         "parameterName": "11",
@@ -85,7 +86,7 @@ def test_process_grib_message_to_dataset() -> None:
 
 def test_process_grib_message_uses_unknown_factor_name() -> None:
     """Keep unmapped GRIB factors available under a stable fallback name."""
-    message = {
+    message: dict[str, Any] = {
         "typeOfLevel": "heightAboveGround",
         "level": 10,
         "parameterName": "unmapped-factor",
@@ -106,7 +107,7 @@ def test_process_grib_message_uses_unknown_factor_name() -> None:
 
 def test_process_grib_message_prefixes_step_type_for_underscore_factor() -> None:
     """Prefix mapped underscore factors with their GRIB step type."""
-    message = {
+    message: dict[str, Any] = {
         "typeOfLevel": "heightAboveGround",
         "level": 0,
         "parameterName": "181",
@@ -147,7 +148,7 @@ def test_merge_netcdf_files_returns_none_when_directory_is_empty(tmp_path: Path)
     (tmp_path / "nc").mkdir()
 
     result = processor._merge_netcdf_files_in_directory(  # type: ignore[reportPrivateUsage]
-        str(tmp_path), "merged.nc", "2026092200"
+        str(tmp_path), "merged.nc"
     )
 
     assert result is None
@@ -161,14 +162,16 @@ def test_convert_grib_file_skips_unsupported_grid_messages(tmp_path: Path, monke
     netcdf_directory.mkdir()
 
     class FakeStream:
+        """Fake stream for testing."""
         def items(self):
+            """Return a (fake) list of GRIB messages."""
             return [("ignored", {"gridType": "reduced_gg"})]
 
-    monkeypatch.setattr(processor.cfgrib, "FileStream", lambda path: FakeStream())
+    monkeypatch.setattr(processor.cfgrib, "FileStream", lambda path: FakeStream()) # type: ignore
 
-    processor._convert_grib_file_to_netcdf(grib_file, netcdf_directory, "2026092200")  # type: ignore[reportPrivateUsage]
+    processor._convert_grib_file_to_netcdf(grib_file, netcdf_directory, "2026092200")  # type: ignore
 
-    assert list(netcdf_directory.iterdir()) == []
+    assert not list(netcdf_directory.iterdir())
 
 
 def test_process_tar_file_returns_none_when_merge_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -177,8 +180,8 @@ def test_process_tar_file_returns_none_when_merge_fails(tmp_path: Path, monkeypa
     target_directory = tmp_path / "target"
     target_directory.mkdir()
     _make_tar_file(tar_file)
-    monkeypatch.setattr(processor, "_convert_grib_files_to_netcdf", lambda *args: None)
-    monkeypatch.setattr(processor, "_merge_netcdf_files_in_directory", lambda *args: None)
+    monkeypatch.setattr(processor, "_convert_grib_files_to_netcdf", lambda *args: None) # type: ignore
+    monkeypatch.setattr(processor, "_merge_netcdf_files_in_directory", lambda *args: None) # type: ignore
 
     result = processor.process_knmi_arome_cy43_p1_tar_file_into_netcdf(
         tar_file, target_directory, "result.nc", "2026092200"
@@ -194,9 +197,9 @@ def test_move_merged_netcdf_file_returns_none_for_os_errors(
     """Convert move failures into an explicit no-result value."""
     source = tmp_path / "source.nc"
     source.touch()
-    monkeypatch.setattr(processor.shutil, "move", lambda *args: (_ for _ in ()).throw(error))
+    monkeypatch.setattr(processor.shutil, "move", lambda *args: (_ for _ in ()).throw(error)) # type: ignore
 
-    assert processor._move_merged_netcdf_file_to_target_location(source, tmp_path) is None  # type: ignore[reportPrivateUsage]
+    assert processor._move_merged_netcdf_file_to_target_location(source, tmp_path) is None  # type: ignore
 
 
 def test_process_tar_file_orchestrates_extraction_conversion_and_move(
@@ -212,7 +215,7 @@ def test_process_tar_file_orchestrates_extraction_conversion_and_move(
     def fake_conversion(temporary_directory: str, datetime_tag: str) -> None:
         observed_grib_files.extend(Path(temporary_directory).glob("*.grib"))
 
-    def fake_merge(temporary_directory: str, target_name: str, datetime_tag: str) -> Path:
+    def fake_merge(temporary_directory: str, target_name: str) -> Path:
         merged_file = Path(temporary_directory) / "nc" / target_name
         merged_file.parent.mkdir(exist_ok=True)
         merged_file.write_bytes(b"merged netcdf")

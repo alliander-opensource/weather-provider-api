@@ -36,7 +36,6 @@ dependencies = [
     "slowapi>=0.1.10,<0.2.0",
     "starlette>=1.4.0,<2.0.0",
     "starlette-prometheus>=0.10.0,<0.11.0",
-    "types-gunicorn==26.2.0.20260827",
     "urllib3>=2.7.0,<3.0.0",
     "uvicorn>=0.53.0,<0.54.0",
     "xarray>=2026.7.0,<2027.0.0",
@@ -56,7 +55,7 @@ dev = [
     "pytest-xdist>=3.8.0",
     "reuse>=6.2.0,<7.0.0",
     "ruff>=0.16.0,<0.17.0",
-    "types-gunicorn>=26.0.0.20260728",
+    "types-gunicorn==26.2.0.20260827",    
     "vulture>=2.16"
 ]
 docs = [

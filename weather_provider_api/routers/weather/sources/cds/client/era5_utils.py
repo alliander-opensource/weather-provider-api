@@ -354,14 +354,14 @@ def _format_downloaded_file(unformatted_file: Path, allowed_factors: dict[str, s
         #  the proper use has been validated...
         ds_unformatted_expver5 = (
             ds_unformatted.sel(expver=5)
-            .drop("expver")
+            .drop_vars("expver")
             .dropna(  # type: ignore
                 "valid_time", how="all"
             )
         )
         ds_unformatted_expver1 = (
             ds_unformatted.sel(expver=1)
-            .drop("expver")
+            .drop_vars("expver")
             .dropna(  # type: ignore
                 "valid_time", how="all"
             )
@@ -437,7 +437,7 @@ def _recombine_multiple_files(unformatted_file: Path) -> None:
             raise FileNotFoundError(f" > Required file {filename}.nc does not exist. Aborting recombination.")
 
         dataset = xr.open_dataset(file_path)  # type: ignore
-        dataset = dataset.drop("expver", errors="raise")  # type: ignore
+        dataset = dataset.drop_vars("expver", errors="raise")  # type: ignore
 
         if not concatenated_dataset.data_vars:
             concatenated_dataset = dataset.copy(deep=True)

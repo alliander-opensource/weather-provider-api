@@ -54,7 +54,7 @@ def process_knmi_arome_cy43_p1_tar_file_into_netcdf(
 
     # After conversion we should merge the netCDF4 files into a single file
     merged_netcdf_file_path = _merge_netcdf_files_in_directory(
-        temporary_directory, target_netcdf_file_name, datetime_tag
+        temporary_directory, target_netcdf_file_name
     )
     if merged_netcdf_file_path is None:
         logger.error(f"Failed to merge netCDF files in temporary directory: {temporary_directory}")
@@ -87,7 +87,7 @@ def _unpack_tar_file(tar_file_path: Path, temporary_directory: str) -> None:
                 if member.isfile():  # Only extract files, ignore directories
                     member.name = Path(member.name).name  # Remove any directory structure
                     logger.debug(f"Extracting file: {member.name}")
-                    tar.extract(member, path=temporary_directory)
+                    tar.extract(member, path=temporary_directory, filter="data")
     except tarfile.TarError as e:
         logger.error(f"Error unpacking tar file: {e}")
         raise FileNotFoundError(f"Could not unpack tar file: {tar_file_path}") from e
@@ -182,7 +182,9 @@ def _process_grib_message_to_dataset(
 
     """
     # Establish the message's measurement level
-    message_level_type = "_".join(re.findall("[A-Z][^A-Z]*", str(grib_message["typeOfLevel"]))).lower()  # type: ignore[union-attr]
+    message_level_type = "_".join(
+        re.findall("[A-Z][^A-Z]*", str(grib_message["typeOfLevel"]))
+        ).lower()  # type: ignore[union-attr]
     message_level_value = str(grib_message["level"])  # type: ignore[union-attr]
 
     # Process the messages weather factor
@@ -220,7 +222,7 @@ def _process_grib_message_to_dataset(
     mindex_coords: xr.Coordinates = xr.Coordinates.from_pandas_multiindex(dataset_coords["coord"], "coord")
     dataset_coords.pop("coord")  # Remove the MultiIndex from coords
     message_dataset = xr.Dataset(data_vars=dataset_data_dict, coords=dataset_coords)
-    message_dataset = message_dataset.assign_coords(coords=mindex_coords)
+    message_dataset = message_dataset.assign_coords(coords=mindex_coords) # type: ignore
     message_dataset.time.encoding["units"] = "seconds since 1970-01-01T00:00:00Z"
 
     return message_dataset
@@ -276,19 +278,17 @@ def _build_lat_lon_grid(grib_message: dict[str, Any]) -> tuple[list[float], list
 
 
 def _merge_netcdf_files_in_directory(
-    temporary_directory: str, target_netcdf_file_name: str, datetime_tag: str
+    temporary_directory: str, target_netcdf_file_name: str
 ) -> Path | None:
     """Merge all netCDF files in the specified temporary directory into a single netCDF file.
 
-    The merged file will be saved in the same directory with a name based on the datetime tag.
+    The merged file will be saved in the same directory with the target filename.
 
     Args:
         temporary_directory (str):
                 The path to the temporary directory containing the netCDF files (in a /nc subdirectory).
         target_netcdf_file_name (str):
                 The name of the target netCDF file.
-        datetime_tag (str):
-                A datetime tag associated with the prediction data, used for naming the merged file.
 
     Returns:
         Path | None: The path to the merged netCDF file, or None if no files were found.

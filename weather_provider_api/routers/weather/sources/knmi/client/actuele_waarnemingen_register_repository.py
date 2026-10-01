@@ -185,7 +185,12 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
         Args:
             dataset (xr.Dataset): Dataset to write.
         """
-        dataset.to_netcdf(self.storage_filename, engine="netcdf4", format="NETCDF4")  # type: ignore
+        dataset.to_netcdf(
+            self.storage_filename,
+            engine="netcdf4",
+            format="NETCDF4",
+            encoding={"time": {"units": "seconds since 1970-01-01 00:00:00"}},
+        )  # type: ignore
 
     def _append_dataset(self, storage_dataset: xr.Dataset, new_data_ds: xr.Dataset) -> None:
         """Append new observations to the stored dataset and persist the result.
