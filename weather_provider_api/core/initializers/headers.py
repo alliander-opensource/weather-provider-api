@@ -24,6 +24,15 @@ def initialize_header_metadata(application: FastAPI) -> None:
     """
 
     async def add_metadata_headers(request: Request, call_next: Any) -> object:
+        """Add application metadata headers to the downstream response.
+
+        Args:
+            request (Request): Incoming HTTP request.
+            call_next (Any): Callable that invokes the next middleware or endpoint.
+
+        Returns:
+            object: Downstream response with application metadata headers.
+        """
         response = await call_next(request)
         response.headers["X-App-Version"] = APP_VERSION
         response.headers["X-App-Valid-Till"] = APP_CONFIG["base"]["expiration_date"]

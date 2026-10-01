@@ -33,22 +33,22 @@ from weather_provider_api.routers.weather.base_models.model import OutputUnit
 
 controller = WeatherController()
 sources = controller.get_sources()  # get a list of supported sources
-models = controller.get_models(source_id='knmi') # get a list of supported models for the source 'knmi'
+models = controller.get_models(source_id="knmi")  # get a list of supported models for the source 'knmi'
 weather_data = controller.get_weather(
-    source_id='knmi',  # source
-    model_id='daggegevens',  # model
+    source_id="knmi",  # source
+    model_id="daggegevens",  # model
     coords=[(52.0, 5.0), (51, 4.8)],  # coordinates (at least one)
-    begin='2024-01-01',  # start date
-    end='2024-01-02',  # end date
-    factors=['temperature', 'precipitation']  # (optional) weather factors to retrieve
+    begin="2024-01-01",  # start date
+    end="2024-01-02",  # end date
+    factors=["temperature", "precipitation"],  # (optional) weather factors to retrieve
 )  # get weather data for the specified source and model
 
 # Conversion to other unit systems:
 weather_data_converted_to_si = controller.convert_names_and_units(
-    source_id='knmi',  # source
-    model_id='daggegevens',  # model
+    source_id="knmi",  # source
+    model_id="daggegevens",  # model
     data=weather_data,  # the data to convert
-    unit=OutputUnit.si  # the unit system to convert to
+    unit=OutputUnit.si,  # the unit system to convert to
 )
 
 # Saving as your preferred file type:
@@ -58,17 +58,16 @@ from weather_provider_api.routers.weather.utils.serializers import return_file_o
 return_file_or_text_response(
     unserialized_data=weather_data_converted_to_si,
     response_format=ResponseFormat.json_dataset,
-    source_id='knmi',
-    model_id='daggegevens',
+    source_id="knmi",
+    model_id="daggegevens",
     request=WeatherContentRequestMultiLocationQuery(
-        begin='2024-01-01',
-        end='2024-01-02',
+        begin="2024-01-01",
+        end="2024-01-02",
         locations=str([(52.0, 5.0), (51, 4.8)]),
-        factors=['temperature', 'precipitation']
+        factors=["temperature", "precipitation"],
     ),
-    coords=[(52.0, 5.0), (51, 4.8)]
+    coords=[(52.0, 5.0), (51, 4.8)],
 )
-
 ```
 > *Your IDE should be able to suggest the available requests and options on this object. For more detail, see the module documentation.*
 

@@ -123,12 +123,12 @@ class ERA5LandModel(WeatherModelBase):
             A list of weather factors (in string format) only factors that match those of the ERA5SL dataset.
         """
         if weather_factors is None:
-            weather_factors = [era5sl_factors[x] for x in era5sl_factors.keys()]
+            weather_factors = [era5sl_factors[x] for x in era5sl_factors]
 
         # Lookup using the generic long name
         weather_factors_long_names = [x for x in weather_factors if x in era5sl_factors.values()]
         # Lookup using the CDS' own short name
-        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors.keys()]
+        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors]
 
         # Merge the results
         weather_factors = weather_factors_long_names + weather_factors_short_names
@@ -183,7 +183,14 @@ class ERA5LandModel(WeatherModelBase):
         return arome_dataset
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
-        # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
+        """Filter requested factors to names supported by the ERA5-Land model.
+
+        Args:
+            factors (list[str] | None): Requested factor names, or ``None`` for all factors.
+
+        Returns:
+            list[str]: Supported factor names without duplicates.
+        """
         if factors is None:
             return list(self.to_si.keys())  # type: ignore
 

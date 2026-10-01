@@ -88,7 +88,7 @@ class HarmonieAromeModel(WeatherModelBase):
         translated_factors: list[str] = []
         if weather_factors is not None and len(weather_factors) > 0:
             for factor in weather_factors:
-                if factor in arome_factors.keys():
+                if factor in arome_factors:
                     new_factor = arome_factors[factor]
                 elif factor in arome_factors.values():
                     new_factor = factor

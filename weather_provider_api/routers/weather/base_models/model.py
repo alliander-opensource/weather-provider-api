@@ -47,11 +47,15 @@ class WeatherModelBase(metaclass=ABCMeta):
         """Convert the names and units of the weather data to match the requested output unit format.
 
         Args:
-            weather_data:   A Xarray Dataset containing
-            unit:           The requested output unit format
+            weather_data (xr.Dataset): Weather data to convert.
+            unit (OutputUnit): Requested output unit format.
 
         Returns:
-            The same dataset, but with values altered to match the requested output unit format
+            xr.Dataset: The dataset with names and values converted to the requested format.
+
+        Raises:
+            ValueError: If conversion dictionaries have not been initialized.
+            TypeError: If ``unit`` is not a supported OutputUnit.
         """
         if not self.to_si or not self.to_human:
             raise ValueError("Conversion dictionaries not properly initialized")
@@ -68,7 +72,7 @@ class WeatherModelBase(metaclass=ABCMeta):
 
         data_vars: list[str] = list(weather_data.data_vars)  # type: ignore
         for var_name in data_vars:
-            if var_name not in data_vars or var_name not in conversion_dict:
+            if var_name not in conversion_dict:
                 continue
 
             new_name = var_name
@@ -81,12 +85,20 @@ class WeatherModelBase(metaclass=ABCMeta):
                 new_data = conversion_dict[var_name]["convert"](weather_data[var_name]).astype(dtype_value)
 
             weather_data = weather_data.drop_vars(var_name)
-            weather_data[new_name] = new_data
+            weather_data[new_name] = new_data.variable
 
         return weather_data
 
     @staticmethod
     def _create_reverse_lookup(conversion_dict: dict[str, dict[str, Any]]) -> dict[str, str]:  # pragma: no cover
+        """Create a reverse lookup from converted names to model variable names.
+
+        Args:
+            conversion_dict (dict[str, dict[str, Any]]): Variable conversion definitions.
+
+        Returns:
+            dict[str, str]: Mapping from converted variable names to original names.
+        """
         reverse: dict[str, str] = {}
 
         for k, v in conversion_dict.items():
@@ -97,6 +109,17 @@ class WeatherModelBase(metaclass=ABCMeta):
 
     @abstractmethod
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
+        """Validate and normalize requested weather factors.
+
+        Args:
+            factors (list[str] | None): Requested factors, or ``None`` for all supported factors.
+
+        Returns:
+            list[str]: Validated weather factor identifiers.
+
+        Raises:
+            NotImplementedError: Always raised by the abstract base implementation.
+        """
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
     @staticmethod
@@ -177,6 +200,14 @@ class WeatherModelBase(metaclass=ABCMeta):
         """
 
         def knmi_visibility_class_to_meter_estimate_single(x: int) -> float:
+            """Convert one KNMI visibility class to an estimated distance in meters.
+
+            Args:
+                x (int): KNMI visibility class.
+
+            Returns:
+                float: Estimated visibility in meters.
+            """
             if x < 50:
                 return x * 100 + 50
             elif x == 50:

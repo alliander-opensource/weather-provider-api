@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-import random
 from datetime import UTC, datetime, timedelta
 
 import xarray as xr
@@ -38,28 +37,14 @@ def test__validate_weather_factors():
 
     # TEST 2: Only valid factors are passed. The same list should be returned.
     list_of_factors = list(era5sl_factors.keys())
-    random_list = [
-        random.choice(list_of_factors),
-        random.choice(list_of_factors),
-        random.choice(list_of_factors),
-    ]
-    expected_returns = [
-        era5sl_factors[random_list[0]],
-        era5sl_factors[random_list[1]],
-        era5sl_factors[random_list[2]],
-    ]
-    assert arome_model._validate_weather_factors(random_list) == expected_returns  # type: ignore
+    selected_factors = list_of_factors[:3]
+    expected_returns = [era5sl_factors[factor] for factor in selected_factors]
+    assert arome_model._validate_weather_factors(selected_factors) == expected_returns  # type: ignore
 
     # TEST 3: Valid and invalid factors are passed. A KeyError should occur.
-    list_of_factors = list(era5sl_factors.keys())
-    random_list = [
-        random.choice(list_of_factors),
-        random.choice(list_of_factors),
-        random.choice(list_of_factors),
-        "mock_factor",
-    ]
-    assert arome_model._validate_weather_factors(random_list)  # type: ignore
-    assert "mock_factor" not in arome_model._validate_weather_factors(random_list)  # type: ignore
+    factors_with_invalid_value = [*selected_factors, "mock_factor"]
+    assert arome_model._validate_weather_factors(factors_with_invalid_value)  # type: ignore
+    assert "mock_factor" not in arome_model._validate_weather_factors(factors_with_invalid_value)  # type: ignore
 
 
 def test_retrieve_weather(monkeypatch, mock_dataset_arome: xr.Dataset):  # type: ignore
@@ -95,3 +80,52 @@ def test_retrieve_weather(monkeypatch, mock_dataset_arome: xr.Dataset):  # type:
     assert len(ds["fake_factor_1"]) == 48  # 49 prediction moments per time in the mock dataset
     assert len(ds["fake_factor_1"][0]) == 95  # 96 periods in the mock dataset
     assert isinstance(ds, xr.Dataset)
+
+
+def test_retrieve_weather_returns_empty_dataset_when_no_data_is_available(monkeypatch):
+    """Return an empty dataset when the repository has no observations."""
+    monkeypatch.setattr(
+        HarmonieAromeRepository,
+        "retrieve_data",
+        lambda self, **kwargs: (None, RepoDataFetchResult.NO_DATA_AVAILABLE),
+    )
+    model = HarmonieAromeModel()
+
+    result = model.get_weather([GeoPosition(52.0, 5.0)])
+
+    assert isinstance(result, xr.Dataset)
+    assert not result.data_vars
+    assert not result.dims
+
+
+def test_request_weather_factors_normalizes_and_deduplicates(monkeypatch):
+    """Accept known factor names case-insensitively and remove duplicates."""
+    model = HarmonieAromeModel()
+
+    known_factor = next(iter(model.to_si))
+    result = model._request_weather_factors([known_factor.upper(), known_factor, "unknown"])
+
+    assert result == [known_factor]
+    assert set(model._request_weather_factors()) == set(model.to_si)
+
+
+def test_retrieve_weather_translates_short_factor_names(monkeypatch, mock_dataset_arome: xr.Dataset):  # type: ignore
+    """Translate known short AROME factor identifiers before repository access."""
+    requested_factors: list[str] = []
+
+    def retrieve_data(self, *, from_date, to_date, locations, factors):  # type: ignore
+        requested_factors.extend(factors)
+        return mock_dataset_arome, RepoDataFetchResult.SUCCESS
+
+    monkeypatch.setattr(HarmonieAromeRepository, "retrieve_data", retrieve_data)
+    model = HarmonieAromeModel()
+    short_factor = next(iter(model.to_si))
+
+    model.get_weather(
+        [GeoPosition(52.0, 5.0)],
+        begin=datetime.now(UTC) - timedelta(hours=1),
+        end=datetime.now(UTC),
+        weather_factors=[short_factor, short_factor, "unknown"],
+    )
+
+    assert requested_factors == [model.to_si[short_factor]["name"]]

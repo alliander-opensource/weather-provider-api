@@ -49,7 +49,8 @@ def mock_dataset(mock_coordinates, mock_factors):
         )
         for weather_factor in weather_factors
     }
-    ds = xr.Dataset(data_vars=data_dict, coords={"time": timeline, "coord": coord_indices})
+    mindex_coords = xr.Coordinates.from_pandas_multiindex(coord_indices, "coord")
+    ds = xr.Dataset(data_vars=data_dict, coords={"time": timeline, **mindex_coords})
     ds = ds.unstack("coord")
     return ds
 
@@ -72,7 +73,8 @@ def mock_dataset_era5(mock_coordinates, mock_factors):
         )
         for weather_factor in weather_factors
     }
-    ds = xr.Dataset(data_vars=data_dict, coords={"time": timeline, "coord": coord_indices})
+    mindex_coords = xr.Coordinates.from_pandas_multiindex(coord_indices, "coord")
+    ds = xr.Dataset(data_vars=data_dict, coords={"time": timeline, **mindex_coords})
     ds = ds.unstack("coord")
     return ds
 
