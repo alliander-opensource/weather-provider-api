@@ -45,6 +45,21 @@ jobs:
       # Regenerate the lockfile so each release resolves against the latest allowed versions
       - name: Regenerate uv.lock
         run: uv lock --upgrade
+      # Open a PR with the regenerated lockfile (branch protection requires PRs)
+      - if: matrix.version == '3.13'
+        name: Open PR for regenerated uv.lock
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          add-paths: uv.lock
+          base: ${{ github.ref_name }}
+          branch: chore/uv-lock-update-${{ github.ref_name }}
+          commit-message: "chore: regenerate uv.lock"
+          sign-commits: true
+          title: "chore: regenerate uv.lock for ${{ github.ref_name }}"
+          body: |
+            Automated lockfile regeneration (`uv lock --upgrade`) from the
+            `${{ github.workflow }}` workflow on `${{ github.ref_name }}`.
+          delete-branch: true
       # Install required dependencies
       - name: Install dependencies
         run: uv sync
@@ -68,21 +83,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      # Open a PR with the regenerated lockfile (branch protection requires PRs)
-      - if: matrix.version == '3.13'
-        name: Open PR for regenerated uv.lock
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        with:
-          add-paths: uv.lock
-          base: ${{ github.ref_name }}
-          branch: chore/uv-lock-update-${{ github.ref_name }}
-          commit-message: "chore: regenerate uv.lock"
-          sign-commits: true
-          title: "chore: regenerate uv.lock for ${{ github.ref_name }}"
-          body: |
-            Automated lockfile regeneration (`uv lock --upgrade`) from the
-            `${{ github.workflow }}` workflow on `${{ github.ref_name }}`.
-          delete-branch: true
   # ---------------------------------------------------------------- #
   # |  Build image and upload it to AWS and DockerHub              | #
   # ---------------------------------------------------------------- #
