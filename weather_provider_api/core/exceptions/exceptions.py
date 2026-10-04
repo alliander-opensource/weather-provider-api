@@ -18,7 +18,11 @@ class APIExpiredException(HTTPException):
     """Exception to raise when an API has expired and should not be used anymore."""
 
     def __init__(self, detail: Any = None):
-        """Initialize the APIExpiredException with a default message if no detail is provided."""
+        """Initialize the exception with a custom or default expiration message.
+
+        Args:
+            detail (Any | None): Custom error detail, or the default expiration message.
+        """
         self.detail = (
             detail
             or "This API has passed it's expiry date and should be revalidated. Please contact the API maintainer."

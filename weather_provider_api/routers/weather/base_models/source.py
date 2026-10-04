@@ -30,7 +30,7 @@ class WeatherSourceBase:  # pragma: no cover
         super().__init__(*args, **kwargs)
 
     def get_model(self, model_id: str, fetch_async: bool = False) -> WeatherModelBase | None:
-        """Get a specific model from the source based on the provided model ID and whether it is an asynchronous request or not."""
+        """Get a specific model from the source based on model ID and whether it is an asynchronous request or not."""
         if fetch_async:
             return self._async_models.get(model_id, None)
         return self._models.get(model_id, None)

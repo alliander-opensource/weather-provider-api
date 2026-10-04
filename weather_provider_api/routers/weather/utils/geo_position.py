@@ -112,14 +112,36 @@ class GeoPosition:
 
     @staticmethod
     def _rd_in_bounds(x: float, y: float) -> bool:
+        """Check whether coordinates are within the Dutch RD bounds.
+
+        Args:
+            x (float): RD x-coordinate.
+            y (float): RD y-coordinate.
+
+        Returns:
+            bool: Whether the coordinates are valid RD coordinates.
+        """
         return 7000 <= x <= 300000 and 289000 <= y <= 629000 and x < y
 
     @staticmethod
     def _wgs84_in_bounds(x: float, y: float) -> bool:
+        """Check whether coordinates are within WGS84 bounds.
+
+        Args:
+            x (float): Longitude.
+            y (float): Latitude.
+
+        Returns:
+            bool: Whether the coordinates are valid WGS84 coordinates.
+        """
         return -180 <= x <= 180 and -90 <= y <= 90
 
     def _determine_coordinate_system(self) -> GeoCoordinateSystem | None:
-        # Checks for each known system whether the coordinates are within a unique range for that system.
+        """Infer the coordinate system from the coordinate bounds.
+
+        Returns:
+            GeoCoordinateSystem | None: Inferred coordinate system, or ``None`` when no system matches.
+        """
         if self._rd_in_bounds(self.x, self.y):
             return GeoCoordinateSystem.RD
         if self._wgs84_in_bounds(self.x, self.y):
@@ -127,13 +149,26 @@ class GeoPosition:
         return None
 
     def _out_of_bounds(self) -> bool:
-        # Checks for the set system whether the coordinates are within bounds.
+        """Check whether the coordinates are outside the selected system's valid bounds.
+
+        Returns:
+            bool: ``True`` when the coordinates are invalid for the selected system.
+        """
         if self.system == GeoCoordinateSystem.WGS84:
             return not self._wgs84_in_bounds(self.x, self.y)
         return not self._rd_in_bounds(self.x, self.y)
 
     @staticmethod
     def _powers(base: float, max_exp: int) -> list[float]:
+        """Calculate powers from zero through a maximum exponent.
+
+        Args:
+            base (float): Value to exponentiate.
+            max_exp (int): Highest exponent to calculate.
+
+        Returns:
+            list[float]: Powers of ``base`` in ascending exponent order.
+        """
         powers = [1.0] * (max_exp + 1)
         for i in range(1, max_exp + 1):
             powers[i] = powers[i - 1] * base
@@ -141,13 +176,27 @@ class GeoPosition:
 
     @staticmethod
     def _poly_sum(coeffs: tuple[Coeff, ...], x_powers: list[float], y_powers: list[float]) -> float:
+        """Evaluate a polynomial using coefficient and power tables.
+
+        Args:
+            coeffs (tuple[Coeff, ...]): Polynomial exponent and factor tuples.
+            x_powers (list[float]): Powers of the x value.
+            y_powers (list[float]): Powers of the y value.
+
+        Returns:
+            float: Evaluated polynomial value.
+        """
         total = 0.0
         for x_exp, y_exp, factor in coeffs:
             total += factor * x_powers[x_exp] * y_powers[y_exp]
         return total
 
     def _wgs84_to_rd(self) -> tuple[float, float]:
-        # Convert WGS84 to RD, using function 7 in combination with the R and S conversion sets.
+        """Convert this WGS84 position to RD coordinates.
+
+        Returns:
+            tuple[float, float]: Converted RD x and y coordinates.
+        """
         d_phi = 0.36 * (self.x - self.phi_0)
         d_lambda = 0.36 * (self.y - self.lambda_0)
 
@@ -162,7 +211,11 @@ class GeoPosition:
         return x, y
 
     def _rd_to_wgs84(self) -> tuple[float, float]:
-        # Convert RD to WGS84, using function 6 in combination with the K and L conversion sets.
+        """Convert this RD position to WGS84 coordinates.
+
+        Returns:
+            tuple[float, float]: Converted WGS84 latitude and longitude.
+        """
         d_x = (self.x - self.x_0) * 0.00001
         d_y = (self.y - self.y_0) * 0.00001
 

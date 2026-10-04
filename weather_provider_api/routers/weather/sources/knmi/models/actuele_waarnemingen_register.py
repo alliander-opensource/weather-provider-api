@@ -23,6 +23,7 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
     """A Weather model aimed at accessing a 24-hour register for the "KNMi Actuele Waarnemingen" dataset."""
 
     def __init__(self):
+        """ActueleWaarnemingenRegisterModel initializer."""
         super().__init__()
         self.id = "waarnemingen_register"
         self.name = "KNMI Actuele Waarnemingen - 48 uur register"
@@ -101,9 +102,10 @@ class ActueleWaarnemingenRegisterModel(WeatherModelBase):
 
         timeline = raw_ds.coords["time"].values
 
+        mindex_coords = xr.Coordinates.from_pandas_multiindex(coords_to_pd_index(coords), "coord")
         output_ds = xr.Dataset(
             data_vars=data_dictionary,
-            coords={"time": timeline, "coord": coords_to_pd_index(coords)},
+            coords={"time": timeline, **mindex_coords},
         )
         output_ds = output_ds.unstack("coord")
         return output_ds

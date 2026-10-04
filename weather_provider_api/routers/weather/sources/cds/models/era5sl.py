@@ -7,7 +7,6 @@
 import copy
 from datetime import datetime
 
-import numpy as np
 import xarray as xr
 from loguru import logger
 
@@ -18,6 +17,7 @@ from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository i
 )
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.utils.date_helpers import (
+    datetime_to_numpy_datetime64,
     validate_begin_and_end,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
@@ -119,25 +119,18 @@ class ERA5SLModel(WeatherModelBase):
             A list of weather factors (in string format) only factors that match those of the ERA5SL dataset.
         """
         if weather_factors is None:
-            weather_factors = [era5sl_factors[x] for x in era5sl_factors.keys()]
+            weather_factors = [era5sl_factors[x] for x in era5sl_factors]
 
         # Lookup using the generic long name
         weather_factors_long_names = [x for x in weather_factors if x in era5sl_factors.values()]
         # Lookup using the CDS' own short name
-        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors.keys()]
+        weather_factors_short_names = [era5sl_factors[x] for x in weather_factors if x in era5sl_factors]
 
         # Merge the results
         weather_factors = weather_factors_long_names + weather_factors_short_names
 
         # If nothing useful was found, just return everything
         return weather_factors
-
-    @staticmethod
-    def _get_list_of_factors_to_drop(factors: list[str]) -> list[str]:
-        """Compare a list of factors to keep with the full list, to make a list of factors to drop from a full set."""
-        to_drop = [x for x in era5sl_factors.values() if x not in factors]
-        logger.debug("Dropping the following factors for the request: " + str(to_drop))
-        return to_drop
 
     def _fill_dataset_with_data(
         self,
@@ -149,7 +142,7 @@ class ERA5SLModel(WeatherModelBase):
         """Fill a dataset with ERA5SL weather data from the repository, based on the requested coordinates and period.
 
         A function that fills a dataset with ERA5SL weather data from the repository, based on the requested
-            coordinates and period, and removes any not-requested weather factors from the output.
+            coordinates and period, and returns the requested weather factors.
 
         Args:
             era5sl_coordinates:     A list of GeoPositions containing the locations to be gathered from the repository.
@@ -172,10 +165,10 @@ class ERA5SLModel(WeatherModelBase):
             logger.error("Failed to retrieve data from the repository for the given request parameters.")
             raise RuntimeError("Data retrieval failure")
 
-        arome_dataset = arome_dataset.sel(time=slice(np.datetime64(begin), np.datetime64(end)))
+        arome_dataset = arome_dataset.sel(
+            time=slice(datetime_to_numpy_datetime64(begin), datetime_to_numpy_datetime64(end))
+        )
 
-        # Drop excess weather factors
-        arome_dataset = arome_dataset.drop_vars(self._get_list_of_factors_to_drop(validated_factors))
         return arome_dataset
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:

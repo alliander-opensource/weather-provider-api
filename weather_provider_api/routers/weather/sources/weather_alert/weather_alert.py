@@ -46,10 +46,13 @@ class WeatherAlert:
         )  # The Dutch Provinces. Every province has its own page.
 
     def get_alarm(self) -> list[tuple[str, str]]:
-        """A function that retrieves the current weather alarm stage for each of the Dutch provinces and puts those together into a formatted list of results (string-based).
+        """A function that retrieves the current weather alarm stage for each of the Dutch provinces.
+
+        It then puts those together into a formatted list of results (string-based).
 
         Returns:
             A list of tuples holding all the provinces and their retrieved current alarm stages according to KNMI
+
         """
         alarm_list: list[tuple[str, str]] = []
         for province in self.provinces:
@@ -74,8 +77,10 @@ class WeatherAlert:
     def process_page(page_text: str, status_code: int, province: str) -> tuple[str, str]:
         """Parse the weather alert page for a province and retrieve its current alarm stage.
 
-        It does so by looking for a div with the class "alert" and "alert--<color>" (where color is the code of the alarm stage).
-        If it finds such a div, it returns the color as the alarm stage. If it doesn't find such a div, it returns an error message based on the status code.
+        It does so by looking for a div with the class "alert" and "alert--<color>"
+        (where color is the code of the alarm stage).
+        If it finds such a div, it returns the color as the alarm stage.
+        If it doesn't find such a div, it returns an error message based on the status code.
 
         Args:
             page_text:      The response content retrieved while trying to download the page
@@ -107,6 +112,17 @@ class WeatherAlert:
         status_forcelist: tuple[int, ...] = (500, 502, 504),
         session: Session | None = None,
     ) -> Session:
+        """Create an HTTP session configured with retry behavior.
+
+        Args:
+            retries (int): Maximum number of retries for each request.
+            backoff_factor (float): Delay multiplier between retries.
+            status_forcelist (tuple[int, ...]): HTTP statuses that trigger retries.
+            session (Session | None): Existing session to configure, if provided.
+
+        Returns:
+            Session: Session configured with retrying HTTP adapters.
+        """
         session = session or Session()
         retry = Retry(
             total=retries,

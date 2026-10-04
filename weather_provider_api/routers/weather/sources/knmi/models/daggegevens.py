@@ -8,7 +8,6 @@ import copy
 import json
 from datetime import UTC, datetime, timedelta
 
-import numpy as np
 import pandas as pd
 import requests  # type: ignore
 import xarray as xr
@@ -234,7 +233,8 @@ class DagGegevensModel(WeatherModelBase):
         weather_factors: list[str] | None = None,
         inseason: bool = False,
     ):
-        """A function that downloads the weather from the KNMI download location and returns it as a text
+        """A function that downloads the weather from the KNMI download location and returns it as a text.
+
         Args:
             stations:           A list containing the requested stations
             start:              A datetime containing the start of the period to request data for.
@@ -247,7 +247,7 @@ class DagGegevensModel(WeatherModelBase):
         """
         # fetch data
         params = self._create_request_params(start, end, inseason, stations, weather_factors)
-        r = requests.post(url=self.download_url, data=params)
+        r = requests.post(url=self.download_url, data=params, timeout=10)
 
         if r.status_code != 200:
             raise requests.HTTPError(
@@ -289,6 +289,14 @@ class DagGegevensModel(WeatherModelBase):
         return params
 
     def _parse_raw_weather_data(self, raw_data: str) -> xr.Dataset:
+        """Parse raw KNMI daily observations into an xarray dataset.
+
+        Args:
+            raw_data (str): JSON response returned by the KNMI observations service.
+
+        Returns:
+            xr.Dataset: Parsed observations indexed by station and date.
+        """
         json_data = json.loads(raw_data)
         dataframe_data = pd.DataFrame.from_dict(json_data, orient="columns")
         dataframe_data["date"] = pd.to_datetime(dataframe_data["date"])
@@ -296,8 +304,8 @@ class DagGegevensModel(WeatherModelBase):
         conversion_dict = {
             "station_code": int,
         }
-        for weather_factor in self.to_si.keys():
-            if weather_factor in dataframe_data.keys():
+        for weather_factor in self.to_si:
+            if weather_factor in dataframe_data.columns:
                 conversion_dict[weather_factor] = int
 
         dataframe_data = dataframe_data.astype(conversion_dict)
@@ -306,12 +314,17 @@ class DagGegevensModel(WeatherModelBase):
         return dataframe_data.to_xarray()
 
     @staticmethod
-    def _prepare_weather_data(
-        coordinates: list[GeoPosition], station_id: list[int], raw_ds: xr.Dataset
-    ) -> xr.Dataset:
-        # A function that prepares the weather data for return by the API, by replacing the matching station with the
-        # lat/lon location that was requested, and properly formatting the dimensions.
+    def _prepare_weather_data(coordinates: list[GeoPosition], station_id: list[int], raw_ds: xr.Dataset) -> xr.Dataset:
+        """Prepare daily observations with requested coordinates and dimensions.
 
+        Args:
+            coordinates (list[GeoPosition]): Requested positions corresponding to stations.
+            station_id (list[int]): KNMI station identifiers to select.
+            raw_ds (xr.Dataset): Raw station-indexed observations.
+
+        Returns:
+            xr.Dataset: Observations indexed by requested coordinates and time.
+        """
         # re-arrange stns
         ds = raw_ds.sel(station_code=station_id)
 
@@ -319,16 +332,24 @@ class DagGegevensModel(WeatherModelBase):
         data_dict = {var_name: (["coord", "time"], var.values) for var_name, var in ds.data_vars.items()}
         timeline = pd.DatetimeIndex(ds.coords["date"].values)
 
+        mindex_coords = xr.Coordinates.from_pandas_multiindex(coords_to_pd_index(coordinates), "coord")
         ds = xr.Dataset(
             data_vars=data_dict,
-            coords={"time": timeline, "coord": coords_to_pd_index(coordinates)},
+            coords={"time": timeline, **mindex_coords},
         )
         ds = ds.unstack("coord")
 
         return ds
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
-        # Implementation of the Base Weather Model function that returns a list of known weather factors for the model.
+        """Filter requested factors to names supported by the daily model.
+
+        Args:
+            factors (list[str] | None): Requested factor names, or ``None`` for all factors.
+
+        Returns:
+            list[str]: Supported model-specific factor names without duplicates.
+        """
         if factors is None:
             return list(self.to_si.keys())
 

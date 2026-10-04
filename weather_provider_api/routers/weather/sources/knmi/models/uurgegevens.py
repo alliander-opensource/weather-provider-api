@@ -137,7 +137,7 @@ class UurgegevensModel(WeatherModelBase):
         end: datetime | None = None,
         weather_factors: list[str] | None = None,
     ) -> xr.Dataset:
-        """Gather and process the requested Uurgegevens weather data from the KNMI site and return it as a Xarray Dataset.
+        """Gather and process the Uurgegevens weather data from the KNMI site and return it as a Xarray Dataset.
 
         The function that gathers and processes the requested Daggegevens weather data from the KNMI site
         and returns it as a Xarray Dataset.
@@ -250,15 +250,23 @@ class UurgegevensModel(WeatherModelBase):
         return params
 
     def _parse_raw_weather_data(self, raw_data: str) -> xr.Dataset:
+        """Parse raw KNMI hourly observations into an xarray dataset.
+
+        Args:
+            raw_data (str): JSON response returned by the KNMI observations service.
+
+        Returns:
+            xr.Dataset: Parsed observations indexed by station and timestamp.
+        """
         json_data = json.loads(raw_data)
-        dataframe_data = pd.DataFrame.from_dict(json_data, orient="columns")
+        dataframe_data: pd.DataFrame = pd.DataFrame.from_dict(json_data, orient="columns")
 
         conversion_dict: dict[str, type] = {
             "hour": str,
             "station_code": int,
         }
-        for weather_factor in self.to_si.keys():  # type: ignore
-            if weather_factor in dataframe_data.keys():
+        for weather_factor in self.to_si:  # type: ignore
+            if weather_factor in dataframe_data.columns:
                 conversion_dict[weather_factor] = np.float64
 
         # KNMI measures the -th hour. (The 24th hour is from 23:00 to 00:00 the next day) We use 23:00 to indicate that.
@@ -279,7 +287,9 @@ class UurgegevensModel(WeatherModelBase):
 
     @staticmethod
     def _prepare_weather_data(coordinates: list[GeoPosition], station_id: list[int], raw_ds: xr.Dataset) -> xr.Dataset:
-        """Prepare the weather data for return by the API, by replacing the matching station with the requested lat/lon location.
+        """Prepare the weather data for return by the API.
+
+        It does this by replacing the matching station with the requested lat/lon location.
 
         A function that prepares the weather data for return by the API, by replacing the matching station with the
         lat/lon location that was requested, and properly formatting the dimensions.
@@ -292,9 +302,10 @@ class UurgegevensModel(WeatherModelBase):
         data_dict = {var_name: (["coord", "time"], var.values) for var_name, var in ds.data_vars.items()}
         timeline = pd.DatetimeIndex(ds.coords["date"].values)
 
+        mindex_coords = xr.Coordinates.from_pandas_multiindex(coords_to_pd_index(coordinates), "coord")
         ds = xr.Dataset(
             data_vars=data_dict,
-            coords={"time": timeline, "coord": coords_to_pd_index(coordinates)},
+            coords={"time": timeline, **mindex_coords},
         )
         ds = ds.unstack("coord")
         return ds
