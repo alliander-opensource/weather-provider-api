@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from datetime import datetime
+from datetime import UTC, date, datetime
 
+import numpy as np
 import pytest
 from starlette.exceptions import HTTPException
 
@@ -78,6 +79,33 @@ def test_parse_datetime_error_handling():
         )
         is None
     )
+
+
+def test_parse_datetime_preserves_timezone_offset() -> None:
+    """Preserve timezone information so validation can normalize the actual instant to UTC."""
+    result = dh.parse_datetime("2026-10-04T06:00:00+02:00")
+
+    assert result == datetime.fromisoformat("2026-10-04T06:00:00+02:00")
+
+
+def test_validate_begin_and_end_treats_naive_datetimes_as_utc() -> None:
+    """Interpret timezone-naive request times consistently as UTC, independent of host timezone."""
+    start, end = dh.validate_begin_and_end(
+        datetime(2026, 10, 4, 6),
+        datetime(2026, 10, 4, 7),
+        date(2026, 10, 1),
+        date(2026, 10, 10),
+    )
+
+    assert start == datetime(2026, 10, 4, 6, tzinfo=UTC)
+    assert end == datetime(2026, 10, 4, 7, tzinfo=UTC)
+
+
+def test_datetime_to_numpy_datetime64_converts_offset_to_utc() -> None:
+    """Return a timezone-naive NumPy datetime representing the same UTC instant."""
+    result = dh.datetime_to_numpy_datetime64(datetime.fromisoformat("2026-10-04T06:00:00+02:00"))
+
+    assert result == np.datetime64("2026-10-04T04:00:00")
 
     assert (
         dh.parse_datetime(

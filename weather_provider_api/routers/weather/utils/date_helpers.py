@@ -61,9 +61,6 @@ def parse_datetime(
     if dt is not None and (round_missing_time_up or round_to_days) and time_unknown(dt, datetime_string):
         dt = dt + timedelta(days=1) if round_to_days else dt.replace(hour=23, minute=59, second=59)
 
-    if dt is not None:
-        dt = np.datetime64(dt).astype(datetime)
-
     return dt
 
 
@@ -95,11 +92,10 @@ def validate_begin_and_end(
     if not start or not end:
         raise HTTPException(status_code=422, detail="Both [start] and [end] parameters must be provided")
 
-    # Normalize to UTC
-    start = start.astimezone(UTC)
-    end = end.astimezone(UTC)
-    data_start = datetime.combine(data_start, datetime.min.time()).astimezone(UTC) if data_start else None
-    data_end = datetime.combine(data_end, datetime.max.time()).astimezone(UTC) if data_end else datetime.now(UTC)
+    start = _as_utc(start)
+    end = _as_utc(end)
+    data_start = _as_utc(datetime.combine(data_start, datetime.min.time())) if data_start else None
+    data_end = _as_utc(datetime.combine(data_end, datetime.max.time())) if data_end else datetime.now(UTC)
 
     # Clamp start and end to available data range
     if data_start and start < data_start:
@@ -125,6 +121,18 @@ def validate_begin_and_end(
         )
 
     return start, end
+
+
+def datetime_to_numpy_datetime64(value: datetime) -> np.datetime64:
+    """Convert a datetime to a timezone-naive NumPy value representing UTC."""
+    return np.datetime64(_as_utc(value).replace(tzinfo=None))
+
+
+def _as_utc(value: datetime) -> datetime:
+    """Normalize a datetime to UTC, treating timezone-naive values as UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 def subtract_months(dt: date, months: int) -> date:

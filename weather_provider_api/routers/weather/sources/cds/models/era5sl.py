@@ -7,7 +7,6 @@
 import copy
 from datetime import datetime
 
-import numpy as np
 import xarray as xr
 from loguru import logger
 
@@ -18,6 +17,7 @@ from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository i
 )
 from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
 from weather_provider_api.routers.weather.utils.date_helpers import (
+    datetime_to_numpy_datetime64,
     validate_begin_and_end,
 )
 from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
@@ -165,7 +165,9 @@ class ERA5SLModel(WeatherModelBase):
             logger.error("Failed to retrieve data from the repository for the given request parameters.")
             raise RuntimeError("Data retrieval failure")
 
-        arome_dataset = arome_dataset.sel(time=slice(np.datetime64(begin), np.datetime64(end)))
+        arome_dataset = arome_dataset.sel(
+            time=slice(datetime_to_numpy_datetime64(begin), datetime_to_numpy_datetime64(end))
+        )
 
         return arome_dataset
 
