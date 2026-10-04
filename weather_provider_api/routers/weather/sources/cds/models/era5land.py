@@ -136,13 +136,6 @@ class ERA5LandModel(WeatherModelBase):
         # If nothing useful was found, just return everything
         return weather_factors
 
-    @staticmethod
-    def _get_list_of_factors_to_drop(factors: list[str]) -> list[str]:
-        """Compare a list of factors to keep with the full list, to make a list of factors to drop from a full set."""
-        to_drop = [x for x in era5sl_factors.values() if x not in factors]
-        logger.debug("Dropping the following factors for the request: " + str(to_drop))
-        return to_drop
-
     def _fill_dataset_with_data(
         self,
         era5sl_coordinates: list[GeoPosition],
@@ -153,7 +146,7 @@ class ERA5LandModel(WeatherModelBase):
         """Fill a dataset with ERA5SL weather data from the repository, based on the requested coordinates and period.
 
         A function that fills a dataset with ERA5SL weather data from the repository, based on the requested
-            coordinates and period, and removes any not-requested weather factors from the output.
+            coordinates and period, and returns the requested weather factors.
 
         Args:
             era5sl_coordinates:     A list of GeoPositions containing the locations to be gathered from the repository.
@@ -178,8 +171,6 @@ class ERA5LandModel(WeatherModelBase):
 
         arome_dataset = arome_dataset.sel(time=slice(np.datetime64(begin), np.datetime64(end)))
 
-        # Drop excess weather factors
-        arome_dataset = arome_dataset.drop_vars(self._get_list_of_factors_to_drop(validated_factors))
         return arome_dataset
 
     def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:

@@ -91,3 +91,26 @@ def test_fill_dataset_raises_when_repository_fails(monkeypatch: pytest.MonkeyPat
             datetime(2026, 9, 2),
             ["2m_temperature"],
         )
+
+
+def test_fill_dataset_returns_only_requested_factor(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Return a repository dataset containing only the requested factor."""
+    model = _model(monkeypatch)
+    expected = xr.Dataset(
+        {"soil_temperature_level_3": ("time", [280.0])},
+        coords={"time": [datetime(2026, 9, 1)]},
+    )
+    monkeypatch.setattr(
+        model.repository,
+        "retrieve_data",
+        lambda **kwargs: (expected, RepoDataFetchResult.SUCCESS),
+    )
+
+    result = model.get_weather(
+        coords=[GeoPosition(52.0, 5.0)],
+        begin=datetime(2026, 9, 1),
+        end=datetime(2026, 9, 2),
+        weather_factors=["soil_temperature_level_3"],
+    )
+
+    assert list(result.data_vars) == ["soil_temperature_level_3"]

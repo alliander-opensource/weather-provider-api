@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
 #
 # SPDX-License-Identifier: MPL-2.0
-FROM python:3.13-slim-bookworm AS base-image
+FROM python:3.13-slim-trixie AS base-image
 
 RUN apt-get update && \
     apt-get -y install --no-install-recommends libeccodes-dev libeccodes-tools && \
@@ -11,7 +11,7 @@ ENV ECCODES_DIR=/usr/src/eccodes
 ENV ECMWFLIBS_ECCODES_DEFINITION_PATH=/usr/src/eccodes/share/eccodes/definitions
 
 ARG APP_HOME=/app
-RUN pip install poetry
+COPY --from=ghcr.io/astral-sh/uv:0.11.21 /uv /uvx /bin/
 
 
 # Setup WPLA user and switch to WPLA user
@@ -30,12 +30,11 @@ WORKDIR $APP_HOME
 
 USER $APP_USER
 
-COPY --chown=65532:65532 ./pyproject.toml ./pyproject.toml
+COPY --chown=65532:65532 ./pyproject.toml ./uv.lock ./
+RUN uv sync --locked --no-dev --no-install-project --no-build
+
 COPY --chown=65532:65532 ./weather_provider_api ./weather_provider_api
 COPY --chown=65532:65532 ./var_maps ./var_maps
-
-RUN poetry config virtualenvs.in-project true && \
-    poetry install --no-interaction --no-ansi -v --no-root
 
 ENV PATH="$APP_HOME/.venv/bin:$PATH"
 

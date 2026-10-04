@@ -184,14 +184,7 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
-      # Create the image and upload it to Amazon ECR (Uvicorn edition)
-      - name: Build, tag, and push image to Amazon ECR - Uvicorn
-        run: |
-          docker build --target uvicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }}:${{ env.package_version }} .
-          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }}:${{ env.package_version }}
-          docker build --target uvicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }} .
-          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_UVICORN }}
-      # Create the image and upload it to Amazon ECR (Uvicorn edition)
+      # Create the image and upload it to Amazon ECR (Gunicorn edition)
       - name: Build, tag, and push image to Amazon ECR - Gunicorn
         run: |
           docker build --target gunicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:${{ env.package_version }} .
