@@ -197,6 +197,19 @@ def test_cleanup_storage_deletes_corrupt_repository_file(
     assert not repository.storage_filename.exists()
 
 
+def test_cleanup_storage_deletes_repository_without_time_coordinate(
+    repository: ActueleWaarnemingenRegisterRepository,
+) -> None:
+    """Delete a registry with a time dimension but no indexed time coordinate."""
+    dataset = xr.Dataset({"temperature": (("time", "STN"), np.array([[10.0]]))}, coords={"STN": [8]})
+    dataset.to_netcdf(repository.storage_filename, engine="netcdf4")
+
+    result = repository.cleanup_storage()
+
+    assert result == RepoUpdateResult.FAILURE
+    assert not repository.storage_filename.exists()
+
+
 def test_get_existing_files_reports_registry_file(repository: ActueleWaarnemingenRegisterRepository) -> None:
     """Report the single registry file when it exists."""
     repository.storage_filename.touch()

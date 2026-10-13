@@ -252,6 +252,11 @@ class ActueleWaarnemingenRegisterRepository(WeatherRepositoryBase):
                 self.storage_filename.unlink(missing_ok=True)
                 return RepoUpdateResult.FAILURE
 
+            if "time" not in current_data.indexes:
+                logger.error("Could not clean repository file because it has no indexed time coordinate. Deleting it.")
+                self.storage_filename.unlink(missing_ok=True)
+                return RepoUpdateResult.FAILURE
+
             current_data = current_data.sel(
                 time=slice(
                     pd.Timestamp(datetime.combine(self.oldest_date_available, datetime.min.time())),
