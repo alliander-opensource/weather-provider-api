@@ -208,8 +208,8 @@ def test_cleanup_storage_deletes_repository_without_time_coordinate(
 
     assert result == RepoUpdateResult.FAILURE
     assert not repository.storage_filename.exists()
-
-
+    
+    
 def test_get_existing_files_reports_registry_file(repository: ActueleWaarnemingenRegisterRepository) -> None:
     """Report the single registry file when it exists."""
     repository.storage_filename.touch()
