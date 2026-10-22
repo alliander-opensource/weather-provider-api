@@ -43,6 +43,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "certifi==2026.10.19",
     "coverage>=7.16.2,<8.0.0",
     "deptry>=0.25.1",
     "hypothesis>=6.169.3",
@@ -73,6 +74,9 @@ exclude-newer = "7 days"
 
 [tool.uv.build-backend]
 module-root = ""
+
+[tool.uv.exclude-newer-package]
+certifi = "2026-10-21T00:00:00Z"  # TODO: Remove with first update that secure version is older than 7 days
 
 [tool.ruff]
 line-length = 120
