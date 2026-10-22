@@ -4,9 +4,21 @@
         <loc>https://github.com/alliander-opensource/weather-provider-api/</loc>
       </url>
       <url>
+        <loc>https://github.com/alliander-opensource/weather-provider-api/about/</loc>
+      </url>
+      <url>
+        <loc>https://github.com/alliander-opensource/weather-provider-api/code-review-findings/</loc>
+      </url>
+      <url>
         <loc>https://github.com/alliander-opensource/weather-provider-api/reference/api/</loc>
       </url>
       <url>
-        <loc>https://github.com/alliander-opensource/weather-provider-api/about/</loc>
+        <loc>https://github.com/alliander-opensource/weather-provider-api/using_wpla/quick-start/</loc>
+      </url>
+      <url>
+        <loc>https://github.com/alliander-opensource/weather-provider-api/using_wpla/usage/</loc>
+      </url>
+      <url>
+        <loc>https://github.com/alliander-opensource/weather-provider-api/weather_data/factors/</loc>
       </url>
 </urlset>
