@@ -43,7 +43,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "certifi==2026.10.19",
+    "certifi==2026.10.23",
     "coverage>=7.16.2,<8.0.0",
     "deptry>=0.25.1",
     "hypothesis>=6.169.3",
