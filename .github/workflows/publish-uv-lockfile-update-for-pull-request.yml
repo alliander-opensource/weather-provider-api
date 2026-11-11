@@ -14,13 +14,56 @@ permissions:
   contents: read
 
 jobs:
+  check-trigger:
+    runs-on: mgd-ubuntu24-x64-4c16g
+    outputs:
+      should_publish: ${{ steps.gate.outputs.should_publish }}
+      pr_number: ${{ steps.gate.outputs.pr_number }}
+      pr_head_ref: ${{ steps.gate.outputs.pr_head_ref }}
+    steps:
+      - name: Check publishing conditions
+        id: gate
+        env:
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          EVENT: ${{ github.event.workflow_run.event }}
+          HEAD_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PR_STATE: ${{ github.event.workflow_run.pull_requests[0].state }}
+          PR_HEAD_REF: ${{ github.event.workflow_run.pull_requests[0].head.ref }}
+        run: |
+          reasons=()
+
+          if [[ "$CONCLUSION" != "success" ]]; then
+            reasons+=("source workflow conclusion is '$CONCLUSION', expected 'success'")
+          fi
+          if [[ "$EVENT" != "pull_request" ]]; then
+            reasons+=("source workflow event is '$EVENT', expected 'pull_request'")
+          fi
+          if [[ "$HEAD_REPOSITORY" != "$REPOSITORY" ]]; then
+            reasons+=("source repository '$HEAD_REPOSITORY' does not match '$REPOSITORY'")
+          fi
+          if [[ -z "$PR_NUMBER" ]]; then
+            reasons+=("source workflow run has no associated pull request")
+          elif [[ "$PR_STATE" != "open" ]]; then
+            reasons+=("associated pull request state is '$PR_STATE', expected 'open'")
+          fi
+
+          if ((${#reasons[@]})); then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            printf 'Not publishing lockfile PR: %s\n' "${reasons[@]}"
+          else
+            {
+              echo "should_publish=true"
+              echo "pr_number=$PR_NUMBER"
+              echo "pr_head_ref=$PR_HEAD_REF"
+            } >> "$GITHUB_OUTPUT"
+            echo "All publishing conditions passed."
+          fi
+
   publish-lockfile:
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.head_repository.full_name == github.repository &&
-      github.event.workflow_run.pull_requests[0].number != null &&
-      github.event.workflow_run.pull_requests[0].state == 'open'
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_publish == 'true'
     runs-on: mgd-ubuntu24-x64-4c16g
     permissions:
       actions: read
@@ -30,7 +73,7 @@ jobs:
       - name: Check out pull request branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.workflow_run.pull_requests[0].head.ref }}
+          ref: ${{ needs.check-trigger.outputs.pr_head_ref }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -53,12 +96,12 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: ${{ github.event.workflow_run.pull_requests[0].head.ref }}
-          branch: chore/uv-lock-update-pr-${{ github.event.workflow_run.pull_requests[0].number }}
+          base: ${{ needs.check-trigger.outputs.pr_head_ref }}
+          branch: chore/uv-lock-update-pr-${{ needs.check-trigger.outputs.pr_number }}
           commit-message: "chore: regenerate uv.lock"
           sign-commits: true
-          title: "chore: regenerate uv.lock for PR #${{ github.event.workflow_run.pull_requests[0].number }}"
+          title: "chore: regenerate uv.lock for PR #${{ needs.check-trigger.outputs.pr_number }}"
           body: |
-            Automated lockfile regeneration (`uv lock`) for #${{ github.event.workflow_run.pull_requests[0].number }}.
+            Automated lockfile regeneration (`uv lock`) for #${{ needs.check-trigger.outputs.pr_number }}.
           add-paths: uv.lock
           delete-branch: true
