@@ -4,7 +4,7 @@
 
 [project]
 name = "weather_provider_api"
-version = "2.93"
+version = "2.94"
 description = "Weather Provider Libraries and API"
 authors = [
     { name = "Verbindingsteam" },
@@ -65,7 +65,7 @@ docs = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.13.1,<0.14.0"]
+requires = ["uv_build>=0.13.6,<0.14.0"]
 build-backend = "uv_build"
 
 
@@ -74,9 +74,6 @@ exclude-newer = "7 days"
 
 [tool.uv.build-backend]
 module-root = ""
-
-[tool.uv.exclude-newer-package]
-certifi = "2026-10-21T00:00:00Z"  # TODO: Remove with first update that secure version is older than 7 days
 
 [tool.ruff]
 line-length = 120
