@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from weather_provider_api.routers.weather.sources.knmi.client.actuele_waarnemingen_register_repository import (
+from weather_provider_api.weather.sources.knmi.client.actuele_waarnemingen_register_repository import (
     ActueleWaarnemingenRegisterRepository,
 )
 

@@ -5,7 +5,7 @@
 import pytest
 from fastapi import HTTPException
 
-from weather_provider_api.routers.weather.controller import WeatherController
+from weather_provider_api.weather.controller import WeatherController
 
 
 @pytest.mark.parametrize(

@@ -1,0 +1,226 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
+from abc import ABCMeta, abstractmethod
+from datetime import datetime
+from typing import Any
+
+import numpy as np
+import xarray as xr
+
+from weather_provider_api.core.initializers.exception_handling import (
+    NOT_IMPLEMENTED_ERROR,
+)
+from weather_provider_api.weather.units import OutputUnit
+from weather_provider_api.weather.utils.geo_position import GeoPosition
+
+
+class WeatherModelBase(metaclass=ABCMeta):
+    """Base class for all Weather Models. All new models should use this base class!"""
+
+    def __init__(self):
+        """Initialize the WeatherModelBase with default conversion dictionaries."""
+        self.id = None
+        self.async_model = None
+        self.to_si = None
+        self.to_human = None
+        self.human_to_model_specific = None
+
+    @abstractmethod
+    def get_weather(
+        self,
+        coords: list[GeoPosition],
+        begin: datetime | None = None,
+        end: datetime | None = None,
+        weather_factors: list[str] | None = None,
+    ) -> xr.Dataset:  # pragma: no cover
+        """Abstract method to get weather data for the specified coordinates and time range."""
+        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
+
+    @abstractmethod
+    def is_async(self) -> bool:  # pragma: no cover
+        """Abstract method to determine if the model is asynchronous."""
+        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
+
+    def convert_names_and_units(self, weather_data: xr.Dataset, unit: OutputUnit) -> xr.Dataset:
+        """Convert the names and units of the weather data to match the requested output unit format.
+
+        Args:
+            weather_data (xr.Dataset): Weather data to convert.
+            unit (OutputUnit): Requested output unit format.
+
+        Returns:
+            xr.Dataset: The dataset with names and values converted to the requested format.
+
+        Raises:
+            ValueError: If conversion dictionaries have not been initialized.
+            TypeError: If ``unit`` is not a supported OutputUnit.
+        """
+        if not self.to_si or not self.to_human:
+            raise ValueError("Conversion dictionaries not properly initialized")
+
+        if unit == OutputUnit.original:
+            return weather_data
+
+        if unit == OutputUnit.si:
+            conversion_dict = self.to_si
+        elif unit == OutputUnit.human:
+            conversion_dict = self.to_human
+        else:
+            raise TypeError("Invalid OutputUnit")
+
+        data_vars: list[str] = list(weather_data.data_vars)  # type: ignore
+        for var_name in data_vars:
+            if var_name not in conversion_dict:
+                continue
+
+            new_name = var_name
+            if "name" in conversion_dict[var_name]:
+                new_name = conversion_dict[var_name]["name"]
+
+            new_data = weather_data[var_name]
+            if "convert" in conversion_dict[var_name]:
+                dtype_value = new_data.dtype
+                new_data = conversion_dict[var_name]["convert"](weather_data[var_name]).astype(dtype_value)
+
+            weather_data = weather_data.drop_vars(var_name)
+            weather_data[new_name] = new_data.variable
+
+        return weather_data
+
+    @staticmethod
+    def _create_reverse_lookup(conversion_dict: dict[str, dict[str, Any]]) -> dict[str, str]:  # pragma: no cover
+        """Create a reverse lookup from converted names to model variable names.
+
+        Args:
+            conversion_dict (dict[str, dict[str, Any]]): Variable conversion definitions.
+
+        Returns:
+            dict[str, str]: Mapping from converted variable names to original names.
+        """
+        reverse: dict[str, str] = {}
+
+        for k, v in conversion_dict.items():
+            if "name" in v:
+                reverse[v["name"]] = k
+
+        return reverse
+
+    @abstractmethod
+    def _request_weather_factors(self, factors: list[str] | None = None) -> list[str]:
+        """Validate and normalize requested weather factors.
+
+        Args:
+            factors (list[str] | None): Requested factors, or ``None`` for all supported factors.
+
+        Returns:
+            list[str]: Validated weather factor identifiers.
+
+        Raises:
+            NotImplementedError: Always raised by the abstract base implementation.
+        """
+        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
+
+    @staticmethod
+    def celsius_to_kelvin(x: Any) -> Any:  # pragma: no cover
+        """Convert a temperature from Celsius to Kelvin."""
+        return x + 273.15
+
+    @staticmethod
+    def kelvin_to_celsius(x: Any) -> Any:  # pragma: no cover
+        """Convert a temperature from Kelvin to Celsius."""
+        return x - 273.15
+
+    def tenth_celsius_to_kelvin(self, x: Any) -> Any:  # pragma: no cover
+        """Convert a temperature from tenths of Celsius to Kelvin."""
+        return self.celsius_to_kelvin(self.normalize_tenths(x))
+
+    @staticmethod
+    def normalize_tenths(x: Any) -> Any:  # pragma: no cover
+        """Normalize a value in tenths to its actual value."""
+        return x / 10
+
+    @staticmethod
+    def no_conversion(x: Any) -> Any:  # pragma: no cover
+        """Return the value without any conversion."""
+        return x
+
+    @staticmethod
+    def percentage_to_frac(x: Any) -> Any:  # pragma: no cover
+        """Convert a percentage value to a fraction."""
+        return x / 100
+
+    @staticmethod
+    def kmh_to_ms(x: Any) -> Any:  # pragma: no cover
+        """Convert a speed from kilometers per hour to meters per second."""
+        return x / 3.6
+
+    @staticmethod
+    def dutch_wind_direction_to_degrees(xs: str) -> float | None:  # pragma: no cover
+        """Convert a Dutch wind direction string to degrees."""
+        wind_directions = [
+            "NNO",
+            "NO",
+            "ONO",
+            "O",
+            "OZO",
+            "ZO",
+            "ZZO",
+            "Z",
+            "ZZW",
+            "ZW",
+            "WZW",
+            "W",
+            "WNW",
+            "NW",
+            "NNW",
+            "N",
+        ]
+
+        def dutch_wind_direction_to_degrees_single(x: str) -> float | None:
+            """Convert a single Dutch wind direction string to degrees."""
+            if x in wind_directions:
+                return (wind_directions.index(x) + 1) * 22.5
+            else:
+                return None
+
+        return np.frompyfunc(dutch_wind_direction_to_degrees_single, 1, 1)(xs)
+
+    @staticmethod
+    def knmi_visibility_class_to_meter_estimate(xs: int) -> float:  # pragma: no cover
+        """Function to transform KNMI visibility class values to an estimate of meters visibility.
+
+        Args:
+            xs:     The visibility class value to be interpreted
+
+        Returns:
+            A numeric value containing an estimate of the meters of visibility matching the given visibility class value
+
+        """
+
+        def knmi_visibility_class_to_meter_estimate_single(x: int) -> float:
+            """Convert one KNMI visibility class to an estimated distance in meters.
+
+            Args:
+                x (int): KNMI visibility class.
+
+            Returns:
+                float: Estimated visibility in meters.
+            """
+            if x < 50:
+                return x * 100 + 50
+            elif x == 50:
+                return 5500
+            elif x < 80:
+                return (x - 50) * 1000 + 500
+            elif x < 89:
+                return (x - 80) * 5000 + 30000 + 2500
+            else:
+                # Even though the value 0f 88 results in 72500 as a return value, the final return of 70000 is correct.
+                # From 80 up to 88 each return represents a value range of 5000, and for 88 this is 70000 - 75000,
+                # represented by 72500. From 89 up the value is given as "more than 70000", which is why 70000 is
+                # returned from then on.
+                return 70000
+
+        return np.frompyfunc(knmi_visibility_class_to_meter_estimate_single, 1, 1)(xs)

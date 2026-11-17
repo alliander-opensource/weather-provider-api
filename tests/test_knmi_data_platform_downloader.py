@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 import requests  # type: ignore
 
-from weather_provider_api.routers.weather.sources.knmi.client.knmi_data_platform_downloader import (
+from weather_provider_api.weather.sources.knmi.client.knmi_data_platform_downloader import (
     KNMIDataPlatFormDownloadClient,
 )
 

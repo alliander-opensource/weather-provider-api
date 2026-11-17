@@ -28,8 +28,8 @@ When using WPL directly — rather than through the API — all configured model
 **Python instantiation of the Controller:**
 
 ```python
-from weather_provider_api.routers.weather.controller import WeatherController
-from weather_provider_api.routers.weather.base_models.model import OutputUnit
+from weather_provider_api.weather.controller import WeatherController
+from weather_provider_api.weather.units import OutputUnit
 
 controller = WeatherController()
 sources = controller.get_sources()  # get a list of supported sources
@@ -53,7 +53,7 @@ weather_data_converted_to_si = controller.convert_names_and_units(
 
 # Saving as your preferred file type:
 from weather_provider_api.routers.weather.api_models import WeatherContentRequestMultiLocationQuery
-from weather_provider_api.routers.weather.utils.serializers import return_file_or_text_response, ResponseFormat
+from weather_provider_api.weather.utils.serializers import return_file_or_text_response, ResponseFormat
 
 return_file_or_text_response(
     unserialized_data=weather_data_converted_to_si,

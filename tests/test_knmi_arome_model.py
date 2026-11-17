@@ -6,17 +6,17 @@ from datetime import UTC, datetime, timedelta
 
 import xarray as xr
 
-from weather_provider_api.routers.weather.base_models.repository import RepoDataFetchResult
-from weather_provider_api.routers.weather.sources.cds.factors import era5sl_factors
-from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5SLModel
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
+from weather_provider_api.weather.base_models.repository import RepoDataFetchResult
+from weather_provider_api.weather.sources.cds.factors import era5sl_factors
+from weather_provider_api.weather.sources.cds.models.era5sl import ERA5SLModel
+from weather_provider_api.weather.sources.knmi.client.arome_repository import (
     HarmonieAromeRepository,
 )
-from weather_provider_api.routers.weather.sources.knmi.models.harmonie_arome import (
+from weather_provider_api.weather.sources.knmi.models.harmonie_arome import (
     HarmonieAromeModel,
 )
-from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.weather.utils.date_helpers import subtract_months
+from weather_provider_api.weather.utils.geo_position import GeoPosition
 
 # The get_weather() function is not part of the test, as it consists purely of function calls to other functions that
 # are already part of the testing regiment.

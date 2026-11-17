@@ -6,7 +6,7 @@ import pytest
 import requests  # type: ignore
 from requests.exceptions import ProxyError  # type: ignore
 
-from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import (
+from weather_provider_api.weather.sources.weather_alert.weather_alert import (
     WeatherAlert,
 )
 

@@ -4,11 +4,11 @@
 
 import pytest
 
-from weather_provider_api.routers.weather.utils.geo_position import (
+from weather_provider_api.weather.utils.geo_position import (
     GeoCoordinateSystem,
     GeoPosition,
 )
-from weather_provider_api.routers.weather.utils.grid_helpers import (
+from weather_provider_api.weather.utils.grid_helpers import (
     round_coordinates_to_wgs84_grid,
 )
 

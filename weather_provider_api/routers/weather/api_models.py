@@ -16,20 +16,12 @@ from pydantic.dataclasses import dataclass
 from starlette.responses import Response as StarletteResponse
 
 from weather_provider_api.core.base_model import BaseModel
+from weather_provider_api.weather.units import OutputUnit
 
 # Constants for repeated string literals
 FROM_DATE_AND_TIME = "From date and time"
 TO_DATE_AND_TIME = "To date and time"
 FACTORS_DESCRIPTION = "Only return these weather factors (default: all factors)"
-
-
-class OutputUnit(StrEnum):
-    """Enumeration of valid output unit sets for weather data."""
-
-    # Valid output unit sets
-    si = "si"
-    human = "human"
-    original = "original"
 
 
 class ResponseFormat(StrEnum):

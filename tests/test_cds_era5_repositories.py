@@ -9,9 +9,9 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from weather_provider_api.routers.weather.base_models.repository import RepoDataFetchResult, RepoUpdateResult
-from weather_provider_api.routers.weather.sources.cds.client.era5land_repository import ERA5LandRepository
-from weather_provider_api.routers.weather.sources.cds.client.era5sl_repository import ERA5SLRepository
+from weather_provider_api.weather.base_models.repository import RepoDataFetchResult, RepoUpdateResult
+from weather_provider_api.weather.sources.cds.client.era5land_repository import ERA5LandRepository
+from weather_provider_api.weather.sources.cds.client.era5sl_repository import ERA5SLRepository
 
 
 @pytest.fixture(params=[ERA5LandRepository, ERA5SLRepository], ids=["era5land", "era5sl"])

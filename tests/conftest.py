@@ -11,8 +11,8 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
-from weather_provider_api.routers.weather.utils.pandas_helpers import coords_to_pd_index
+from weather_provider_api.weather.utils.geo_position import GeoPosition
+from weather_provider_api.weather.utils.pandas_helpers import coords_to_pd_index
 
 
 @pytest.fixture(scope="session")

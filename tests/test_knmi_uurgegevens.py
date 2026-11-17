@@ -8,10 +8,10 @@ import pytest
 import requests  # type: ignore
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models.uurgegevens import (
+from weather_provider_api.weather.sources.knmi.models.uurgegevens import (
     UurgegevensModel,
 )
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.weather.utils.geo_position import GeoPosition
 
 
 @pytest.fixture

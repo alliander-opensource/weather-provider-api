@@ -11,14 +11,14 @@ import pytest
 import requests  # type: ignore
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen import (
+from weather_provider_api.weather.sources.knmi.models.actuele_waarnemingen import (
     ActueleWaarnemingenModel,
 )
-from weather_provider_api.routers.weather.sources.knmi.utils.commons import (
+from weather_provider_api.weather.sources.knmi.utils.commons import (
     _retrieve_observation_moment,  # type: ignore
     download_actuele_waarnemingen_weather,
 )
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.weather.utils.geo_position import GeoPosition
 
 
 @pytest.fixture
@@ -87,7 +87,7 @@ def test__download_weather_normalizes_observation_time(
     """Test that aware and naive observation times become naive UTC timestamps."""
     monkeypatch.setattr(requests, "get", lambda *args, **kwargs: observation_response)
     monkeypatch.setattr(
-        "weather_provider_api.routers.weather.sources.knmi.utils.commons._retrieve_observation_moment",
+        "weather_provider_api.weather.sources.knmi.utils.commons._retrieve_observation_moment",
         lambda html_body: observation_moment,
     )
 

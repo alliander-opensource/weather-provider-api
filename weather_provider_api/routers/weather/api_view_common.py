@@ -17,15 +17,15 @@ from weather_provider_api.routers.weather.api_models import (
     get_weather_formatting_request_query,
     result_mime_types,
 )
-from weather_provider_api.routers.weather.base_models.model import WeatherModelBase
-from weather_provider_api.routers.weather.base_models.source import WeatherSourceBase
-from weather_provider_api.routers.weather.controller import WeatherController
-from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import (
+from weather_provider_api.weather.base_models.model import WeatherModelBase
+from weather_provider_api.weather.base_models.source import WeatherSourceBase
+from weather_provider_api.weather.controller import WeatherController
+from weather_provider_api.weather.sources.weather_alert.weather_alert import (
     WeatherAlert,
 )
-from weather_provider_api.routers.weather.utils import serializers
-from weather_provider_api.routers.weather.utils.date_helpers import parse_datetime
-from weather_provider_api.routers.weather.utils.file_helpers import remove_file
+from weather_provider_api.weather.utils import serializers
+from weather_provider_api.weather.utils.date_helpers import parse_datetime
+from weather_provider_api.weather.utils.file_helpers import remove_file
 
 controller = WeatherController()
 

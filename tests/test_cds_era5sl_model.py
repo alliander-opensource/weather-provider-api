@@ -8,10 +8,10 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from weather_provider_api.routers.weather.base_models.repository import RepoDataFetchResult
-from weather_provider_api.routers.weather.sources.cds.models import era5sl
-from weather_provider_api.routers.weather.sources.cds.models.era5sl import ERA5SLModel
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.weather.base_models.repository import RepoDataFetchResult
+from weather_provider_api.weather.sources.cds.models import era5sl
+from weather_provider_api.weather.sources.cds.models.era5sl import ERA5SLModel
+from weather_provider_api.weather.utils.geo_position import GeoPosition
 
 
 class _FakeRepository:

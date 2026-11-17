@@ -8,11 +8,11 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from weather_provider_api.routers.weather.sources.knmi.models import actuele_waarnemingen_register as model_module
-from weather_provider_api.routers.weather.sources.knmi.models.actuele_waarnemingen_register import (
+from weather_provider_api.weather.sources.knmi.models import actuele_waarnemingen_register as model_module
+from weather_provider_api.weather.sources.knmi.models.actuele_waarnemingen_register import (
     ActueleWaarnemingenRegisterModel,
 )
-from weather_provider_api.routers.weather.utils.geo_position import GeoPosition
+from weather_provider_api.weather.utils.geo_position import GeoPosition
 
 
 class _FakeRepository:

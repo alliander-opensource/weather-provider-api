@@ -1,0 +1,227 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
+"""Entry point to the weather provider."""
+
+import datetime
+import re
+
+import numpy as np
+import xarray as xr
+from fastapi import HTTPException
+
+from weather_provider_api.weather.base_models.model import WeatherModelBase
+from weather_provider_api.weather.base_models.source import WeatherSourceBase
+from weather_provider_api.weather.exceptions import (
+    UnknownModelException,
+    UnknownSourceException,
+)
+from weather_provider_api.weather.sources.cds.cds import CDS
+from weather_provider_api.weather.sources.knmi.knmi import KNMI
+from weather_provider_api.weather.units import OutputUnit
+from weather_provider_api.weather.utils.geo_position import GeoPosition
+
+
+class WeatherController:  # pragma: no cover
+    """Controller for the Weather Provider API.
+
+    This class is responsible for handling all requests for weather data, including fetching data from
+    the appropriate sources and models, converting units, and formatting the output.
+    """
+
+    def __init__(self):
+        """Load the available weather sources and their models into the controller."""
+        source_instances: list[WeatherSourceBase] = [KNMI(), CDS()]
+        self.sources: dict[str, WeatherSourceBase] = {source.id: source for source in source_instances}
+
+    def get_weather(
+        self,
+        source_id: str,
+        model_id: str,
+        fetch_async: bool,
+        coords: list[list[tuple[float, float]]],
+        begin: datetime.datetime | None = None,
+        end: datetime.datetime | None = None,
+        factors: list[str] | None = None,
+    ) -> xr.Dataset | None:
+        """Get specific weather factors for a specific time and specific location(s).
+
+        Args:
+            source_id (str): Weather source to query, such as ``knmi`` or ``cds``.
+            model_id (str): Identifier of the model to query for the selected source.
+            fetch_async (bool): Whether the request was made to fetch data asynchronously.
+            coords (list[list[tuple[float, float]]]): Nested polygons of latitude/longitude coordinates.
+            begin (datetime.datetime | None): Start of the requested output period.
+            end (datetime.datetime | None): End of the requested output period.
+            factors (list[str] | None): Requested weather factors, or all available factors when omitted.
+
+        Returns:
+            xr.Dataset | None: Weather data for the selected model, period, locations, and factors.
+
+        Raises:
+            UnknownModelException: If the model is not available for the selected source.
+        """
+        model = self.get_model(source_id, model_id, fetch_async)
+        if not model:
+            raise UnknownModelException(f"Model '{model_id}' not found for source '{source_id}'")
+
+        # polygonal areas to mean calculation
+        coordinate_list: list[tuple[float, float]] = self._calculate_polygon_means(coords)
+        # conversion of Tuples with floats to GeoPosition items
+        geo_positions: list[GeoPosition] = self._tuples_to_geo_positions(coordinate_list)
+
+        if model.is_async():
+            return None
+
+        # call relevant routine data
+        ds = model.get_weather(coords=geo_positions, begin=begin, end=end, weather_factors=factors)
+        return ds
+
+    def convert_names_and_units(
+        self,
+        source_id: str,
+        model_id: str,
+        fetch_async: bool,
+        weather_data: xr.Dataset,
+        unit: OutputUnit,
+    ) -> xr.Dataset:
+        """Convert weather variable names and units to the requested output format.
+
+        Args:
+            source_id (str): Identifier of the weather source.
+            model_id (str): Identifier of the weather model.
+            fetch_async (bool): Whether to resolve an asynchronous model.
+            weather_data (xr.Dataset): Weather data to convert.
+            unit (OutputUnit): Target unit system.
+
+        Returns:
+            xr.Dataset: Weather data with converted names and units.
+
+        Raises:
+            UnknownModelException: If the model is not available for the selected source.
+        """
+        model = self.get_model(source_id, model_id, fetch_async)
+        if not model:
+            raise UnknownModelException(f"Model '{model_id}' not found for source '{source_id}'")
+
+        return model.convert_names_and_units(weather_data, unit)
+
+    @staticmethod
+    def lat_lon_to_coords(lat: float, lon: float) -> list[list[tuple[float, float]]]:
+        """Convert a single pair of coordinates into a nested list format representing a single-point polygon."""
+        return [[(lat, lon)]]
+
+    @staticmethod
+    def str_to_coords(locations_string: str) -> list[list[tuple[float, float]]]:
+        """Convert a string containing coordinates into a list of tuples containing those coordinates."""
+        number_pattern = r"[+-]?(?:\d+(?:\.\d+)?|\.\d+)"
+        coordinate_pattern = rf"\(\s*{number_pattern}\s*,\s*{number_pattern}\s*\)"
+        locations_pattern = rf"\s*{coordinate_pattern}(?:\s*,\s*{coordinate_pattern})*\s*"
+
+        if not locations_string or re.fullmatch(locations_pattern, locations_string) is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Invalid locations format. Expected '(latitude, longitude), ...'.",
+            )
+
+        coordinates = re.findall(
+            rf"\(\s*({number_pattern})\s*,\s*({number_pattern})\s*\)",
+            locations_string,
+        )
+        return [[(float(latitude), float(longitude))] for latitude, longitude in coordinates]
+
+    def get_source_keys(self) -> list[str]:
+        """Get a list of all available source keys."""
+        return list(self.sources.keys())
+
+    def get_sources(self) -> list[WeatherSourceBase]:
+        """Get a list of all available sources."""
+        return list(self.sources.values())
+
+    def get_source(self, source_id: str) -> WeatherSourceBase | None:
+        """Get a specific source by its ID."""
+        self._validate_source(source_id)
+        return self.sources.get(source_id, None)
+
+    def get_models(self, source_id: str, fetch_async: bool = False) -> list[WeatherModelBase]:
+        """Get a list of all available models for a specific source."""
+        source = self.get_source(source_id)
+        if source is None:
+            return []
+        return source.get_models(fetch_async)
+
+    def get_model(self, source_id: str, model_id: str, fetch_async: bool = False) -> WeatherModelBase | None:
+        """Get a specific model by its ID for a specific source."""
+        self._validate_source_and_model(source_id, model_id, fetch_async)
+        source = self.get_source(source_id)
+        if source is None:
+            return None
+        return source.get_model(model_id, fetch_async)
+
+    def _validate_source(self, source_id: str):
+        """Validate that a source identifier corresponds to a known source.
+
+        Args:
+            source_id (str): Source identifier to validate.
+
+        Raises:
+            UnknownSourceException: If the source identifier is unknown.
+        """
+        if source_id not in self.sources:
+            raise UnknownSourceException
+
+    def _validate_source_and_model(self, source_id: str, model_id: str, fetch_async: bool = False):
+        """Validate that source and model identifiers correspond to known entities.
+
+        Args:
+            source_id (str): Source identifier to validate.
+            model_id (str): Model identifier to validate.
+            fetch_async (bool): Whether to include asynchronous models.
+
+        Raises:
+            UnknownSourceException: If the source identifier is unknown.
+            UnknownModelException: If the model identifier is unknown for the source.
+        """
+        self._validate_source(source_id)
+        if self.sources[source_id].get_model(model_id, fetch_async) is None:
+            raise UnknownModelException
+
+    @staticmethod
+    def _calculate_polygon_means(
+        coords: list[list[tuple[float, float]]],
+    ) -> list[tuple[float, float]]:
+        """Calculate the mean latitude and longitude for each polygon in the provided list of coordinates.
+
+        Given a 3-layer nested list:
+            D0: different polygons
+            D1: sequence of points in each polygon
+            D2: coordinates of each point (lat, lon)
+        Returns a list of (mean_lat, mean_lon) for each polygon.
+        """
+        means: list[tuple[float, float]] = []
+        for polygon in coords:
+            if not polygon:
+                continue
+            lats = [pt[0] for pt in polygon]
+            lons = [pt[1] for pt in polygon]
+            means.append((float(np.mean(lats)), float(np.mean(lons))))
+        return means
+
+    @staticmethod
+    def _tuples_to_geo_positions(
+        coords: list[tuple[float, float]],
+    ) -> list[GeoPosition]:
+        """Convert latitude/longitude tuples into GeoPosition instances.
+
+        Args:
+            coords (list[tuple[float, float]]): Latitude/longitude coordinate tuples.
+
+        Returns:
+            list[GeoPosition]: Coordinates represented as GeoPosition instances.
+
+        Raises:
+            ValueError: If a coordinate cannot be represented by a valid GeoPosition.
+        """
+        geo_positions = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in coords]
+        return geo_positions

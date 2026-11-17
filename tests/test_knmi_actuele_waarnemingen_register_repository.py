@@ -10,11 +10,11 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from weather_provider_api.routers.weather.base_models.repository import (
+from weather_provider_api.weather.base_models.repository import (
     RepoDataFetchResult,
     RepoUpdateResult,
 )
-from weather_provider_api.routers.weather.sources.knmi.client.actuele_waarnemingen_register_repository import (
+from weather_provider_api.weather.sources.knmi.client.actuele_waarnemingen_register_repository import (
     ActueleWaarnemingenRegisterRepository,
 )
 
@@ -119,7 +119,7 @@ def test_update_returns_failure_when_download_returns_no_dataset(
 ) -> None:
     """Test that an unsuccessful observation download returns a failure result."""
     monkeypatch.setattr(
-        "weather_provider_api.routers.weather.sources.knmi.client.actuele_waarnemingen_register_repository."
+        "weather_provider_api.weather.sources.knmi.client.actuele_waarnemingen_register_repository."
         "download_actuele_waarnemingen_weather",
         lambda: None,
     )
@@ -137,7 +137,7 @@ def test_update_stores_downloaded_data_and_runs_cleanup(
     """Store downloaded observations after cleaning the existing repository."""
     cleanup_calls: list[bool] = []
     monkeypatch.setattr(
-        "weather_provider_api.routers.weather.sources.knmi.client.actuele_waarnemingen_register_repository."
+        "weather_provider_api.weather.sources.knmi.client.actuele_waarnemingen_register_repository."
         "download_actuele_waarnemingen_weather",
         lambda: _dataset(datetime(2026, 9, 22, 10, 0)),
     )
@@ -186,7 +186,7 @@ def test_cleanup_storage_deletes_corrupt_repository_file(
     """Delete a registry that cannot be loaded and report the failure."""
     repository.storage_filename.touch()
     monkeypatch.setattr(
-        "weather_provider_api.routers.weather.sources.knmi.client.actuele_waarnemingen_register_repository."
+        "weather_provider_api.weather.sources.knmi.client.actuele_waarnemingen_register_repository."
         "xr.load_dataset",
         lambda *args, **kwargs: (_ for _ in ()).throw(OSError("corrupt")),
     )

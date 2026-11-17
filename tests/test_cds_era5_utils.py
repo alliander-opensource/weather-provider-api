@@ -10,8 +10,8 @@ import numpy as np
 import pytest
 import xarray as xr
 
-import weather_provider_api.routers.weather.sources.cds.client.era5_utils as era5_utils
-from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import CDSDataSets, CDSRequest
+import weather_provider_api.weather.sources.cds.client.era5_utils as era5_utils
+from weather_provider_api.weather.sources.cds.client.cds_api_tools import CDSDataSets, CDSRequest
 
 
 def test_file_requires_update_for_supported_file_states(tmp_path: Path) -> None:

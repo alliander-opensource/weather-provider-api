@@ -10,7 +10,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from weather_provider_api.routers.weather.sources.knmi.utils import knmi_arome_process_tar_file as processor
+from weather_provider_api.weather.sources.knmi.utils import knmi_arome_process_tar_file as processor
 
 
 def _make_tar_file(tar_file_path: Path) -> None:

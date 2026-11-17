@@ -17,15 +17,15 @@ import xarray as xr
 from loguru import logger
 
 from weather_provider_api.core.initializers.logging_handler import initialize_logging
-from weather_provider_api.routers.weather.base_models.repository import RepoUpdateResult
-from weather_provider_api.routers.weather.sources.knmi.client.arome_repository import (
+from weather_provider_api.weather.base_models.repository import RepoUpdateResult
+from weather_provider_api.weather.sources.knmi.client.arome_repository import (
     AromeSuggestedFileHandling,
     HarmonieAromeRepository,
 )
-from weather_provider_api.routers.weather.sources.knmi.client.knmi_data_platform_downloader import (
+from weather_provider_api.weather.sources.knmi.client.knmi_data_platform_downloader import (
     KNMIDataPlatFormDownloadClient,
 )
-from weather_provider_api.routers.weather.utils.date_helpers import subtract_months
+from weather_provider_api.weather.utils.date_helpers import subtract_months
 
 
 @pytest.fixture(autouse=True)
@@ -377,7 +377,7 @@ def test_process_downloaded_file_returns_failure_when_processing_raises(
     """Convert processing exceptions into a repository failure result."""
     repository = HarmonieAromeRepository()
     monkeypatch.setattr(
-        "weather_provider_api.routers.weather.sources.knmi.client.arome_repository."
+        "weather_provider_api.weather.sources.knmi.client.arome_repository."
         "process_knmi_arome_cy43_p1_tar_file_into_netcdf",
         lambda **kwargs: (_ for _ in ()).throw(RuntimeError("conversion failed")), # type: ignore
     )

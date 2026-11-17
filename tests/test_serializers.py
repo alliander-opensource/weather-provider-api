@@ -14,7 +14,7 @@ from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
     WeatherContentRequestQuery,
 )
-from weather_provider_api.routers.weather.utils.serializers import return_file_or_text_response
+from weather_provider_api.weather.utils.serializers import return_file_or_text_response
 
 
 class MockResponseFormat(StrEnum):

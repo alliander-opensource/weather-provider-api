@@ -9,8 +9,8 @@ import numpy as np
 import pytest
 import xarray as xr
 
-import weather_provider_api.routers.weather.base_models.repository as repository_module
-from weather_provider_api.routers.weather.base_models.repository import (
+import weather_provider_api.weather.base_models.repository as repository_module
+from weather_provider_api.weather.base_models.repository import (
     RepoDataFetchResult,
     RepoUpdateResult,
     WeatherRepositoryBase,

@@ -2,14 +2,14 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-# Unit tests for weather_provider_api.routers.weather.sources.cds.client.cds_api_tools.
+# Unit tests for weather_provider_api.weather.sources.cds.client.cds_api_tools.
 #
 # These tests deliberately avoid any real CDS credentials or network access: the only place a real client would be
 # created (get_cds_client) is exercised with cdsapi.Client monkeypatched to a fake, which is possible precisely because
 # the client is now instantiated lazily instead of at import time.
 
-import weather_provider_api.routers.weather.sources.cds.client.cds_api_tools as cds_tools
-from weather_provider_api.routers.weather.sources.cds.client.cds_api_tools import (
+import weather_provider_api.weather.sources.cds.client.cds_api_tools as cds_tools
+from weather_provider_api.weather.sources.cds.client.cds_api_tools import (
     CDSDataSets,
     CDSRequest,
     get_cds_client,

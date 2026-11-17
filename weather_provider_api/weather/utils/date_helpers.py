@@ -1,0 +1,177 @@
+# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
+#
+# SPDX-License-Identifier: MPL-2.0
+
+from datetime import UTC, date, datetime, timedelta
+from typing import Any
+
+import numpy as np
+import pandas as pd
+from loguru import logger
+from starlette.exceptions import HTTPException
+
+_TWO_DIGITS_REGEX = r"\d{2}"
+
+
+def parse_datetime(
+    datetime_string: str | None,
+    round_missing_time_up: bool = False,
+    round_to_days: bool = False,
+    raise_errors: bool = False,
+    loc: list[str] | None = None,
+) -> datetime | None:
+    """Parse a datetime string with optional rounding and validation.
+
+    Args:
+        datetime_string (str | None): Datetime value to parse.
+        round_missing_time_up (bool): Round a date-only value to 23:59:59.
+        round_to_days (bool): Round a date-only value to the following midnight.
+        raise_errors (bool): Raise an HTTP 422 error instead of returning ``None`` for invalid input.
+        loc (list[str] | None): Validation-error location for an invalid value.
+
+    Returns:
+        datetime | None: Parsed datetime, or ``None`` when the input is absent or invalid.
+
+    Raises:
+        HTTPException: If parsing fails and ``raise_errors`` is ``True``.
+    """
+    if datetime_string is None:
+        return None
+
+    parsed = pd.to_datetime(datetime_string, dayfirst=False, errors="coerce")
+    if pd.isnull(parsed):
+        dt: datetime | None = None
+    else:
+        dt = parsed.to_pydatetime()  # native datetime.datetime
+
+    if pd.isnull(dt):
+        logger.exception("Error while parsing datetime string", input=datetime_string)
+        if raise_errors:
+            # Note: replace when FastAPI supports Pydantic models to define query parameters
+            # (meaning Validators can be used)
+            error_msg: dict[str, Any] = {
+                "loc": loc,
+                "msg": "invalid datetime format",
+                "type": "type_error.datetime",
+            }
+            raise HTTPException(status_code=422, detail=str(error_msg))
+
+        dt = None
+
+    if dt is not None and (round_missing_time_up or round_to_days) and time_unknown(dt, datetime_string):
+        dt = dt + timedelta(days=1) if round_to_days else dt.replace(hour=23, minute=59, second=59)
+
+    return dt
+
+
+def time_unknown(dt: datetime, datetime_string: str) -> bool:  # pragma: no cover
+    """Check if the time part of a datetime is unknown (i.e., not specified in the string)."""
+    return bool(dt.hour == 0 and dt.minute == 0 and dt.second == 0 and ":" not in datetime_string)
+
+
+def validate_begin_and_end(
+    start: datetime | None,
+    end: datetime | None,
+    data_start: date | None = None,
+    data_end: date | None = None,
+) -> tuple[datetime, datetime]:
+    """Validate and clamp a requested period to the available data range.
+
+    Args:
+        start (datetime | None): Requested period start.
+        end (datetime | None): Requested period end.
+        data_start (date | None): Earliest available date.
+        data_end (date | None): Latest available date.
+
+    Returns:
+        tuple[datetime, datetime]: Validated UTC start and end datetimes.
+
+    Raises:
+        HTTPException: If a required bound is missing or the period is outside the available range.
+    """
+    if not start or not end:
+        raise HTTPException(status_code=422, detail="Both [start] and [end] parameters must be provided")
+
+    start = _as_utc(start)
+    end = _as_utc(end)
+    data_start = _as_utc(datetime.combine(data_start, datetime.min.time())) if data_start else None
+    data_end = _as_utc(datetime.combine(data_end, datetime.max.time())) if data_end else datetime.now(UTC)
+
+    # Clamp start and end to available data range
+    if data_start and start < data_start:
+        start = data_start
+    if end > data_end:
+        end = data_end
+
+    # Validation checks
+    if start >= data_end:
+        raise HTTPException(
+            422,
+            f"[start] ({start}) is after the last available model time ({data_end})",
+        )
+    if data_start and end <= data_start:
+        raise HTTPException(
+            422,
+            f"[end] ({end}) is before the first available model time ({data_start})",
+        )
+    if end < start:
+        raise HTTPException(
+            422,
+            f"[end] ({end}) is before [start] ({start})",
+        )
+
+    return start, end
+
+
+def datetime_to_numpy_datetime64(value: datetime) -> np.datetime64:
+    """Convert a datetime to a timezone-naive NumPy value representing UTC."""
+    return np.datetime64(_as_utc(value).replace(tzinfo=None))
+
+
+def _as_utc(value: datetime) -> datetime:
+    """Normalize a datetime to UTC, treating timezone-naive values as UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
+def subtract_months(dt: date, months: int) -> date:
+    """Subtract whole months from a date and normalize the result to month start.
+
+    Args:
+        dt (date): Date from which to subtract months.
+        months (int): Number of months to subtract.
+
+    Returns:
+        date: First day of the resulting month.
+    """
+    year = dt.year
+    month = dt.month - months
+    while month <= 0:
+        month += 12
+        year -= 1
+    return dt.replace(year=year, month=month, day=1)
+
+
+def strftime_to_regex(fmt: str) -> str:
+    """Convert supported strftime directives to a regular-expression pattern.
+
+    Args:
+        fmt (str): Format string containing supported strftime directives.
+
+    Returns:
+        str: Regular-expression pattern corresponding to ``fmt``.
+    """
+    # Regex pattern for two digits
+    replacements = {
+        "%Y": r"\d{4}",
+        "%m": _TWO_DIGITS_REGEX,
+        "%d": _TWO_DIGITS_REGEX,
+        "%H": _TWO_DIGITS_REGEX,
+        "%M": _TWO_DIGITS_REGEX,
+        "%S": _TWO_DIGITS_REGEX,
+    }
+    regex = fmt
+    for k, v in replacements.items():
+        regex = regex.replace(k, v)
+    return regex
