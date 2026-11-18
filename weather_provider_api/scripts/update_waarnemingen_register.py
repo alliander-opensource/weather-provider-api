@@ -6,7 +6,7 @@ import sys
 
 from loguru import logger
 
-from weather_provider_api.weather.sources.knmi.client.actuele_waarnemingen_register_repository import (
+from weather_provider_api.weather.sources.__old__.knmi.client.actuele_waarnemingen_register_repository import (
     ActueleWaarnemingenRegisterRepository,
 )
 

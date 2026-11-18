@@ -13,7 +13,7 @@ from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
-from weather_provider_api.config import APP_CONFIG
+from weather_provider_api.config import API_METADATA
 from weather_provider_api.core.exceptions.exceptions import APIExpiredException
 from weather_provider_api.core.initializers.exception_handling import (
     handle_http_exception,
@@ -51,13 +51,19 @@ def initialize_api_validation(application: FastAPI) -> None:
         today = datetime.today().date()
         response = None
 
-        api_version_in_url = re.search(f"{api_prefix}\\d+{api_suffix}", request_url)  # Looks for mentioning of version
+        api_version_in_url = re.search(f"{api_prefix}(\\d+){api_suffix}", request_url)
 
         if not api_version_in_url:
             return await call_next(request)  # No API call, no problem
 
+        api_version_used = api_version_in_url.group(1)
+        api_versions = {"1": API_METADATA.api_v1, "2": API_METADATA.api_v2}
+        version_metadata = api_versions.get(api_version_used)
+        if version_metadata is None:
+            return await call_next(request)
+
         # Validate the base application
-        base_expiration_date = datetime.strptime(APP_CONFIG["base"]["expiration_date"], "%Y-%m-%d").date()
+        base_expiration_date = API_METADATA.base_expiration_date
         if today > base_expiration_date:
             response = await handle_http_exception(
                 request,
@@ -67,16 +73,8 @@ def initialize_api_validation(application: FastAPI) -> None:
                 ),
             )
 
-        # Determine the API interpreter version used and its expiry date
-        start_location_of_version_number_in_url = api_version_in_url.start() + len(api_prefix)
-        end_location_of_version_number_in_url = api_version_in_url.end() - len(api_suffix)
-
-        api_version_used = request_url[start_location_of_version_number_in_url:end_location_of_version_number_in_url]
-
         # Validate the expiry date of the specific API version used
-        version_expiration_date = datetime.strptime(
-            APP_CONFIG[f"api_v{api_version_used}"]["expiration_date"], "%Y-%m-%d"
-        ).date()
+        version_expiration_date = version_metadata.expiration_date
         if today > version_expiration_date:
             if not response:
                 response = await handle_http_exception(

@@ -36,8 +36,8 @@ def _build_api_application() -> FastAPI:
         This method can also serve as an example for setting up your own version of this API with different settings.
 
     """
-    app_title = APP_CONFIG["base"]["title"]
-    app_description = APP_CONFIG["base"]["description"]
+    app_title = APP_CONFIG.APP_TITLE
+    app_description = APP_CONFIG.APP_DESCRIPTION
 
     # Define lifespan context manager for startup/shutdown events
     @asynccontextmanager
@@ -60,8 +60,8 @@ def _build_api_application() -> FastAPI:
         summary=app_description,
         description=app_description,
         contact={
-            "name": APP_CONFIG["maintainer"]["name"],
-            "email": APP_CONFIG["maintainer"]["email_address"],
+            "name": APP_CONFIG.MAINTAINER,
+            "email": APP_CONFIG.EMAIL,
         },
         lifespan=lifespan,
     )
@@ -70,16 +70,21 @@ def _build_api_application() -> FastAPI:
     # Attach selected middleware
     initialize_exception_handler(application)
     initialize_header_metadata(application)
-    if APP_CONFIG["base"]["expiration_checking"]:
+    if APP_CONFIG.ENABLE_EXPIRATION_CHECKING:
         initialize_api_validation(application)
-    if APP_CONFIG["components"]["prometheus"]:
+    if APP_CONFIG.ENABLE_PROMETHEUS_SERVER:
         initialize_prometheus_interface(application)
-    if APP_CONFIG["components"]["cors"]:
+    if APP_CONFIG.ENABLE_CORS_HANDLING:
         initialize_cors_middleware(application)
 
     # Create and connect to end-points
     mount_api_version(application, v1)
     mount_api_version(application, v2)
+
+    @application.get("/health", include_in_schema=False)
+    def health_check() -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
+        """Return a lightweight response for container health probes."""
+        return {"status": "ok"}
 
     # Adding a redirect from the root of the application to our default view
     @application.get("/")

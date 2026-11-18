@@ -1,0 +1,10 @@
+[base]
+expiration_date = "2027-12-31"
+
+[api_v1]
+implementation = "2.9.0"
+expiration_date = "2026-12-31"
+
+[api_v2]
+implementation = "2.9.0"
+expiration_date = "2027-12-31"

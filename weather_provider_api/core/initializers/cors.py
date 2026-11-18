@@ -50,17 +50,19 @@ def initialize_cors_middleware(app: FastAPI) -> None:
         Nothing. The application itself is updated.
 
     """
-    origins = APP_CONFIG["components"]["cors_allowed_origins"]
-    origins_regex = _normalize_origin_regex(APP_CONFIG["components"]["cors_allowed_origins_regex"])
+    origins = [origin.strip() for origin in APP_CONFIG.CORS_ALLOW_ORIGINS if origin.strip()]
+    origins_regex = _normalize_origin_regex(APP_CONFIG.CORS_ALLOW_ORIGINS_REGEX)
 
-    if origins and len(origins) == 0:
-        origins = None
+    if not origins and not origins_regex:
+        raise ValueError("CORS is enabled but no allowed origins or origin regex are configured.")
+    if APP_CONFIG.CORS_ALLOW_CREDENTIALS and "*" in origins:
+        raise ValueError("CORS credentials cannot be enabled with a wildcard allowed origin.")
 
     cors_config: dict[str, list[str] | str | bool | type] = {
         "middleware_class": CORSMiddleware,
-        "allow_credentials": True,
-        "allow_methods": ["*"],
-        "allow_headers": ["*"],
+        "allow_credentials": APP_CONFIG.CORS_ALLOW_CREDENTIALS,
+        "allow_methods": APP_CONFIG.CORS_ALLOW_METHODS,
+        "allow_headers": APP_CONFIG.CORS_ALLOW_HEADERS,
     }
 
     if origins:
@@ -68,9 +70,5 @@ def initialize_cors_middleware(app: FastAPI) -> None:
 
     if origins_regex:
         cors_config["allow_origin_regex"] = origins_regex
-
-    if not origins and not origins_regex:
-        logger.warning("CORS middleware enabled but no allowed origins are set.")
-        return
 
     app.add_middleware(**cors_config)  # type: ignore

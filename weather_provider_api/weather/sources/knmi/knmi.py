@@ -1,25 +1,9 @@
-# SPDX-FileCopyrightText: 2021-2026 Alliander N.V.
-#
-# SPDX-License-Identifier: MPL-2.0
+from loguru import logger
 
 from weather_provider_api.weather.base_models.model import WeatherModelBase
 from weather_provider_api.weather.base_models.source import WeatherSourceBase
-from weather_provider_api.weather.sources.knmi.models.actuele_waarnemingen import (
-    ActueleWaarnemingenModel,
-)
-from weather_provider_api.weather.sources.knmi.models.actuele_waarnemingen_register import (
-    ActueleWaarnemingenRegisterModel,
-)
-from weather_provider_api.weather.sources.knmi.models.daggegevens import (
-    DagGegevensModel,
-)
-from weather_provider_api.weather.sources.knmi.models.harmonie_arome import (
-    HarmonieAromeModel,
-)
-from weather_provider_api.weather.sources.knmi.models.pluim import PluimModel
-from weather_provider_api.weather.sources.knmi.models.uurgegevens import (
-    UurgegevensModel,
-)
+
+model_instances: list[WeatherModelBase] = []
 
 
 class KNMI(WeatherSourceBase):
@@ -27,18 +11,11 @@ class KNMI(WeatherSourceBase):
 
     def __init__(self):
         """Initialize the KNMI source and set up its models."""
-        model_instances: list[WeatherModelBase] = [
-            UurgegevensModel(),
-            DagGegevensModel(),
-            HarmonieAromeModel(),
-            PluimModel(),
-            ActueleWaarnemingenModel(),
-            ActueleWaarnemingenRegisterModel(),
-        ]
-
         super().__init__(
             source_id="knmi",
             name="Koninklijk Nederlands Meteorologisch Instituut (KNMI)",
             url="https://knmi.nl/",
             model_instances=model_instances,
         )
+        logger.info(f"Initialized KNMI source with {len(model_instances)} models.")
+        logger.debug(f"Model instances: {model_instances}")

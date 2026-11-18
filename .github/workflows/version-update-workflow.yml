@@ -180,48 +180,36 @@ jobs:
           version="$(uv version --short)${{ github.run_number }}"
           echo "Package version: $version"
           echo "package_version=$version" >> $GITHUB_ENV
+      - name: Build and smoke-test both image targets
+        run: |
+          docker build --platform linux/amd64 --target gunicorn-image -t weather-provider-api:smoke-gunicorn .
+          docker build --platform linux/amd64 --target uvicorn-image -t weather-provider-api:smoke-uvicorn .
+          python scripts/smoke_test_container.py weather-provider-api:smoke-gunicorn
+          python scripts/smoke_test_container.py weather-provider-api:smoke-uvicorn
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
       # Create the image and upload it to Amazon ECR (Gunicorn edition)
-      - name: Build, tag, and push image to Amazon ECR - Gunicorn
+      - name: Tag and push smoke-tested image to Amazon ECR - Gunicorn
         run: |
-          docker build --target gunicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:${{ env.package_version }} .
+          docker tag weather-provider-api:smoke-gunicorn ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:${{ env.package_version }}
           docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:${{ env.package_version }}
-          docker build --target gunicorn-image -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }} .
-          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}
+          docker tag weather-provider-api:smoke-gunicorn ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:latest
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY_GUNICORN }}:latest
       # Login to DockerHub
       - name: Login to Docker Hub
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # Create Gunicorn image and upload as latest
-      - name: Gunicorn - Build and Upload to Docker (latest)
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          push: true
-          tags: weatherproviderapi/weather-provider-api-gunicorn:latest
-          target: gunicorn-image
-      # Create Gunicorn image and upload as version
-      - name: Gunicorn - Build and Upload to Docker (versioned)
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          push: true
-          tags: weatherproviderapi/weather-provider-api-gunicorn:${{ env.package_version }}
-          target: gunicorn-image
-      # Create Uvicorn image and upload as latest
-      - name: Uvicorn - Build and Upload to Docker (latest)
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          push: true
-          tags: weatherproviderapi/weather-provider-api-uvicorn:latest
-          target: uvicorn-image
-      # Create Uvicorn image and upload as version
-      - name: Uvicorn - Build and Upload to Docker (versioned)
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          push: true
-          tags: weatherproviderapi/weather-provider-api-uvicorn:${{ env.package_version }}
-          target: uvicorn-image
+      - name: Upload smoke-tested images to Docker Hub
+        run: |
+          docker tag weather-provider-api:smoke-gunicorn weatherproviderapi/weather-provider-api-gunicorn:latest
+          docker tag weather-provider-api:smoke-gunicorn weatherproviderapi/weather-provider-api-gunicorn:${{ env.package_version }}
+          docker tag weather-provider-api:smoke-uvicorn weatherproviderapi/weather-provider-api-uvicorn:latest
+          docker tag weather-provider-api:smoke-uvicorn weatherproviderapi/weather-provider-api-uvicorn:${{ env.package_version }}
+          docker push weatherproviderapi/weather-provider-api-gunicorn:latest
+          docker push weatherproviderapi/weather-provider-api-gunicorn:${{ env.package_version }}
+          docker push weatherproviderapi/weather-provider-api-uvicorn:latest
+          docker push weatherproviderapi/weather-provider-api-uvicorn:${{ env.package_version }}

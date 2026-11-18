@@ -4,42 +4,26 @@
 
 """Version detection module."""
 
-import tomllib
-from importlib import metadata
+from importlib.metadata import PackageNotFoundError, version
 
 from loguru import logger
 
 
 def _get_app_version() -> str:
-    """This method tries to identify the API's main version identifier and return it.
+    """Return the version recorded in the installed distribution metadata.
 
     Returns:
-        str:    The found version identifier, if found. If no version identifier was found, a warning value is returned
-                 instead.
-
+        str: The installed project version, or a marker when package metadata is unavailable.
     """
-    # First attempt: Get the version number by looking for a pyproject.toml file in the working directory.
-    # Please note that this assumes that this function was called from a context that has the Project's main folder as
-    #  the working directory.
     try:
-        with open("./pyproject.toml", mode="rb") as project_file:
-            version = tomllib.load(project_file)["project"]["version"]
-        logger.info(f"Retrieved the project version from the pyproject.toml file: {version}")
-        return version
-    except FileNotFoundError as fnf_error:
-        logger.debug(f"Could not retrieve the active version from the pyproject.toml file: {fnf_error}")
+        app_version = version("weather_provider_api")
+    except PackageNotFoundError:
+        logger.warning("Could not retrieve the project version from installed package metadata.")
+        return "<< version could not be determined >>"
 
-    # Second attempt: Get the version number from the package that was used to install this component, if applicable.
-    try:
-        version = metadata.version(str(__package__))
-        logger.info(f"Retrieved the project version from package data: {version}")
-        return version
-    except metadata.PackageNotFoundError as pnf_error:
-        logger.debug(f"Could not retrieve the active version from package data: {pnf_error}")
+    logger.info("Retrieved the project version from installed package metadata: {}", app_version)
+    return app_version
 
-    # No version could be determined
-    logger.warning("No version could be found for the project!")
-    return "<< version could not be determined >>"
 
 
 APP_VERSION = _get_app_version()

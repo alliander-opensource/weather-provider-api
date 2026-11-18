@@ -19,7 +19,7 @@ from typing import ClassVar
 
 from loguru import logger
 
-from weather_provider_api.config import APP_CONFIG, APP_DEBUGGING, APP_LOG_LEVEL
+from weather_provider_api.config import APP_CONFIG
 
 
 class LoggingInterceptHandler(logging.Handler):
@@ -92,27 +92,28 @@ def initialize_logging() -> None:
         "<cyan><i>{name}</i></cyan>|<blue><b>{function}</b></blue>: <level>{message}</level>"
     )
 
-    log_format = log_format_develop if APP_DEBUGGING else log_format_elastic
+    log_format = log_format_develop if APP_CONFIG.APP_DEBUGGING else log_format_elastic
+    log_level = APP_CONFIG.LOG_LEVEL
 
     # Hook up the stdout logger if configured
-    if APP_CONFIG["logging"]["use_stdout_logger"]:
+    if APP_CONFIG.USE_STDOUT_LOGGING:
         logger.add(
             sys.stdout,
             enqueue=False,
             backtrace=False,
-            level=APP_LOG_LEVEL,
+            level=log_level,
             format=log_format,
             diagnose=False,
         )
 
     # Hook up the file loggers if configured
-    if APP_CONFIG["logging"]["use_file_loggers"]:
+    if APP_CONFIG.USE_FILE_LOGGING:
         # Determine log folder to use
-        if Path(APP_CONFIG["logging"]["file_logger_folder"]).parent.exists():
-            log_folder = Path(APP_CONFIG["logging"]["file_logger_folder"])
+        if APP_CONFIG.FILE_LOGGING_FOLDER and Path(APP_CONFIG.FILE_LOGGING_FOLDER).parent.exists():
+            log_folder = Path(APP_CONFIG.FILE_LOGGING_FOLDER)
         else:
             log_folder = Path(gettempdir()).joinpath("logs")
-        log_folder.mkdir(exist_ok=True)
+        log_folder.mkdir(parents=True, exist_ok=True)
 
         # Debug
         logger.add(
@@ -138,7 +139,7 @@ def initialize_logging() -> None:
         # Regular log
         logger.add(
             log_folder.joinpath("memo.log"),
-            level=APP_LOG_LEVEL,
+            level=log_level,
             format=log_format,
         )
 

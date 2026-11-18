@@ -10,7 +10,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from weather_provider_api.app_version import APP_VERSION
-from weather_provider_api.config import APP_CONFIG
+from weather_provider_api.config import API_METADATA, APP_CONFIG
 
 
 def initialize_header_metadata(application: FastAPI) -> None:
@@ -35,11 +35,11 @@ def initialize_header_metadata(application: FastAPI) -> None:
         """
         response = await call_next(request)
         response.headers["X-App-Version"] = APP_VERSION
-        response.headers["X-App-Valid-Till"] = APP_CONFIG["base"]["expiration_date"]
+        response.headers["X-App-Valid-Till"] = API_METADATA.base_expiration_date.isoformat()
 
-        if APP_CONFIG["maintainer"]["show_info"]:
-            response.headers["X-Maintainer"] = APP_CONFIG["maintainer"]["name"]
-            response.headers["X-Maintainer-Email"] = APP_CONFIG["maintainer"]["email_address"]
+        if APP_CONFIG.SHOW_MAINTAINER_INFO:
+            response.headers["X-Maintainer"] = APP_CONFIG.MAINTAINER
+            response.headers["X-Maintainer-Email"] = APP_CONFIG.EMAIL
 
         return response
 

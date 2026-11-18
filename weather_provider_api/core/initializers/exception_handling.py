@@ -21,9 +21,9 @@ async def handle_http_exception(request: Request, exc: StarletteHTTPException) -
     headers = getattr(exc, "headers", None)
 
     body = {"detail": exc.detail, "request": str(request.url)}
-    if APP_CONFIG["maintainer"]["show_info"]:
-        body["maintainer"] = APP_CONFIG["maintainer"]["name"]
-        body["maintainer_email"] = APP_CONFIG["maintainer"]["email_address"]
+    if APP_CONFIG.SHOW_MAINTAINER_INFO:
+        body["maintainer"] = APP_CONFIG.MAINTAINER
+        body["maintainer_email"] = APP_CONFIG.EMAIL
 
     return JSONResponse(body, status_code=exc.status_code, headers=headers)
 

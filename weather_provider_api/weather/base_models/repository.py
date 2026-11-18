@@ -14,8 +14,7 @@ from pathlib import Path
 import xarray as xr
 from loguru import logger
 from pydantic import BaseModel
-
-from weather_provider_api.config import APP_STORAGE_FOLDER
+from weather_provider_api.config import APP_CONFIG
 from weather_provider_api.weather.utils.date_helpers import strftime_to_regex
 
 
@@ -107,7 +106,7 @@ class WeatherRepositoryBase(ABC):
     @property
     def absolute_storage_path(self) -> Path:
         """Get the absolute path where the weather data will be stored."""
-        return APP_STORAGE_FOLDER / self.storage_path
+        return APP_CONFIG.APP_DATA_STORAGE_FOLDER / self.storage_path
 
     @property
     def source_and_model(self) -> dict[str, str]:
@@ -318,7 +317,7 @@ class WeatherRepositoryBase(ABC):
                 )
             logger.info(f"Filtered dataset to include data for location: (latitude={lat}, longitude={lon}).")
 
-        if not filtered_dataset:
+        if not filtered_dataset or filtered_dataset is None:
             logger.warning("No data available for the specified locations. Returning an empty dataset.")
             filtered_dataset = (
                 xr.Dataset()

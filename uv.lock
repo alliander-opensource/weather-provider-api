@@ -1068,6 +1068,15 @@ wheels = [
 ]
 
 [[package]]
+name = "paho-mqtt"
+version = "2.2.0"
+source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
+sdist = { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/da/66/bba39edaac853235385c59e1e30600cd104b8779164c181780742d8095fc/paho_mqtt-2.2.0.tar.gz", hash = "sha256:bcf706f03f1f49e0fc3ae166dc7b67ee35463496f8bdfd7c9c36181f6ba635c9", size = 133751, upload-time = "2026-11-04T20:10:51.405Z" }
+wheels = [
+    { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/bf/af/fea4b0ee14cee6149f18d180430a14be0963b9a4fbc7875421a7de75f831/paho_mqtt-2.2.0-py3-none-any.whl", hash = "sha256:3243630f7c2b05f71d1de8c6f59865eb04d3a59ae8c866e92377faed6753db4d", size = 77202, upload-time = "2026-11-04T20:10:50.148Z" },
+]
+
+[[package]]
 name = "pandas"
 version = "3.1.1"
 source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
@@ -1244,6 +1253,21 @@ wheels = [
     { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/9e/3a/d405a50e02ea81cd95e93fc97f43d351eeaa1707c28aa6fb58a9f1c1efa9/pydantic_core-2.50.4-graalpy313-graalpy253_313_native-macosx_11_0_arm64.whl", hash = "sha256:71e03d2ea1a221d020cfc5b6cc8bbbedef23a06704c70fcf4d0afb42965b22d1", size = 2049324, upload-time = "2026-11-05T09:15:02.379Z" },
     { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/8f/3b/03e7992115e17cae4131ecd71aadb8fd5e4a04cc2aead72c3c27e9b453d1/pydantic_core-2.50.4-graalpy313-graalpy253_313_native-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:09450778e3ab58d3f565899fcfbf6c82926e31af29e28e799d1d50941316e0cb", size = 2119802, upload-time = "2026-11-05T09:15:03.901Z" },
     { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/e3/d5/b76fc647e473377ca6e693c21549ee3a4a7677e4962c28ae4659337c5114/pydantic_core-2.50.4-graalpy313-graalpy253_313_native-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:4eb15be588407148ef5937dc8d9256a71f6b115e6cddadb7aa20b6ee384680dc", size = 2280639, upload-time = "2026-11-05T09:15:05.374Z" },
+]
+
+[[package]]
+name = "pydantic-settings"
+version = "2.16.2"
+source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+]
+sdist = { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/d0/31/21d21e0e38a8f5f7a7f0cde22820117b6d17d6bc36f348129527f915d7f4/pydantic_settings-2.16.2.tar.gz", hash = "sha256:3dc08ffabed2bbd5dc2dd55ead7b78b4e4c5cd776aecd04310db5f1224caaf46", size = 309225, upload-time = "2026-10-28T11:14:28.066Z" }
+wheels = [
+    { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/39/88/4131c51ff87b7cd7f82a1194d0c0a2b7ca68c72d9da04c3b7e69ab91a79f/pydantic_settings-2.16.2-py3-none-any.whl", hash = "sha256:8d523e5c129b097686bde019bd6109bff53f4c8c3f63f1ddf9933ffa42e5ab4f", size = 81994, upload-time = "2026-10-28T11:14:26.716Z" },
 ]
 
 [[package]]
@@ -1660,6 +1684,19 @@ wheels = [
 ]
 
 [[package]]
+name = "uvicorn-worker"
+version = "0.4.0"
+source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
+dependencies = [
+    { name = "gunicorn" },
+    { name = "uvicorn" },
+]
+sdist = { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/80/59/9101b9c0680fd80e9d26c07deb822a5d18a324339fcf9cd017885ee808ad/uvicorn_worker-0.4.0.tar.gz", hash = "sha256:8ee5306070d8f38dce124adce488c3c0b50f20cf0c0222b12c66188da7214493", size = 9361, upload-time = "2025-09-20T10:47:01.218Z" }
+wheels = [
+    { url = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/packages/packages/90/25/09cd7a90c8bb7fb693be0d6704fccd5f9778d5513214b7a01cc4a94ff314/uvicorn_worker-0.4.0-py3-none-any.whl", hash = "sha256:e2ed952cef976f5e9e429d7269640bbcafbd36c80aa80f1003c8c77a6797abde", size = 5364, upload-time = "2025-09-20T10:46:59.776Z" },
+]
+
+[[package]]
 name = "virtualenv"
 version = "21.15.6"
 source = { registry = "https://alliander.jfrog.io/artifactory/api/pypi/pypi-all/simple" }
@@ -1735,14 +1772,17 @@ dependencies = [
     { name = "lxml" },
     { name = "netcdf4" },
     { name = "numpy" },
+    { name = "paho-mqtt" },
     { name = "pandas" },
     { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "requests" },
     { name = "slowapi" },
     { name = "starlette" },
     { name = "starlette-prometheus" },
     { name = "urllib3" },
     { name = "uvicorn" },
+    { name = "uvicorn-worker" },
     { name = "xarray" },
 ]
 
@@ -1783,14 +1823,17 @@ requires-dist = [
     { name = "lxml", specifier = ">=6.1.3,<7.0.0" },
     { name = "netcdf4", specifier = ">=1.7.5,<2.0.0" },
     { name = "numpy", specifier = ">=2.5.4" },
+    { name = "paho-mqtt", specifier = ">=2.2.0" },
     { name = "pandas", specifier = ">=3.0.6,<4.0.0" },
     { name = "pydantic", specifier = ">=2.14.1,<3.0.0" },
+    { name = "pydantic-settings", specifier = ">=2.16.2" },
     { name = "requests", specifier = ">=2.34.2,<3.0.0" },
     { name = "slowapi", specifier = ">=0.1.10,<0.2.0" },
     { name = "starlette", specifier = ">=1.8.0,<2.0.0" },
     { name = "starlette-prometheus", specifier = ">=0.10.0,<0.11.0" },
     { name = "urllib3", specifier = ">=2.8.0,<3.0.0" },
     { name = "uvicorn", specifier = ">=0.54.0,<0.56.0" },
+    { name = "uvicorn-worker", specifier = ">=0.4.0,<0.5.0" },
     { name = "xarray", specifier = ">=2026.9.0,<2027.0.0" },
 ]
 

@@ -17,8 +17,8 @@ from weather_provider_api.weather.exceptions import (
     UnknownModelException,
     UnknownSourceException,
 )
+from weather_provider_api.weather.sources.__old__.knmi.knmi import KNMI
 from weather_provider_api.weather.sources.cds.cds import CDS
-from weather_provider_api.weather.sources.knmi.knmi import KNMI
 from weather_provider_api.weather.units import OutputUnit
 from weather_provider_api.weather.utils.geo_position import GeoPosition
 

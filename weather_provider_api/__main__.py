@@ -29,10 +29,7 @@ def launch_api(run_mode: str = "uvicorn", host: str = "127.0.0.1", port: int = 8
         As Gunicorn only works within the Linux OS, the 'gunicorn' run_mode setting will not work from any other OS.
 
     """
-    project_title = (
-        APP_CONFIG["base"]["full_title"] if APP_CONFIG["base"]["full_title"] else APP_CONFIG["base"]["title"]
-    )
-    launch_string = f"Launching: {project_title}..."
+    launch_string = f"Launching: {APP_CONFIG.APP_TITLE}..."
     logger.info("-" * len(launch_string))
     logger.info(launch_string)
     logger.info("-" * len(launch_string))
@@ -41,17 +38,29 @@ def launch_api(run_mode: str = "uvicorn", host: str = "127.0.0.1", port: int = 8
 
     # start application based on parameters
     if run_mode.upper() == "UVICORN":
-        uvicorn.run(WPLA_APPLICATION, host=host, port=port)
+        uvicorn.run(
+            WPLA_APPLICATION,
+            host=host,
+            port=port,
+            proxy_headers=True,
+            forwarded_allow_ips=APP_CONFIG.FORWARDED_ALLOW_IPS,
+        )
     elif run_mode.upper() == "GUNICORN":
         # Error handling for problems with the Gunicorn application get handled by Gunicorn itself.
         from weather_provider_api.core.gunicorn_application import GunicornApplication
 
-        gunicorn_app = GunicornApplication(options={"bind": f"{host}:{port}"}, fastapi_application=WPLA_APPLICATION)
+        gunicorn_app = GunicornApplication(
+            options={
+                "bind": f"{host}:{port}",
+                "forwarded_allow_ips": APP_CONFIG.FORWARDED_ALLOW_IPS,
+            },
+            fastapi_application=WPLA_APPLICATION,
+        )
         gunicorn_app.run()
     else:
         raise ValueError(f"Invalid run-mode selected: {run_mode}")
 
-    shutting_down_string = f"Shutting down: {project_title}"
+    shutting_down_string = f"Shutting down: {APP_CONFIG.APP_TITLE}"
     logger.info("-" * len(shutting_down_string))
     logger.info(shutting_down_string)
     logger.info("-" * len(shutting_down_string))
