@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+import json
 from datetime import datetime
+from types import SimpleNamespace
 
 import pytest
 import requests  # type: ignore
@@ -38,7 +40,18 @@ def test_retrieve_weather(
 ):
     """Tests the get_weather function of the UurgegevensModel class."""
     mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
-    # Version 3.x will be tested without an actual connection.
+
+    def mock_request_post(*args, **kwargs):
+        params = kwargs["data"]
+        station_codes = [int(station) for station in params["stns"].split(":")]
+        records = [
+            {"station_code": station, "date": params["start"][:8], "hour": 1, "TD": 35}
+            for station in station_codes
+        ]
+        return SimpleNamespace(status_code=200, text=json.dumps(records))
+
+    monkeypatch.setattr(requests, "post", mock_request_post)  # type: ignore
+
     uurgegevens_model = UurgegevensModel()
     ds = uurgegevens_model.get_weather(coords=mock_geoposition_coordinates, begin=start, end=end)
 

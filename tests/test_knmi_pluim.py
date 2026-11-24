@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 
 import pytest
 import requests  # type: ignore
@@ -30,8 +31,21 @@ def test_retrieve_weather(
     starting_moment: datetime,
     ending_moment: datetime,
 ):
+    """Exercise Pluim model processing with a synthetic forecast response."""
     mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
-    # TODO: Monkeypatch the download call to test without connection
+    predicted_at = starting_moment + timedelta(seconds=1)
+    forecast_data = [
+        [int(predicted_at.timestamp() * 1000), 10.0],
+        [int((predicted_at + timedelta(hours=12)).timestamp() * 1000), 12.0],
+    ]
+
+    def mock_request_get(*args, **kwargs):
+        return SimpleNamespace(
+            status_code=200,
+            json=lambda: {"series": [{"name": "Verwacht", "data": forecast_data}]},
+        )
+
+    monkeypatch.setattr(requests, "get", mock_request_get)  # type: ignore
 
     # TEST 1: Regular usage, with a non-existing factor
     pluim_model = PluimModel()

@@ -21,6 +21,7 @@ from weather_provider_api.core.initializers.mounting import mount_api_version
 from weather_provider_api.core.initializers.prometheus import (
     initialize_prometheus_interface,
 )
+from weather_provider_api.core.initializers.rate_limiter import initialize_rate_limiter
 from weather_provider_api.core.initializers.validation import initialize_api_validation
 from weather_provider_api.versions.v1 import app as v1
 from weather_provider_api.versions.v2 import app as v2
@@ -66,6 +67,7 @@ def _build_api_application() -> FastAPI:
         lifespan=lifespan,
     )
     application.openapi_version = "3.0.2"
+    initialize_rate_limiter(application)
 
     # Attach selected middleware
     initialize_exception_handler(application)
@@ -78,8 +80,8 @@ def _build_api_application() -> FastAPI:
         initialize_cors_middleware(application)
 
     # Create and connect to end-points
-    mount_api_version(application, v1)
-    mount_api_version(application, v2)
+    mount_api_version(application, v1, "/api/v1")
+    mount_api_version(application, v2, "/api/v2")
 
     # Adding a redirect from the root of the application to our default view
     @application.get("/")

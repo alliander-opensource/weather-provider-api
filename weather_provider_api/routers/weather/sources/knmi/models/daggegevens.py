@@ -298,7 +298,7 @@ class DagGegevensModel(WeatherModelBase):
             xr.Dataset: Parsed observations indexed by station and date.
         """
         json_data = json.loads(raw_data)
-        dataframe_data = pd.DataFrame.from_dict(json_data, orient="columns")
+        dataframe_data = pd.DataFrame(json_data)
         dataframe_data["date"] = pd.to_datetime(dataframe_data["date"])
 
         conversion_dict = {
