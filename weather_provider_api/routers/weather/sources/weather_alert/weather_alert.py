@@ -6,7 +6,7 @@
 from enum import Enum
 from html.parser import HTMLParser
 
-from requests.exceptions import ProxyError, Timeout, TooManyRedirects
+from requests.exceptions import ConnectionError, ProxyError, Timeout, TooManyRedirects
 from requests.sessions import HTTPAdapter, Session
 from urllib3 import Retry
 
@@ -59,7 +59,10 @@ class WeatherAlert:
             # Every province is available from a different page, so we have to request all of them separately
             page_text = ""
             try:
-                page = self._requests_retry_session().get(self.url + province)
+                page = self._requests_retry_session().get(
+                    self.url + province,
+                    timeout=(2, 3),
+                )
                 status_code = page.status_code
                 page_text = page.text
             except Timeout:
@@ -67,6 +70,8 @@ class WeatherAlert:
             except ProxyError:
                 status_code = 407
             except TooManyRedirects:
+                status_code = 999
+            except ConnectionError:
                 status_code = 999
 
             append_string = self.process_page(page_text, status_code, province)
@@ -107,7 +112,7 @@ class WeatherAlert:
     @staticmethod
     def _requests_retry_session(
         # A function for basic retrying of an url when it isn't accessible immediately.
-        retries: int = 8,
+        retries: int = 1,
         backoff_factor: float = 0.01,
         status_forcelist: tuple[int, ...] = (500, 502, 504),
         session: Session | None = None,
@@ -126,7 +131,7 @@ class WeatherAlert:
         session = session or Session()
         retry = Retry(
             total=retries,
-            read=retries,
+            read=0,
             connect=retries,
             backoff_factor=backoff_factor,
             status_forcelist=status_forcelist,

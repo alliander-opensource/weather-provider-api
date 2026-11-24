@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 from loguru import logger
 
-from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER
+from weather_provider_api.core.initializers.rate_limiter import API_RATE_LIMITER, enforce_default_rate_limit
 from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
     ScientificJSONResponse,
@@ -31,7 +31,7 @@ from weather_provider_api.routers.weather.api_view_common import (
     header_accept_type,
 )
 
-v2_router = APIRouter()
+v2_router = APIRouter(dependencies=[Depends(enforce_default_rate_limit)])
 
 # @weather_provider_api.get("/sources", response_model=List[WeatherSource], tags=["sync", "async"])
 v2_router.add_api_route("/sources", get_sources, response_model=list[WeatherSource], tags=["sync"])

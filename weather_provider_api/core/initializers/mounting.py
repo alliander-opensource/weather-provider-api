@@ -13,6 +13,7 @@ from loguru import logger
 from weather_provider_api.core.initializers.exception_handling import (
     initialize_exception_handler,
 )
+from weather_provider_api.core.initializers.rate_limiter import initialize_rate_limiter
 
 
 def mount_api_version(base_application: FastAPI, api_to_mount: FastAPI) -> None:
@@ -29,5 +30,6 @@ def mount_api_version(base_application: FastAPI, api_to_mount: FastAPI) -> None:
          parent application at least has a title set.
     """
     initialize_exception_handler(api_to_mount)  # Hookup the exception handler to the new sub-API
+    initialize_rate_limiter(api_to_mount)
     base_application.mount(api_to_mount.root_path, api_to_mount)
     logger.info(f"Mounted API [{api_to_mount.title}] to [{base_application.title}] at: {api_to_mount.root_path}")
