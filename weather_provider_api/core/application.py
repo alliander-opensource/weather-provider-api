@@ -80,8 +80,8 @@ def _build_api_application() -> FastAPI:
         initialize_cors_middleware(application)
 
     # Create and connect to end-points
-    mount_api_version(application, v1)
-    mount_api_version(application, v2)
+    mount_api_version(application, v1, "/api/v1")
+    mount_api_version(application, v2, "/api/v2")
 
     # Adding a redirect from the root of the application to our default view
     @application.get("/")

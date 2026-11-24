@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from datetime import datetime
+import json
+from datetime import datetime, timedelta
+from types import SimpleNamespace
 
 import pytest
 import requests  # type: ignore
@@ -27,13 +29,35 @@ def end():
 
 
 @pytest.mark.parametrize("inseason", inseason_options)
-def test_retrieve_weather(mock_coordinates: list[tuple[float, float]], start: datetime, end: datetime, inseason: bool):
+def test_retrieve_weather(
+    monkeypatch: pytest.MonkeyPatch,
+    mock_coordinates: list[tuple[float, float]],
+    start: datetime,
+    end: datetime,
+    inseason: bool,
+):
+    """Parse synthetic KNMI daily observations without contacting the source."""
     mock_geoposition_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
-    # TODO: Monkeypatch the download call to test without connection
+
+    def mock_request_post(*args, **kwargs):
+        params = kwargs["data"]
+        station_codes = [int(station) for station in params["stns"].split(":")]
+        current_date = datetime.strptime(params["start"], "%Y%m%d").date()
+        end_date = datetime.strptime(params["end"], "%Y%m%d").date()
+        records = []
+        while current_date <= end_date:
+            records.extend(
+                {"station_code": station, "date": current_date.isoformat(), "TN": 10}
+                for station in station_codes
+            )
+            current_date += timedelta(days=1)
+        return SimpleNamespace(status_code=200, text=json.dumps(records))
+
+    monkeypatch.setattr(requests, "post", mock_request_post)  # type: ignore
+
     daggegevens_model = DagGegevensModel()
     ds = daggegevens_model.get_weather(coords=mock_geoposition_coordinates, begin=start, end=end, inseason=inseason)
 
-    print(ds["time"])
     assert ds is not None
     assert "TN" in ds
     assert len(ds["TN"]) in (30, 31)  # Temporal dimension length for test may vary depending on OS

@@ -237,11 +237,11 @@ def test_initialize_cors_middleware_skips_when_nothing_configured(monkeypatch):
 # mounting.py
 # --------------------------------------------------------------------------------------------------------------------
 def test_mount_api_version_mounts_child_and_attaches_exception_handler():
-    """Mounting should add the child at its root_path and give the child the custom exception handler."""
+    """Mounting should use the given path and give the child the custom exception handler."""
     parent = FastAPI(title="parent")
-    child = FastAPI(title="child", root_path="/api/vchild")
+    child = FastAPI(title="child")
 
-    mount_api_version(parent, child)
+    mount_api_version(parent, child, "/api/vchild")
 
     mounts = [route for route in parent.routes if isinstance(route, Mount)]
     assert any(mount.path == "/api/vchild" for mount in mounts)

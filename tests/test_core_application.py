@@ -76,7 +76,7 @@ def test_weather_alert_routes_enforce_default_rate_limit(monkeypatch) -> None:
         return {
             path: [await request_status(path, client_host) for _ in range(6)]
             for path, client_host in (
-                ("/api/v1/api/v1/weather/alarms/knmi", "192.0.2.1"),
+                ("/api/v1/weather/alarms/knmi", "192.0.2.1"),
                 ("/api/v2/weather/alarms/knmi", "192.0.2.2"),
                 ("/api/v2/weather/sources", "192.0.2.3"),
             )
@@ -85,7 +85,7 @@ def test_weather_alert_routes_enforce_default_rate_limit(monkeypatch) -> None:
     statuses = asyncio.run(exercise_routes())
 
     assert statuses == {
-        "/api/v1/api/v1/weather/alarms/knmi": [200, 200, 200, 200, 200, 429],
+        "/api/v1/weather/alarms/knmi": [200, 200, 200, 200, 200, 429],
         "/api/v2/weather/alarms/knmi": [200, 200, 200, 200, 200, 429],
         "/api/v2/weather/sources": [200, 200, 200, 200, 200, 429],
     }
