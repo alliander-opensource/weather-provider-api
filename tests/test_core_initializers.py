@@ -15,6 +15,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -236,15 +237,17 @@ def test_initialize_cors_middleware_skips_when_nothing_configured(monkeypatch):
 # mounting.py
 # --------------------------------------------------------------------------------------------------------------------
 def test_mount_api_version_mounts_child_and_attaches_exception_handler():
-    """Mounting should add the child at its root_path and give the child the custom exception handler."""
+    """Mounting should use the given path and give the child the custom exception handler."""
     parent = FastAPI(title="parent")
-    child = FastAPI(title="child", root_path="/api/vchild")
+    child = FastAPI(title="child")
 
-    mount_api_version(parent, child)
+    mount_api_version(parent, child, "/api/vchild")
 
     mounts = [route for route in parent.routes if isinstance(route, Mount)]
     assert any(mount.path == "/api/vchild" for mount in mounts)
     assert child.exception_handlers[StarletteHTTPException] is handle_http_exception
+    assert child.state.limiter is API_RATE_LIMITER
+    assert any(m.cls is SlowAPIMiddleware for m in child.user_middleware)
 
 
 # --------------------------------------------------------------------------------------------------------------------

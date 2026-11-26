@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import asyncio
+import time
 from types import SimpleNamespace
 
 import numpy as np
@@ -17,6 +18,7 @@ from weather_provider_api.routers.weather.api_models import (
     WeatherContentRequestQuery,
     WeatherFormattingRequestQuery,
 )
+from weather_provider_api.routers.weather.sources.weather_alert.weather_alert import WeatherAlert
 
 
 def _request_args() -> tuple[WeatherContentRequestQuery, WeatherFormattingRequestQuery]:
@@ -37,6 +39,31 @@ def _weather_dataset() -> xr.Dataset:
         {"temperature": (("time", "lat", "lon"), np.ones((1, 1, 1)))} ,
         coords={"time": ["2026-09-22T00:00:00"], "lat": [52.0], "lon": [5.0]},
     )
+
+
+def test_get_alarm_does_not_block_the_event_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run the synchronous KNMI fetch in a worker thread."""
+
+    def slow_get_alarm(self):
+        time.sleep(0.1)
+        return []
+
+    monkeypatch.setattr(WeatherAlert, "get_alarm", slow_get_alarm)
+    ticks: list[float] = []
+
+    async def ticker() -> None:
+        end_time = asyncio.get_running_loop().time() + 0.1
+        while asyncio.get_running_loop().time() < end_time:
+            ticks.append(asyncio.get_running_loop().time())
+            await asyncio.sleep(0.01)
+
+    async def exercise() -> None:
+        result, _ = await asyncio.gather(api_view_common.get_alarm(), ticker())
+        assert result == []
+
+    asyncio.run(exercise())
+
+    assert len(ticks) >= 5
 
 
 def test_get_weather_response_fetches_formats_and_registers_cleanup(monkeypatch: pytest.MonkeyPatch) -> None:
