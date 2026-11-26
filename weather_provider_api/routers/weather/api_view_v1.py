@@ -6,6 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Response
 
+from weather_provider_api.core.initializers.rate_limiter import enforce_default_rate_limit
 from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
     WeatherContentRequestQuery,
@@ -25,7 +26,7 @@ from weather_provider_api.routers.weather.api_view_common import (
     header_accept_type,
 )
 
-app = APIRouter(deprecated=True)
+app = APIRouter(deprecated=True, dependencies=[Depends(enforce_default_rate_limit)])
 
 app.add_api_route("/sources", get_sources, response_model=list[WeatherSource], tags=["sync"])
 app.add_api_route("/sources/{source_id}", get_source, response_model=WeatherSource, tags=["sync"])

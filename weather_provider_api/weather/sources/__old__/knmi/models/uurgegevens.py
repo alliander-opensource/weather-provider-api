@@ -259,7 +259,7 @@ class UurgegevensModel(WeatherModelBase):
             xr.Dataset: Parsed observations indexed by station and timestamp.
         """
         json_data = json.loads(raw_data)
-        dataframe_data: pd.DataFrame = pd.DataFrame.from_dict(json_data, orient="columns")
+        dataframe_data: pd.DataFrame = pd.DataFrame(json_data)
 
         conversion_dict: dict[str, type] = {
             "hour": str,

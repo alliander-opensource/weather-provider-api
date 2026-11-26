@@ -21,5 +21,5 @@ app = FastAPI(
 
 app.openapi_version = "3.0.2"
 
-app.include_router(weather_router, prefix="/api/v1/weather")
+app.include_router(weather_router, prefix="/weather")
 app.openapi()

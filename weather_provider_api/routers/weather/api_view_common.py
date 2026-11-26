@@ -7,6 +7,7 @@ from typing import Annotated
 import accept_types  # type: ignore
 import numpy as np
 from fastapi import BackgroundTasks, Depends, Header, HTTPException, Response
+from starlette.concurrency import run_in_threadpool
 
 from weather_provider_api.routers.weather.api_models import (
     ResponseFormat,
@@ -60,7 +61,7 @@ async def get_sync_models(source_id: str) -> list[WeatherModelBase]:  # pragma: 
 
 async def get_alarm() -> list[tuple[str, str]]:  # pragma: no cover
     """Fetch the current weather alarm status for all provinces."""
-    return WeatherAlert().get_alarm()
+    return await run_in_threadpool(WeatherAlert().get_alarm)
 
 
 async def get_weather_response(

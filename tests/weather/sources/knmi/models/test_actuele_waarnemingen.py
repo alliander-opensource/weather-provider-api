@@ -62,12 +62,23 @@ def observation_response():
     return SimpleNamespace(ok=True, status_code=200, text=html)
 
 
-def test_get_weather(mock_coordinates: list[tuple[float, float]], start: datetime, end: datetime):
-    """Test the get_weather function of the ActueleWaarnemingenModel for mock coordinates and a given time range."""
+def test_get_weather(
+    monkeypatch: pytest.MonkeyPatch, mock_coordinates: list[tuple[float, float]], start: datetime, end: datetime
+):
+    """Run the observations model against local sample data rather than the live KNMI page."""
     mock_geo_coordinates = [GeoPosition(coordinate[0], coordinate[1]) for coordinate in mock_coordinates]
+    raw_dataset = xr.Dataset(
+        {"temperature": (("time", "STN"), np.array([[10.0, 12.0]]))},
+        coords={"time": [datetime(2026, 9, 22)], "STN": [260, 261]},
+    )
+    monkeypatch.setattr(model_module, "download_actuele_waarnemingen_weather", lambda: raw_dataset)
+    monkeypatch.setattr(
+        model_module,
+        "find_closest_stn_list",
+        lambda stations, coords: ([260, 261][: len(coords)], [260, 261], [0, 1][: len(coords)]),
+    )
     aw_model = ActueleWaarnemingenModel()
 
-    # TODO: Monkeypatch the download call to test without connection
     ds = aw_model.get_weather(coords=mock_geo_coordinates, begin=start, end=end)
 
     assert ds is not None

@@ -158,11 +158,19 @@ def _normalize_time_coordinate_for_netcdf(unserialized_data: xr.Dataset) -> xr.D
     if "time" not in unserialized_data.coords:
         return unserialized_data
 
-    try:
-        time_index = pd.to_datetime(unserialized_data.coords["time"].values, utc=True, errors="raise")
-    except (TypeError, ValueError):
-        # Keep non-standard/cftime-like coordinates untouched.
-        return unserialized_data
+    time_index = unserialized_data.indexes.get("time")
+    if isinstance(time_index, pd.DatetimeIndex):
+        time_index = (
+            time_index.tz_localize("UTC")
+            if time_index.tz is None
+            else time_index.tz_convert("UTC")
+        )
+    else:
+        try:
+            time_index = pd.to_datetime(unserialized_data.coords["time"].data, utc=True, errors="raise")
+        except (TypeError, ValueError):
+            # Keep non-standard/cftime-like coordinates untouched.
+            return unserialized_data
 
     # NetCDF cannot store timezone-aware datetimes directly.
     normalized_time = time_index.tz_localize(None).to_numpy(dtype="datetime64[ns]")

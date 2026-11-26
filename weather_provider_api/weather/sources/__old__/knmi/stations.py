@@ -399,11 +399,9 @@ _stations_df.columns = ["STN", "lon", "lat", "alt", "name"]
 # filter on prediction and models
 def filter_stations(stns):
     """Create a list of filtered stations from the passed list of stations."""
-    filtered_stations = _stations_df.copy(deep=True)
-    filtered_stations.set_index("STN", inplace=True)
+    filtered_stations = _stations_df.copy(deep=True).set_index("STN")
     filtered_stations = filtered_stations.loc[stns, :]
-    filtered_stations.reset_index(level=0, inplace=True)
-    return filtered_stations
+    return filtered_stations.reset_index(level=0)
 
 
 # filter
